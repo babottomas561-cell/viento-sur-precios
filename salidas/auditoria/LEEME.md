@@ -1,4 +1,13 @@
-# Auditoría del tablero
+# Auditoría del tablero y de la planilla
+
+**La planilla:** `auditar_excel.py` recalcula desde el Excel original los 100 lotes (indicador por indicador), cada sucursal de la
+hoja Resumen y los productos de la Propuesta, y los compara con `salidas/ventas_y_stock.xlsx`:
+
+```
+.venv/bin/python salidas/auditoria/auditar_excel.py            # Último resultado: 1.031 chequeos, sin diferencias
+```
+
+**El tablero:**
 
 1. `esperado.py` calcula, directo de `datos/viento_sur.xlsx` (sin pasar por `armar_excel.py`), qué tendría que mostrar cada pestaña
    en 17 combinaciones de filtros (fechas incluidas): ventas, stock al corte de la fecha "hasta", % vendido, vencido, % de lo esperado,

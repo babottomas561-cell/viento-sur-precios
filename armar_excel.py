@@ -36,7 +36,9 @@ h = pd.read_excel(DATOS, sheet_name=None)
 # Productos del catálogo sin stock en ninguna sucursal: no hay mercadería para mover, así que quedan fuera del análisis
 # (la nota los nombra). Con los datos de la consigna no hay ninguno.
 _con_stock = set(h["stock_sucursal"].sku)
-SIN_STOCK = h["productos"][~h["productos"].sku.isin(_con_stock)].nombre.tolist()
+_sin = h["productos"][~h["productos"].sku.isin(_con_stock)]
+SIN_STOCK = _sin.nombre.tolist()
+SIN_STOCK_SKU = list(zip(_sin.sku, _sin.nombre))
 for _hoja in ["productos", "ventas", "historial_sugerencias", "cambios_precio", "campanas_activas", "propuesta_consultora"]:
     h[_hoja] = h[_hoja][h[_hoja].sku.isin(_con_stock)]
 prod = h["productos"].set_index("sku")
@@ -1766,6 +1768,14 @@ def hoja_propuesta(wb, D, ev):
         ws.cell(r, 8).fill = PatternFill("solid", fgColor=COLOR_ACCION(f.accion))
         ws.cell(r, 8).font = Font(bold=True)
         ws.cell(r, 19).fill = PatternFill("solid", fgColor="CDE8D6" if f.coincide == "sí" else "F2C4BC")
+    for sku_, nombre in SIN_STOCK_SKU:                      # también se dice algo de los que no tienen stock
+        r += 1
+        vals = [nombre, sku_, "— · sin stock", "ninguna", 0, None, None, "Sin stock: nada que mover", "", "",
+                "No tiene stock en ninguna sucursal en esta foto: no hay mercadería quieta.", "Si se vendía bien, evaluar reponer.",
+                "", "", "", "", "", "", ""]
+        for j, x in enumerate(vals, start=1):
+            ws.cell(r, j, x).alignment = Alignment(wrap_text=True, vertical="top")
+        ws.cell(r, 8).font = Font(bold=True)
     ws.freeze_panes = ws.cell(head + 1, 2)
     ws.auto_filter.ref = f"A{head}:{get_column_letter(len(cols))}{r}"
     r += 3
