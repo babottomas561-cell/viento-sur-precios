@@ -88,6 +88,14 @@ button, select, input { font: inherit; color: inherit; }
 .sec { display: grid; gap: 14px; min-width: 0; }
 .sec-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
 .sec-cab p { max-width: 72ch; color: var(--ink-2); }
+/* Interpretación debajo de cada gráfico o tabla: cómo leerlo, qué se ve y qué significa */
+.interp { margin: 10px 0 0; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--panel-2); border-radius: 0 6px 6px 0;
+  display: grid; grid-template-columns: 7.2rem minmax(0, 1fr); gap: 6px 12px; font-size: .86rem; line-height: 1.45; }
+.interp dt { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 2px; }
+.interp dd { margin: 0; color: var(--ink); }
+/* Explicaciones en lenguaje simple: la conclusión arriba, y cómo leer el gráfico en un renglón aparte */
+.como-leer { display: block; margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--line-2); color: var(--muted); font-size: .84rem; }
+.como-se-mide { margin: 4px 0 0; padding: 10px 14px; background: var(--panel-2); border-radius: 6px; max-width: 90ch; }
 .bloque { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0; }
 .dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
 .nota { font-size: .84rem; color: var(--muted); max-width: 80ch; }
@@ -100,7 +108,7 @@ button, select, input { font: inherit; color: inherit; }
 .respuesta li p { font-size: 1.08rem; line-height: 1.45; }
 .cifras { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
 .cifra { padding: 12px 4px 12px 0; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
-.cifra b { font-family: var(--f-num); font-weight: 500; font-size: 1.35rem; letter-spacing: -.02em; }
+.cifra b { font-family: var(--f-num); font-weight: 500; font-size: clamp(1.05rem, 1.6vw, 1.35rem); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .cifra span { font-size: .8rem; color: var(--muted); line-height: 1.35; }
 .cifra.mala b { color: var(--bad); }
 .cifra.buena b { color: var(--good); }
@@ -285,6 +293,8 @@ tfoot td { background: var(--panel-2); border-top: 1px solid var(--line-2); posi
   .barra-nombres { display: none; }
   .barra-leyenda { display: flex; }
   .pasos4 { grid-template-columns: 1fr; gap: 2px; }
+  .interp { grid-template-columns: 1fr; gap: 2px; }
+  .interp dd { margin-bottom: 6px; }
   .pasos4 dd { margin-bottom: 8px; }
   .causa-card header { grid-template-columns: auto 1fr; }
   .causa-card .toca { grid-column: 2; justify-self: start; }

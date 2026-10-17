@@ -2,7 +2,7 @@
 
 Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hacer con el precio de cada uno de los 48 productos y por qué, juzga el algoritmo de la consultora y arma un tablero para seguir la decisión.
 
-**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)**. Tiene una base detrás: con **Subir Excel** cualquiera carga una foto nueva, el proceso corre en el servidor y el tablero pasa a mostrar la más nueva, con el seguimiento de lo que se viene recomendando.
+**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)**. Muestra los datos del Excel de la consigna (al 15/03/2026). Tiene una base detrás para cuando lleguen más: con **Subir Excel** se carga el de la semana siguiente, el proceso corre en el servidor y el tablero pasa a medir si se cumple lo que se recomendó.
 
 ## Dónde está cada respuesta
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 python armar_excel.py
 ```
 
-Genera en `salidas/`: `ventas_y_stock.xlsx` (la propuesta y todo el análisis), `nota.md`, `causas.md` y `tablero_datos.json`. Corre en pocos segundos y da siempre el mismo resultado: los rangos por azar usan una semilla fija.
+Genera en `salidas/`: `ventas_y_stock.xlsx` (la propuesta y todo el análisis), `nota.md`, `causas.md` y `tablero_datos.json`. Corre en pocos segundos y da siempre el mismo resultado: los márgenes de error usan una semilla fija.
 
 Opciones: `python armar_excel.py --datos otro.xlsx --salidas otra_carpeta`. Ninguna cifra está escrita a mano: si cambian los datos, cambian la propuesta, la nota y el tablero.
 
@@ -58,9 +58,9 @@ Opciones: `python armar_excel.py --datos otro.xlsx --salidas otra_carpeta`. Ning
 python actualizar.py --datos datos/viento_sur.xlsx
 ```
 
-Corre el proceso, guarda la foto en una base SQLite (`datos/viento_sur.db`) con su historia, y arma el tablero en `web/`. Con la segunda foto, la pestaña *Seguimiento* muestra si se está cumpliendo lo recomendado.
+Corre el proceso, guarda los datos de ese Excel (con su fecha) en una base SQLite (`datos/viento_sur.db`) y arma el tablero en `web/`. Con el primer Excel, la pestaña *Seguimiento* muestra la agenda de revisión de cada recomendación; cuando llega el de la semana siguiente, empieza a medir si se cumple.
 
-Para probarlo sin esperar una semana, `recortar_foto.py` arma cómo se veían los datos en una fecha anterior (las ventas hasta ese día y el stock de entonces):
+Para probar el seguimiento sin esperar una semana, `recortar_foto.py` arma, a partir del mismo Excel, cómo se veían los datos en una fecha anterior (las ventas hasta ese día y el stock de entonces). Es solo una herramienta de prueba: el tablero entregado usa únicamente el Excel de la consigna.
 
 ```bash
 python recortar_foto.py 2026-03-08          # → datos/viento_sur_al_2026-03-08.xlsx
@@ -72,19 +72,19 @@ En [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), **Sub
 
 1. Valida que el Excel tenga las hojas y columnas de la consigna.
 2. Corre `armar_excel.py`, el mismo proceso, sin cambios.
-3. Lo guarda en la base como la foto de esa fecha (el último día con ventas). Si ya había una de esa fecha, la reemplaza; si es de una fecha anterior, las fotos posteriores recalculan su seguimiento.
-4. El tablero abre siempre la foto más nueva. Las anteriores se eligen en el selector "Foto".
+3. Lo guarda en la base con la fecha de sus datos (el último día con ventas). Si ya había un Excel de esa fecha, lo reemplaza; si es de una fecha anterior, los posteriores recalculan su seguimiento.
+4. El tablero abre siempre los datos más nuevos. Los anteriores se eligen en el selector "Datos al".
 
-**Seguimiento:** cada recomendación se sigue desde la primera foto en que se propuso, mientras se haya seguido proponiendo lo mismo. Muestra semana a semana si se aplicó (precio cobrado), si llega a su meta, cómo baja el stock y si ya pasó su fecha de revisión. La base arranca con tres fotos: la del 15/03 (la de la consigna) y dos recortes de los mismos datos, al 01/03 y al 08/03.
+**Seguimiento:** cada recomendación se sigue desde el Excel en que se propuso, mientras se siga proponiendo lo mismo. Cada una tiene una regla simple que se comprueba con las ventas (por ejemplo, un descuento: que se cobre en caja y llegue a su meta; un producto que nunca vendió: que tenga una primera venta), y el resumen separa las que ya llegaron a su fecha de revisión de las que siguen en curso. La base tiene solo el Excel de la consigna: el seguimiento empieza con el siguiente.
 
 Es una demo: no tiene login, y lo que se sube queda público.
 
 | Archivo | Qué hace |
 |---|---|
 | `foto.py` | La lógica compartida: validar el Excel, correr el proceso, medir el seguimiento y armar el paquete que lee el tablero |
-| `servidor.py` | La base online (Vercel Blob): una foto por fecha, versiones que nunca se pisan, recálculo de las posteriores |
+| `servidor.py` | La base online (Vercel Blob): un Excel por fecha de datos, versiones que nunca se pisan, recálculo de los posteriores |
 | `blob.py` | Cliente mínimo del almacenamiento de Vercel, sin dependencias |
-| `api/subir.py`, `api/fotos.py`, `api/abrir.py` | Las funciones del servidor: subir un Excel, listar las fotos, abrir una |
+| `api/subir.py`, `api/fotos.py`, `api/abrir.py` | Las funciones del servidor: subir un Excel, listar los cargados, abrir uno |
 | `vercel.json`, `.vercelignore` | Qué se publica y cómo corren las funciones (región San Pablo, hasta 60 s) |
 
 `foto.py` es el mismo para la base local y la online: probado, las dos dan el mismo seguimiento.
@@ -116,8 +116,8 @@ armar_excel.py        el proceso: datos → propuesta, nota, Excel y datos del t
 actualizar.py         base local (SQLite) con historia + tablero (para correr con cada Excel nuevo)
 foto.py               lo común a la base local y a la online: validar, correr, seguimiento, paquete
 servidor.py, blob.py  la base online (Vercel Blob)
-api/                  las funciones del servidor (subir, listar y abrir fotos)
-recortar_foto.py      arma una foto anterior recortando el Excel a una fecha
+api/                  las funciones del servidor (subir, listar y abrir los Excel cargados)
+recortar_foto.py      herramienta de prueba: recorta el Excel a una fecha anterior
 proceso.md            pregunta 3
 datos/viento_sur.xlsx los datos de la consigna
 salidas/              lo que genera armar_excel.py

@@ -269,7 +269,7 @@
    "prueba": [
     "Con descuento, botas vendieron **+50 %** y mochilas vendieron **+42 %**; zapatillas +25 %, una respuesta débil.",
     "En camperas, un 30 % de descuento movió apenas **+3 %**; toallas, remeras, sábanas y pelotas tampoco respondieron.",
-    "Productos sin ningún cambio variaron −9 % esas mismas semanas: la suba no fue por temporada."
+    "Productos sin ningún cambio variaron −10 % esas mismas semanas: la suba no vino de un movimiento general de la venta. La temporada propia de cada tipo no se puede medir (no hay datos de otros años): por eso se prueba con una sucursal de comparación."
    ],
    "hacemos": "Probar un descuento por 4 semanas solo en los **3 de 8** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
    "por_que": "Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
@@ -302,7 +302,9 @@
    "alto": 1.7827988239830344,
    "firme": true,
    "debil": false,
-   "despues": 0.7986356151493766
+   "despues": 0.7986356151493766,
+   "u_con": 5.178571428571429,
+   "u_sin": 3.4516129032258065
   },
   {
    "tipo": "mochilas",
@@ -313,7 +315,9 @@
    "alto": 1.6778000801474262,
    "firme": true,
    "debil": false,
-   "despues": 0.8267716535433072
+   "despues": 0.8267716535433072,
+   "u_con": 5.392857142857143,
+   "u_sin": 3.806451612903226
   },
   {
    "tipo": "zapatillas",
@@ -324,7 +328,9 @@
    "alto": 1.6130208032296356,
    "firme": false,
    "debil": true,
-   "despues": 1.2417283219887543
+   "despues": 1.2417283219887543,
+   "u_con": 5.357142857142857,
+   "u_sin": 4.275862068965517
   },
   {
    "tipo": "pelotas",
@@ -335,7 +341,9 @@
    "alto": 1.5338890330841637,
    "firme": false,
    "debil": false,
-   "despues": 0.6685608653977818
+   "despues": 0.6685608653977818,
+   "u_con": 4.392857142857143,
+   "u_sin": 3.661290322580645
   },
   {
    "tipo": "toallas",
@@ -346,7 +354,9 @@
    "alto": 1.627834058548344,
    "firme": false,
    "debil": false,
-   "despues": 1.1961891319689486
+   "despues": 1.1961891319689486,
+   "u_con": 3.8214285714285716,
+   "u_sin": 3.2903225806451615
   },
   {
    "tipo": "sabanas",
@@ -357,7 +367,9 @@
    "alto": 1.381193338721627,
    "firme": false,
    "debil": false,
-   "despues": 0.8685516619040459
+   "despues": 0.8685516619040459,
+   "u_con": 4.107142857142857,
+   "u_sin": 3.7419354838709675
   },
   {
    "tipo": "camperas",
@@ -368,7 +380,9 @@
    "alto": 1.2096560846560847,
    "firme": false,
    "debil": false,
-   "despues": 1.098503138580396
+   "despues": 1.098503138580396,
+   "u_con": 4.035714285714286,
+   "u_sin": 3.935483870967742
   },
   {
    "tipo": "remeras",
@@ -379,7 +393,9 @@
    "alto": 1.1630591630591631,
    "firme": false,
    "debil": false,
-   "despues": 0.9008664627930685
+   "despues": 0.9008664627930685,
+   "u_con": 3.357142857142857,
+   "u_sin": 3.370967741935484
   }
  ],
  "control": {
@@ -387,6 +403,200 @@
   "bajo": 0.7762413055109684,
   "alto": 1.0243695610211205
  },
+ "evidencia_suc": [
+  {
+   "tipo": "zapatillas",
+   "sku": "VS-1001",
+   "producto": "Zapatilla del valle 1",
+   "suc": "S01",
+   "descuento": 0.1,
+   "u_sin": 2.3620689655172415,
+   "u_con": 2.5357142857142856,
+   "respuesta": 1.0735140771637122,
+   "bajo": 0.7640455013536632,
+   "alto": 1.4748571428571426
+  },
+  {
+   "tipo": "zapatillas",
+   "sku": "VS-1001",
+   "producto": "Zapatilla del valle 1",
+   "suc": "S02",
+   "descuento": 0.1,
+   "u_sin": 1.9137931034482758,
+   "u_con": 2.8214285714285716,
+   "respuesta": 1.4742599742599745,
+   "bajo": 0.9776184179456906,
+   "alto": 2.1805091185410332
+  },
+  {
+   "tipo": "botas",
+   "sku": "VS-1002",
+   "producto": "Bota de la costa 2",
+   "suc": "S03",
+   "descuento": 0.2,
+   "u_sin": 1.7258064516129032,
+   "u_con": 3.0357142857142856,
+   "respuesta": 1.7590120160213618,
+   "bajo": 1.4146566960117382,
+   "alto": 2.148547092104168
+  },
+  {
+   "tipo": "botas",
+   "sku": "VS-1002",
+   "producto": "Bota de la costa 2",
+   "suc": "S04",
+   "descuento": 0.2,
+   "u_sin": 1.7258064516129032,
+   "u_con": 2.142857142857143,
+   "respuesta": 1.2416555407209613,
+   "bajo": 0.921265693430657,
+   "alto": 1.6103896103896105
+  },
+  {
+   "tipo": "remeras",
+   "sku": "VS-1003",
+   "producto": "Remera del cerro 3",
+   "suc": "S01",
+   "descuento": 0.15,
+   "u_sin": 1.6612903225806452,
+   "u_con": 1.6428571428571428,
+   "respuesta": 0.9889042995839111,
+   "bajo": 0.783817951959545,
+   "alto": 1.2330737354750512
+  },
+  {
+   "tipo": "remeras",
+   "sku": "VS-1003",
+   "producto": "Remera del cerro 3",
+   "suc": "S03",
+   "descuento": 0.15,
+   "u_sin": 1.7096774193548387,
+   "u_con": 1.7142857142857142,
+   "respuesta": 1.0026954177897573,
+   "bajo": 0.8169121325117664,
+   "alto": 1.2409733124018838
+  },
+  {
+   "tipo": "camperas",
+   "sku": "VS-1004",
+   "producto": "Campera de la laguna 4",
+   "suc": "S01",
+   "descuento": 0.3,
+   "u_sin": 1.8387096774193548,
+   "u_con": 2.0714285714285716,
+   "respuesta": 1.1265664160401003,
+   "bajo": 0.8772983769318777,
+   "alto": 1.4125797560403472
+  },
+  {
+   "tipo": "camperas",
+   "sku": "VS-1004",
+   "producto": "Campera de la laguna 4",
+   "suc": "S04",
+   "descuento": 0.3,
+   "u_sin": 2.096774193548387,
+   "u_con": 1.9642857142857142,
+   "respuesta": 0.9368131868131868,
+   "bajo": 0.7323646850044365,
+   "alto": 1.1994829499596447
+  },
+  {
+   "tipo": "sabanas",
+   "sku": "VS-1005",
+   "producto": "Juego de sábanas del bosque 5",
+   "suc": "S02",
+   "descuento": 0.1,
+   "u_sin": 1.6935483870967742,
+   "u_con": 1.7857142857142858,
+   "respuesta": 1.054421768707483,
+   "bajo": 0.738095238095238,
+   "alto": 1.4218045112781954
+  },
+  {
+   "tipo": "sabanas",
+   "sku": "VS-1005",
+   "producto": "Juego de sábanas del bosque 5",
+   "suc": "S04",
+   "descuento": 0.1,
+   "u_sin": 2.0483870967741935,
+   "u_con": 2.3214285714285716,
+   "respuesta": 1.1332958380202476,
+   "bajo": 0.7531015640757651,
+   "alto": 1.638984710244553
+  },
+  {
+   "tipo": "toallas",
+   "sku": "VS-1006",
+   "producto": "Toalla de la niebla 6",
+   "suc": "S01",
+   "descuento": 0.2,
+   "u_sin": 1.8225806451612903,
+   "u_con": 1.6785714285714286,
+   "respuesta": 0.9209860935524653,
+   "bajo": 0.6871245477135012,
+   "alto": 1.2003220606198337
+  },
+  {
+   "tipo": "toallas",
+   "sku": "VS-1006",
+   "producto": "Toalla de la niebla 6",
+   "suc": "S03",
+   "descuento": 0.2,
+   "u_sin": 1.467741935483871,
+   "u_con": 2.142857142857143,
+   "respuesta": 1.4599686028257457,
+   "bajo": 0.7380952380952381,
+   "alto": 2.513863673704099
+  },
+  {
+   "tipo": "pelotas",
+   "sku": "VS-1007",
+   "producto": "Pelota del muelle 7",
+   "suc": "S02",
+   "descuento": 0.1,
+   "u_sin": 1.532258064516129,
+   "u_con": 2.5357142857142856,
+   "respuesta": 1.6548872180451126,
+   "bajo": 1.1542062436676799,
+   "alto": 2.2935650510204084
+  },
+  {
+   "tipo": "pelotas",
+   "sku": "VS-1007",
+   "producto": "Pelota del muelle 7",
+   "suc": "S03",
+   "descuento": 0.1,
+   "u_sin": 2.129032258064516,
+   "u_con": 1.8571428571428572,
+   "respuesta": 0.8722943722943723,
+   "bajo": 0.6170730442000414,
+   "alto": 1.196911196911197
+  },
+  {
+   "tipo": "mochilas",
+   "sku": "VS-1008",
+   "producto": "Mochila de la estepa 8",
+   "suc": "S02",
+   "descuento": 0.2,
+   "u_sin": 1.7741935483870968,
+   "u_con": 2.75,
+   "respuesta": 1.55,
+   "bajo": 1.2736796776232617,
+   "alto": 1.8528918130958945
+  },
+  {
+   "tipo": "mochilas",
+   "sku": "VS-1008",
+   "producto": "Mochila de la estepa 8",
+   "suc": "S03",
+   "descuento": 0.2,
+   "u_sin": 2.032258064516129,
+   "u_con": 2.642857142857143,
+   "respuesta": 1.300453514739229,
+   "bajo": 0.9620627069369296,
+   "alto": 1.7094927536231883
+  }
+ ],
  "efecto": [
   {
    "producto": "Pelota del rio 36",
@@ -2028,7 +2238,7 @@
    "accion": "Aplicar el 10 % aceptado, con fechas",
    "descuento": 10.0,
    "condicion": "",
-   "motivo": "El local aceptó un 10 % el 11/03 pero no tiene fechas: hay que aplicarlo y medirlo. No se espera mucho: su tipo no respondió de forma firme (Pelota del muelle 7: +20 %); es el 6.º de 6 en precio; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 35 % de margen.",
+   "motivo": "El local aceptó un 10 % el 11/03 pero no tiene fechas: hay que aplicarlo y medirlo. No se espera mucho: su tipo no respondió de forma clara (Pelota del muelle 7: +20 %); es el 6.º de 6 en precio; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 35 % de margen.",
    "ademas": "",
    "indicador": "unidades por semana con el descuento",
    "linea_base": "1,6",
@@ -2207,7 +2417,7 @@
    "stock": 118,
    "accion": "Esperar · confirmar la campaña",
    "descuento": null,
-   "condicion": "Si no se aplica: no descontar (su tipo no respondió de forma firme (Pelota del muelle 7: +20 %); es el 2.º de 6 en precio; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 34 % de margen)",
+   "condicion": "Si no se aplica: no descontar (su tipo no respondió de forma clara (Pelota del muelle 7: +20 %); es el 2.º de 6 en precio; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 34 % de margen)",
    "motivo": "Tiene una campaña cargada (liquidacion) del 01/03 al 30/04, pero las ventas siguen a precio de lista: no se sabe si se aplica.",
    "ademas": "Confirmar con Comercial si la campaña se está aplicando en caja",
    "indicador": "precio cobrado durante la campaña",
@@ -2387,7 +2597,7 @@
    "stock": 115,
    "accion": "Esperar · confirmar la campaña",
    "descuento": null,
-   "condicion": "Si no se aplica: no descontar (su tipo no respondió de forma firme (Toalla de la niebla 6: +16 %); es el 6.º de 8 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 27 % de margen)",
+   "condicion": "Si no se aplica: no descontar (su tipo no respondió de forma clara (Toalla de la niebla 6: +16 %); es el 6.º de 8 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 27 % de margen)",
    "motivo": "Tiene una campaña cargada (markdown) del 01/03 al 30/04, pero las ventas siguen a precio de lista: no se sabe si se aplica.",
    "ademas": "Confirmar con Comercial si la campaña se está aplicando en caja",
    "indicador": "precio cobrado durante la campaña",
@@ -2567,7 +2777,7 @@
    "stock": 113,
    "accion": "Esperar · hablar con el local",
    "descuento": null,
-   "condicion": "Candidato: probar 10 % (su tipo respondió pero sin rango firme: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 2.º de 6 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 37 % de margen)",
+   "condicion": "Candidato: probar 10 % (su tipo respondió, pero su margen de error toca el 0 %: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 2.º de 6 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 37 % de margen)",
    "motivo": "Se le sugirió un 10 % el 02/03 y está sin respuesta.",
    "ademas": "Conseguir la respuesta del local",
    "indicador": "respuesta del local",
@@ -4241,7 +4451,7 @@
    "stock": 119,
    "accion": "Confirmar si se aplicaron los descuentos",
    "descuento": null,
-   "condicion": "Si no se aplicaron: probar 10 % con fechas, 4 semanas (su tipo respondió pero sin rango firme: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 5.º de 6 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 40 % de margen)",
+   "condicion": "Si no se aplicaron: probar 10 % con fechas, 4 semanas (su tipo respondió, pero su margen de error toca el 0 %: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 5.º de 6 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 40 % de margen)",
    "motivo": "Tiene 4 descuentos aceptados (4 sin fechas), pero todas sus ventas fueron a precio de lista: no está claro que el cliente haya pagado menos alguna vez.",
    "ademas": "Aun con descuento sobra stock: negociar devolución de las unidades de S04 con Litoral",
    "indicador": "precio cobrado en caja",
@@ -4920,7 +5130,7 @@
    "accion": "No bajar",
    "descuento": null,
    "condicion": "",
-   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma firme (Remera del cerro 3: 0 %); es el 5.º de 5 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 39 % de margen.",
+   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma clara (Remera del cerro 3: 0 %); es el 5.º de 5 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 39 % de margen.",
    "ademas": "Sacar el excedente: 184 u que no se venderían en 3 meses (outlet o devolución a Litoral). Revisar la exhibición en S02 (sin ventas)",
    "indicador": "unidades fuera por outlet o devolución",
    "linea_base": "0",
@@ -5196,7 +5406,7 @@
    "accion": "No bajar",
    "descuento": null,
    "condicion": "",
-   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma firme (Pelota del muelle 7: +20 %); ya es el más barato de su tipo; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 34 % de margen.",
+   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma clara (Pelota del muelle 7: +20 %); ya es el más barato de su tipo; en su tipo, después del descuento la venta cayó por debajo de antes; le quedaría 34 % de margen.",
    "ademas": "Sacar el excedente: 140 u que no se venderían en 3 meses (outlet o devolución a Cumbre)",
    "indicador": "unidades fuera por outlet o devolución",
    "linea_base": "0",
@@ -5334,7 +5544,7 @@
    "accion": "No bajar",
    "descuento": null,
    "condicion": "",
-   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo respondió pero sin rango firme: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); ya es el más barato de su tipo; en su tipo, después del descuento la venta se sostuvo; le quedaría 39 % de margen.",
+   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo respondió, pero su margen de error toca el 0 %: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); ya es el más barato de su tipo; en su tipo, después del descuento la venta se sostuvo; le quedaría 39 % de margen.",
    "ademas": "Sacar el excedente: 138 u que no se venderían en 3 meses (outlet o devolución a Delta). Revisar la exhibición en S01 (sin ventas)",
    "indicador": "unidades fuera por outlet o devolución",
    "linea_base": "0",
@@ -5466,7 +5676,7 @@
    "accion": "No bajar",
    "descuento": null,
    "condicion": "",
-   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma firme (Campera de la laguna 4: +3 %); es el 3.º de 6 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 28 % de margen.",
+   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma clara (Campera de la laguna 4: +3 %); es el 3.º de 6 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 28 % de margen.",
    "ademas": "Sacar el excedente: 131 u que no se venderían en 3 meses (outlet o devolución a Andina). Revisar la exhibición en S02 (sin ventas)",
    "indicador": "unidades fuera por outlet o devolución",
    "linea_base": "0",
@@ -5604,7 +5814,7 @@
    "accion": "Probar 10 % por 4 semanas",
    "descuento": 10.0,
    "condicion": "",
-   "motivo": "Vende poco pero parejo y sin otra explicación. Cumple casi todo: su tipo respondió pero sin rango firme: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 6.º de 6 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 40 % de margen.",
+   "motivo": "Vende poco pero parejo y sin otra explicación. Cumple casi todo: su tipo respondió, pero su margen de error toca el 0 %: evidencia débil, se prueba y no se baja (Zapatilla del valle 1: +25 %); es el 6.º de 6 en precio; en su tipo, después del descuento la venta se sostuvo; le quedaría 40 % de margen.",
    "ademas": "Con fechas; medir durante y el mes siguiente. Si no mueve, se corta",
    "indicador": "unidades por semana con el descuento y el mes siguiente",
    "linea_base": "1,2",
@@ -5742,7 +5952,7 @@
    "accion": "No bajar",
    "descuento": null,
    "condicion": "",
-   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma firme (Juego de sábanas del bosque 5: +10 %); es el 8.º de 8 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 34 % de margen.",
+   "motivo": "Vende poco pero parejo. El descuento no se justifica: su tipo no respondió de forma clara (Juego de sábanas del bosque 5: +10 %); es el 8.º de 8 en precio; el 100 % de su stock ya venció, así que adelantar compras no es un costo; le quedaría 34 % de margen.",
    "ademas": "Sacar el excedente: 82 u que no se venderían en 3 meses (outlet o devolución a Pampa)",
    "indicador": "unidades fuera por outlet o devolución",
    "linea_base": "0",
@@ -9270,7 +9480,7 @@
     "m_durante": 70885.89285714286,
     "m_después": 94103.70967741935,
     "mdur": -0.05103076736733847,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Zapatilla del valle 1",
     "tipo": "zapatillas"
    },
@@ -9314,7 +9524,7 @@
     "m_durante": 20307.14285714286,
     "m_después": 30104.0,
     "mdur": -0.027369570648992703,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Juego de sábanas del bosque 5",
     "tipo": "sabanas"
    },
@@ -9336,7 +9546,7 @@
     "m_durante": 26399.285714285714,
     "m_después": 23306.322580645163,
     "mdur": -0.31177163290226184,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Juego de sábanas del bosque 5",
     "tipo": "sabanas"
    },
@@ -9380,7 +9590,7 @@
     "m_durante": 10284.857142857143,
     "m_después": 12045.161290322581,
     "mdur": -0.479354887473429,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Pelota del muelle 7",
     "tipo": "pelotas"
    },
@@ -9402,7 +9612,7 @@
     "m_durante": 10218.57142857143,
     "m_después": 15239.354838709678,
     "mdur": -0.3163138673190795,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Remera del cerro 3",
     "tipo": "remeras"
    },
@@ -9424,7 +9634,7 @@
     "m_durante": 10662.857142857143,
     "m_después": 14360.161290322581,
     "mdur": -0.3616843429432137,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Remera del cerro 3",
     "tipo": "remeras"
    },
@@ -9468,7 +9678,7 @@
     "m_durante": 33615.0,
     "m_después": 50005.74193548387,
     "mdur": -0.31509374808984203,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Bota de la costa 2",
     "tipo": "botas"
    },
@@ -9490,7 +9700,7 @@
     "m_durante": 3499.8214285714284,
     "m_después": 8869.838709677419,
     "mdur": -0.3812338069709462,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Toalla de la niebla 6",
     "tipo": "toallas"
    },
@@ -9512,7 +9722,7 @@
     "m_durante": 4467.857142857143,
     "m_después": 5656.129032258064,
     "mdur": -0.2605057720250331,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Toalla de la niebla 6",
     "tipo": "toallas"
    },
@@ -9556,7 +9766,7 @@
     "m_durante": 24340.714285714286,
     "m_después": 34369.67741935484,
     "mdur": -0.3959443603244237,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Mochila de la estepa 8",
     "tipo": "mochilas"
    },
@@ -9578,7 +9788,7 @@
     "m_durante": 35052.71428571428,
     "m_después": 70454.83870967742,
     "mdur": -0.6113122457272364,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Campera de la laguna 4",
     "tipo": "camperas"
    },
@@ -9600,7 +9810,7 @@
     "m_durante": 33239.642857142855,
     "m_después": 112727.74193548386,
     "mdur": -0.5282134844689216,
-    "lectura": "No se puede decir que reaccionó: la variación entra en lo que cambia por azar",
+    "lectura": "No se puede decir que reaccionó: el cambio entra en el margen de error",
     "producto": "Campera de la laguna 4",
     "tipo": "camperas"
    }
@@ -9870,12 +10080,12 @@
    }
   ],
   "conclusiones": [
-   "• 4 de 16 casos (producto en una sucursal) reaccionaron de forma firme al descuento: Zapatilla del valle 1 en S02 (+73 %), Pelota del muelle 7 en S02 (+51 %), Bota de la costa 2 en S03 (+47 %), Mochila de la estepa 8 en S02 (+44 %).",
-   "• En los otros 12 la variación entra en lo que cambia por azar: Zapatilla del valle 1 en S01 (+22 %), Juego de sábanas del bosque 5 en S02 (+29 %), Juego de sábanas del bosque 5 en S04 (−9 %), Pelota del muelle 7 en S03 (−30 %), Remera del cerro 3 en S01 (0 %), Remera del cerro 3 en S03 (−7 %), Bota de la costa 2 en S04 (+25 %), Toalla de la niebla 6 en S01 (+18 %), Toalla de la niebla 6 en S03 (+41 %), Mochila de la estepa 8 en S03 (+20 %), Campera de la laguna 4 en S01 (0 %), Campera de la laguna 4 en S04 (+22 %).",
+   "• 4 de 16 casos (producto en una sucursal) subieron de forma clara con el descuento: Zapatilla del valle 1 en S02 (+73 %), Pelota del muelle 7 en S02 (+51 %), Bota de la costa 2 en S03 (+47 %), Mochila de la estepa 8 en S02 (+44 %).",
+   "• En los otros 12 el cambio entra en el margen de error: Zapatilla del valle 1 en S01 (+22 %), Juego de sábanas del bosque 5 en S02 (+29 %), Juego de sábanas del bosque 5 en S04 (−9 %), Pelota del muelle 7 en S03 (−30 %), Remera del cerro 3 en S01 (0 %), Remera del cerro 3 en S03 (−7 %), Bota de la costa 2 en S04 (+25 %), Toalla de la niebla 6 en S01 (+18 %), Toalla de la niebla 6 en S03 (+41 %), Mochila de la estepa 8 en S03 (+20 %), Campera de la laguna 4 en S01 (0 %), Campera de la laguna 4 en S04 (+22 %).",
    "• El mismo producto reaccionó distinto según la sucursal en 4 de 8 productos.",
    "• Después del descuento, 5 casos cayeron por debajo de su nivel de antes (adelantaron compras) y 5 quedaron más altos.",
    "• El margen por día subió en 2 de 16 casos: vender más no siempre compensó cobrar menos.",
-   "• Control (venden bien, sin ningún cambio): −9 % durante las mismas fechas. Las semanas del descuento no fueron de temporada alta: la suba de los descontados no se explica por temporada.",
+   "• Control (venden bien, sin ningún cambio): −9 % durante las mismas fechas. En esas semanas la venta en general no subió: la suba de los descontados no se explica por un movimiento general. La temporada propia de cada tipo no se puede medir: no hay datos de otros años.",
    "• Persistencia: 2 productos siguieron vendiendo más después del descuento (Zapatilla del valle 1, Toalla de la niebla 6); 4 cayeron por debajo de antes (Juego de sábanas del bosque 5, Pelota del muelle 7, Bota de la costa 2, Mochila de la estepa 8).",
    "• Adelantar compras: en 5 productos parte de lo que se vendió de más durante se perdió después (Juego de sábanas del bosque 5: 14 u de más y 17 de menos, Pelota del muelle 7: 13 u de más y 46 de menos, Remera del cerro 3: 5 u de más y 11 de menos, Bota de la costa 2: 49 u de más y 24 de menos, Mochila de la estepa 8: 46 u de más y 23 de menos).",
    "• Neto en unidades: 5 de 8 descuentos dejaron unidades de más; en total 171 u en 2 meses.",

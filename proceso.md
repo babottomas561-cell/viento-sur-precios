@@ -1,12 +1,12 @@
 # Pregunta 3 · El proceso alrededor del modelo
 
-El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. En esta foto, de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
+El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. Con los datos al 15/03, de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
 
 ## Cada cuánto corre
 
 | Qué | Cada cuánto | Cómo |
 |---|---|---|
-| Correr el modelo con la foto nueva | **Semanal** (lunes) | Se sube el Excel de la semana con **Subir Excel** en el tablero (o `python actualizar.py --datos <excel>`): regenera la propuesta, la guarda en la base con su fecha y el tablero pasa a mostrarla |
+| Correr el modelo con el Excel nuevo | **Semanal** (lunes) | Se sube el Excel de la semana con **Subir Excel** en el tablero (o `python actualizar.py --datos <excel>`): regenera la propuesta, la guarda en la base con su fecha y el tablero pasa a mostrarla |
 | Revisar las decisiones vencidas | **Semanal** | Pestaña *Seguimiento*: cada decisión tiene indicador, línea base, meta y fecha de revisión |
 | Cerrar un descuento a prueba | **A las 4 semanas**, y de nuevo al mes siguiente | Se compara contra el control, igual que en la hoja *Descuentos* |
 | Revisar las reglas y los umbrales | **Trimestral** | Con los descuentos nuevos medidos, cada tipo suma evidencia: se recalcula qué tipos responden |
@@ -26,12 +26,12 @@ Si se rechaza una propuesta, se anota por qué. Ese motivo es información para 
 
 1. **Todo descuento lleva fechas de vigencia.** Sin fechas no se ve en caja y no se puede medir. Hoy es el problema principal.
 2. **4 semanas y se mide también el mes siguiente.** Así se ve si se vendió más o solo se adelantaron compras.
-3. **Una sucursal sin descuento como comparación** cuando el producto está en más de una. Es la forma más barata de saber cuánto es efecto del descuento y cuánto es temporada.
+3. **Una sucursal sin descuento como comparación** cuando el producto está en más de una. Es la forma más barata de separar el efecto del descuento de la temporada del producto, que hoy no se puede medir porque no hay datos de otros años.
 4. **No superponer** un descuento con campañas, cambios de precio de lista o sugerencias recientes. Si no, no se sabe qué funcionó.
 
 ## Cómo se sabe si funcionó
 
-**Por decisión** (en la pestaña *Seguimiento*, con cada foto): cada recomendación se sigue desde que se hizo. ¿Se aplicó? (precio cobrado contra precio de lista); ¿llega a la meta de unidades por semana?; ¿se movió el stock?; ¿ya pasó su fecha de revisión o sigue en curso?
+**Por decisión** (en la pestaña *Seguimiento*, con cada Excel nuevo): cada recomendación se sigue desde que se hizo. ¿Se aplicó? (precio cobrado contra precio de lista); ¿llega a la meta de unidades por semana?; ¿se movió el stock?; ¿ya pasó su fecha de revisión o sigue en curso?
 
 **Para el negocio** (una vez por mes, contra el mes anterior):
 

@@ -14,7 +14,7 @@ Los dos del navegador se corren con el tablero abierto, en la consola:
 - en la computadora (http://localhost:8765/web/index.html): `(await import('/salidas/auditoria/auditar_filtros.js')).default()` y lo mismo con `auditar_ventas.js`
 - en el sitio publicado: `(await import('/auditoria/auditar_filtros.js')).default(await (await fetch('/auditoria/esperado.json')).json())`, y lo mismo con `auditar_ventas.js` y `esperado_ventas.json`
 
-**Lo que no se puede reproducir número por número** es el rango por azar (bootstrap): se contrasta su conclusión con un intervalo exacto de Poisson.
+**Lo que no se puede reproducir número por número** es el margen de error (bootstrap): se contrasta su conclusión con un intervalo exacto de Poisson.
 Coinciden en 15 de 16 casos sobre si la suba es firme; el bootstrap es el más prudente.
 
 **Qué encontró la auditoría y se corrigió:** las cifras de Stock y Sucursales no seguían el filtro de fechas; el proceso se rompía con

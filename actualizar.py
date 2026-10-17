@@ -135,8 +135,8 @@ def main():
     armar_web(con, ultima, anterior, seg, web, Path(args.salidas))
     fotos = [r[0] for r in con.execute("SELECT fecha_foto FROM fotos ORDER BY fecha_foto")]
     con.close()
-    print(f"Foto {fecha} cargada. Fotos en la base: {', '.join(fotos)}. "
-          f"Seguimiento: {len(seg)} decisiones del {anterior} medidas." if anterior else f"Foto {fecha} cargada. Es la primera: el seguimiento empieza con la próxima.")
+    print(f"Datos al {fecha} cargados. En la base: {', '.join(fotos)}. "
+          f"Seguimiento: {len(seg)} decisiones del {anterior} medidas." if anterior else f"Datos al {fecha} cargados. Es el primer Excel: el seguimiento empieza con el próximo.")
     print(f"Tablero: {web / 'index.html'}")
     if args.publicar:
         subprocess.run(["vercel", "deploy", "--prod", "--yes"], check=True)      # sitio (web/) + funciones (api/), según vercel.json

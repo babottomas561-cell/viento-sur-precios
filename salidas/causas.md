@@ -32,7 +32,7 @@ Por qué no se vende cada parte del stock, contado para cualquiera: **qué pasa,
 
 ## 5 · Puede ser precio (8 productos, 1.068 u)
 - **Qué pasa:** Venden poco pero parejo, y no hay otra explicación: acá sí puede ser el precio.
-- **La prueba:** Con descuento, botas vendieron **+50 %** y mochilas vendieron **+42 %**; zapatillas +25 %, una respuesta débil. En camperas, un 30 % de descuento movió apenas **+3 %**; toallas, remeras, sábanas y pelotas tampoco respondieron. Productos sin ningún cambio variaron −9 % esas mismas semanas: la suba no fue por temporada.
+- **La prueba:** Con descuento, botas vendieron **+50 %** y mochilas vendieron **+42 %**; zapatillas +25 %, una respuesta débil. En camperas, un 30 % de descuento movió apenas **+3 %**; toallas, remeras, sábanas y pelotas tampoco respondieron. Productos sin ningún cambio variaron −10 % esas mismas semanas: la suba no vino de un movimiento general de la venta. La temporada propia de cada tipo no se puede medir (no hay datos de otros años): por eso se prueba con una sucursal de comparación.
 - **Qué hacemos:** Probar un descuento por 4 semanas solo en los **3 de 8** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.
 - **Por qué:** Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.
 - **Cómo lo medimos:** Unidades por semana durante el descuento: hoy **3,7**, meta **5,7** entre los 3. Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. Se revisa entre el 12/04 y el 15/04, producto por producto (cada ficha tiene su fecha).

@@ -112,6 +112,33 @@ for t in EV.index:
     chk(f"evidencia · {t} respuesta", round(EVt.respuesta[t], 4), round(EV.respuesta[t], 4))
     chk(f"evidencia · {t} después", round(EVt.despues[t], 4), round(EV.despues[t], 4))
 
+# las ventas por día con y sin descuento de cada tipo (lo que muestra la tabla de la pestaña Descuentos)
+for a_ in ap.itertuples():
+    u = diario.loc[a_.sku]
+    presente = u.index >= P.cuenta_min[a_.sku]
+    con = (u.index >= a_.fecha_vigencia_desde) & (u.index <= a_.fecha_vigencia_hasta)
+    t_ = prod.tipo[a_.sku]
+    chk(f"evidencia · {t_} u/día con descuento", round(EVt.u_con[t_], 6), round(u[con].mean(), 6))
+    chk(f"evidencia · {t_} u/día sin descuento", round(EVt.u_sin[t_], 6), round(u[~con & presente].mean(), 6))
+# el control contra el resto de la ventana (la franja del gráfico y el "−10 %" de la nota)
+con_c = (uc.index >= D0) & (uc.index <= D1)
+chk("control · contra el resto de la ventana", round(T["control"]["resp"], 6), round(uc[con_c].mean() / uc[~con_c].mean(), 6))
+# la misma cuenta en cada sucursal donde estaba el producto descontado
+ES = {(e["sku"], e["suc"]): e for e in T.get("evidencia_suc", [])}
+n_es = 0
+for a_ in ap.itertuples():
+    for l in L[L.sku == a_.sku].itertuples():
+        v = ve[(ve.sku == a_.sku) & (ve.sucursal_id == l.suc)].groupby("fecha").unidades.sum().reindex(pd.date_range(INI, FOTO), fill_value=0)
+        presente = v.index >= l.cuenta
+        con = (v.index >= a_.fecha_vigencia_desde) & (v.index <= a_.fecha_vigencia_hasta) & presente
+        if not con.any() or v[~con & presente].mean() == 0:
+            continue
+        n_es += 1
+        e = ES.get((a_.sku, l.suc), {})
+        chk(f"evidencia por sucursal · {prod.nombre[a_.sku]} en {l.suc} u/día con", round(e.get("u_con", -1), 6), round(v[con].mean(), 6))
+        chk(f"evidencia por sucursal · {prod.nombre[a_.sku]} en {l.suc} u/día sin", round(e.get("u_sin", -1), 6), round(v[~con & presente].mean(), 6))
+chk("evidencia por sucursal · cantidad de mediciones", len(ES), n_es)
+
 # ---------------------------------------------------------------- 3 · las reglas, en orden
 def grupo(s, f):
     al_dia = f.pct_esperado >= R["al_dia"]

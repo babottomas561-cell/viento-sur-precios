@@ -88,7 +88,41 @@ def ventas_de(xlsx, hasta):
     return [[r.fecha, r.sku, r.sucursal_id, int(r.unidades), float(r.precio_unitario)] for r in v.itertuples()]
 
 
-BIEN = {"Cumple la meta", "Vende igual o más", "Movió stock"}          # estados que cuentan como "se está cumpliendo"
+def regla_seguimiento(d0, u, u_sem, aplicado, meta, sin_stock):
+    """Qué tiene que pasar para que la recomendación se cumpla, comprobable con las ventas, según lo que se recomendó.
+    Devuelve (regla en palabras, cumple: True/False, o None si no se ve en las ventas, estado en palabras)."""
+    n, acc, base = int(d0["n"]), d0["accion"], float(d0["u_sem_base"] or 0)
+    def generico(regla, ok):
+        return regla, ok, "Se cumple" if ok else "Todavía no se cumple"
+    if d0["nuestro"] == "ya":
+        regla = f"que el descuento se cobre en caja y venda al menos {meta:.1f} u por semana".replace(".", ",") if meta else "que el descuento se cobre en caja"
+        if not u:
+            return regla, False, "Sin ventas desde la recomendación"
+        if not aplicado:
+            return regla, False, "El descuento no se ve en caja"
+        if meta and u_sem < meta:
+            return regla, False, "Se cobra, pero vende menos que la meta"
+        return regla, True, "Se cumple"
+    if n == 7 or acc.startswith("Esperar · confirmar la campaña"):
+        return regla_si_rebaja(aplicado, u)
+    if n == 1:
+        if sin_stock:
+            return "que siga vendiendo al menos el 90 % de antes, sin quedarse sin stock", False, "Se quedó sin stock"
+        return generico("que siga vendiendo al menos el 90 % de antes, sin quedarse sin stock", u_sem >= base * 0.9)
+    if n == 2 or acc.startswith("Esperar · revisar la suba"):
+        return generico("que no venda menos que antes (al menos el 90 %)", u_sem >= base * 0.9)
+    if n == 4:
+        return generico("que tenga al menos una venta", u > 0)
+    if n in (5, 6) and not acc.startswith("No tocar"):
+        return generico("que venda más rápido que antes (al menos 10 % más por semana)", u_sem > base * 1.1 if base else u > 0)
+    return ("se confirma fuera de las ventas: devoluciones, outlet o la respuesta del local", None, "Se confirma fuera de las ventas")
+
+
+def regla_si_rebaja(aplicado, u):
+    regla = "que la rebaja aprobada se vea en el precio cobrado"
+    if not u:
+        return regla, False, "Sin ventas desde la recomendación"
+    return regla, bool(aplicado), "Se cumple" if aplicado else "La rebaja no se ve en caja"
 
 
 def _iso(ddmmaaaa):
@@ -131,19 +165,13 @@ def seguimiento(previas, ventas, stock_ahora, fecha, nuevas=None):
         stock = [dict(fecha=f, u=int(prods[sku]["stock"])) for f, prods in por_foto[i:] if sku in prods] + [dict(fecha=fecha, u=int(stock_ahora.get(sku, 0)))]
         meta = d0.get("meta_u_sem")
         meta = None if meta is None or pd.isna(meta) else float(meta)
-        if d0["nuestro"] == "ya":
-            estado = ("Sin ventas desde la recomendación" if not u else "El descuento no se ve en caja" if not aplicado
-                      else "Cumple la meta" if meta and u_sem >= meta else "Debajo de la meta")
-        elif d0["n"] == 1:
-            estado = "Sin stock en algún momento" if stock_ahora.get(sku, 0) == 0 else ("Vende igual o más" if u_sem >= d0["u_sem_base"] * 0.9 else "Vende menos")
-        else:
-            estado = "Movió stock" if stock_ahora.get(sku, d0["stock"]) < d0["stock"] else "Sin movimiento"
+        regla, cumple, estado = regla_seguimiento(d0, u, u_sem, aplicado, meta, stock_ahora.get(sku, 0) == 0)
         revisar = _iso(d0["revisar"]) if d0.get("revisar") else None
         filas.append(dict(sku=sku, producto=d0["producto"], n=int(d0["n"]), accion=d0["accion"], nuestro=d0["nuestro"], desde=desde, dias=dias,
                           revisar=revisar, en_curso=bool(revisar and fecha < revisar), u_sem_antes=d0["u_sem_base"], u_sem_despues=float(u_sem),
                           meta_u_sem=meta, precio_lista=d0["precio"], precio_cobrado=precio_cobrado, aplicado=aplicado,
                           stock_antes=int(d0["stock"]), stock_ahora=int(stock_ahora.get(sku, 0)), stock=stock, semanas=semanas,
-                          estado=estado, bien=estado in BIEN, accion_nueva=(nuevas or {}).get(sku)))
+                          regla=regla, cumple=cumple, estado=estado, bien=cumple is True, accion_nueva=(nuevas or {}).get(sku)))
     return sorted(filas, key=lambda r: r["sku"])
 
 

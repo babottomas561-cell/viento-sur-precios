@@ -68,7 +68,7 @@ export default async function auditar(E) {
     // Descuentos
     await ir(f, { tab: "descuentos" });
     if (e.descuentos.casos) {
-      chk("Descuentos · casos", num(cifras()[0]?.[0].split(" de ")[1]), e.descuentos.casos);
+      chk("Descuentos · casos", num(vista().querySelector("[data-casos]")?.dataset.casos), e.descuentos.casos);
       chk("Descuentos · productos en 'lo que dejó cada descuento'", cuentas()[0], e.descuentos.productos);
     } else chk("Descuentos · sin casos", !!vista().querySelector(".vacio"), true);
     chk("Descuentos · sugerencias aceptadas", e.descuentos.aceptadas ? cuentas().at(-1) : vista().textContent.includes("no tiene sugerencias aceptadas") || vista().textContent.includes("Ningún producto filtrado tiene sugerencias aceptadas") ? 0 : -1, e.descuentos.aceptadas);

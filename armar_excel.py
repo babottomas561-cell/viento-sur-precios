@@ -656,7 +656,7 @@ def bloque_unidades_vs_pesos(ws, sucursales_, r):
     sin, fr = lotes[lotes.rotacion == ROTACION[0]], lotes[lotes.rotacion == ROTACION[1]]
     conclusiones.append(f"• Stock quieto a costo: $ {mil(sin.stock_costo.sum())} en productos sin ventas ({sin.stock_costo.sum() / lotes.stock_costo.sum():.0%} del stock a costo) "
                         f"y $ {mil(fr.stock_costo.sum())} en productos que se frenaron ({fr.stock_costo.sum() / lotes.stock_costo.sum():.0%}). "
-                        f"En unidades son el {sin.unidades.sum() / lotes.unidades.sum():.0%} y el {fr.unidades.sum() / lotes.unidades.sum():.0%}: la foto casi no cambia.")
+                        f"En unidades son el {sin.unidades.sum() / lotes.unidades.sum():.0%} y el {fr.unidades.sum() / lotes.unidades.sum():.0%}: el panorama casi no cambia.")
     ws.cell(r, 1, "Qué cambia y qué no").font = F_HEAD
     r += 1
     for t in conclusiones:
@@ -690,12 +690,12 @@ def hoja_descuentos(wb):
     # ---- 1 · tabla principal
     ws.cell(r, 1, "1 · Cada producto con descuento, en cada una de sus sucursales").font = F_SEC
     r += 1
-    nota(ws, r, "Rango = entre qué valores puede estar la variación por azar (se recalcula 2.000 veces tomando días al azar). Si el rango no cruza el 0 %, la reacción es firme. "
+    nota(ws, r, "Margen de error = entre qué valores puede estar el cambio real: como se venden pocas unidades por día, se repite la cuenta 2.000 veces mezclando los días y se toma entre qué valores cae 9 de cada 10 veces. Si todo el margen queda por encima de 0 %, la suba es clara. "
                 "Margen por día = lo cobrado menos el costo de lo vendido.")
     r += 1
     cols = [("producto", 1, 1, None), ("sucursal", 2, 1, None), ("descuento", 3, 1, "0%"), ("u/día antes", COL0, 3, "0.00"),
             ("u/día durante", COL0 + 3, 3, "0.00"), ("u/día después", COL0 + 6, 3, "0.00"), ("durante vs antes", COL0 + 9, 3, "+0%;-0%;0%"),
-            ("rango (5 % a 95 %)", COL0 + 12, 5, None), ("después vs antes", COL0 + 17, 3, "+0%;-0%;0%"),
+            ("margen de error", COL0 + 12, 5, None), ("después vs antes", COL0 + 17, 3, "+0%;-0%;0%"),
             ("$/día antes", COL0 + 20, 4, "$ #,##0"), ("$/día durante", COL0 + 24, 4, "$ #,##0"), ("$/día después", COL0 + 28, 4, "$ #,##0"),
             ("margen/día antes", COL0 + 32, 4, "$ #,##0"), ("margen/día durante", COL0 + 36, 4, "$ #,##0"), ("margen/día después", COL0 + 40, 4, "$ #,##0"),
             ("margen durante vs antes", COL0 + 44, 3, "+0%;-0%;0%"), ("lectura", COL0 + 47, 24, None)]
@@ -715,7 +715,7 @@ def hoja_descuentos(wb):
             lo, hi = np.percentile(sim, [5, 95])
             dur, desp = m["durante"] / m["antes"] - 1, m["después"] / m["antes"] - 1
             if lo <= 0:
-                lec = "No se puede decir que reaccionó: la variación entra en lo que cambia por azar"
+                lec = "No se puede decir que reaccionó: el cambio entra en el margen de error"
             elif desp < -0.15:
                 lec = "Subió con el descuento y después cayó por debajo de antes: en parte adelantó compras"
             elif desp > 0.15:
@@ -742,7 +742,8 @@ def hoja_descuentos(wb):
     # ---- 2 · control
     ws.cell(r, 1, "2 · Control: productos que venden bien y no tuvieron ningún cambio, en las mismas fechas").font = F_SEC
     r += 1
-    nota(ws, r, "Si estos también subieran 'durante', la suba de los descontados sería temporada y no descuento.")
+    nota(ws, r, "Si estos también subieran 'durante', la suba de los descontados vendría de un movimiento general de la venta y no del descuento. "
+                "La temporada propia de cada tipo no se puede medir: no hay datos de otros años.")
     r += 1
     tocados = set(hist.sku) | set(camp.sku) | set(h["cambios_precio"].sku)
     ctrl = [i for i in lotes.index if i[0] not in tocados and lotes.pct_esperado[i] >= CRITERIO_AL_DIA
@@ -812,7 +813,7 @@ def hoja_descuentos(wb):
     ws.cell(r, 1, "5 · ¿El efecto duró? Semana a semana, durante y después del descuento (cada producto, sumando sus sucursales)").font = F_SEC
     r += 1
     nota(ws, r, "Índice = unidades por día de esa semana ÷ unidades por día de antes del descuento. 1,00 = igual que antes; 1,30 = 30 % más. "
-                "Corregido por temporada: se divide por lo que hizo el control esa misma semana. Se suman las sucursales para tener menos ruido.")
+                "Descontado el movimiento general: se divide por lo que hizo el control esa misma semana. Se suman las sucursales para tener menos ruido.")
     r += 1
     rel = np.asarray((DIAS - D0).days)
     sem = np.floor(rel / 7).astype(int)
@@ -842,7 +843,7 @@ def hoja_descuentos(wb):
         esperado = np.array([base * c_idx.get(k, 1) if k >= 0 else base for k in sem])
         extra_dur, extra_desp = (u - esperado)[dur_mask].sum(), (u - esperado)[desp_mask].sum()
         precio, costo_u, d = prod.precio_lista[x.sku], prod.costo_unitario[x.sku], x.descuento_pct / 100
-        # margen ganado o perdido contra seguir igual que antes (corregido por temporada)
+        # margen ganado o perdido contra seguir igual que antes (descontado el movimiento general, el control)
         m_dur = (u[dur_mask] * (precio * (1 - d) - costo_u) - esperado[dur_mask] * (precio - costo_u)).sum()
         m_desp = ((u[desp_mask] - esperado[desp_mask]) * (precio - costo_u)).sum()
         desp_idx = np.mean([idx[k] for k in semanas if nombre_sem[k].startswith("después")])
@@ -882,7 +883,7 @@ def hoja_descuentos(wb):
         for j in range(len(semanas)):
             celda(ws, rr, aux + j, ws.cell(rr, COL0 + 3 * j).value, fmt="0.00")
     ch = LineChart()
-    ch.title, ch.width, ch.height = "Índice semanal contra antes del descuento (1 = igual que antes; corregido por temporada)", 30, 9
+    ch.title, ch.width, ch.height = "Índice semanal contra antes del descuento (1 = igual que antes; descontado el movimiento general)", 30, 9
     for i, rr in enumerate(range(head5 + 1, fin5 + 1)):
         sr = Series(Reference(ws, min_col=aux, max_col=aux + len(semanas) - 1, min_row=rr), title=str(ws.cell(rr, 1).value))
         sr.graphicalProperties.line.solidFill = ["2A6F97", "C9A227", "2E7D4F", "B3402E", "7A4A9A", "5A6A74", "D9772B", "1D6A86"][i % 8]
@@ -896,7 +897,7 @@ def hoja_descuentos(wb):
     r += filas_alto(9) + 1
 
     # unidades y margen netos
-    ws.cell(r, 1, "Lo que dejó cada descuento, sumando durante y después (contra seguir igual que antes, corregido por temporada)").font = F_HEAD
+    ws.cell(r, 1, "Lo que dejó cada descuento, sumando durante y después (contra seguir igual que antes, descontado el movimiento general)").font = F_HEAD
     r += 1
     cols5 = [("producto", 1, 1, None), ("descuento", 2, 1, "0%"), ("u extra durante", 3, 1, "+#,##0;-#,##0;0"), ("u extra después", COL0, 3, "+#,##0;-#,##0;0"),
              ("u extra netas", COL0 + 3, 3, "+#,##0;-#,##0;0"), ("lo perdido después ÷ lo ganado durante", COL0 + 6, 4, "0%"),
@@ -940,16 +941,17 @@ def hoja_descuentos(wb):
     ws.cell(r, 1, "Qué muestran los datos").font = F_SEC
     r += 1
     lineas = [
-        f"• {len(firmes)} de {len(F)} casos (producto en una sucursal) reaccionaron de forma firme al descuento: "
+        f"• {len(firmes)} de {len(F)} casos (producto en una sucursal) subieron de forma clara con el descuento: "
         + ", ".join(f"{prod.nombre[x.sku]} en {x.sid} ({signo(x.dur)})" for x in firmes.itertuples()) + ".",
-        f"• En los otros {len(F) - len(firmes)} la variación entra en lo que cambia por azar: "
+        f"• En los otros {len(F) - len(firmes)} el cambio entra en el margen de error: "
         + ", ".join(f"{prod.nombre[x.sku]} en {x.sid} ({signo(x.dur)})" for x in F[F.lo <= 0].itertuples()) + ".",
         f"• El mismo producto reaccionó distinto según la sucursal en {sum(F.groupby('sku').apply(lambda g: (g.lo > 0).any() and (g.lo <= 0).any()))} de {F.sku.nunique()} productos.",
         f"• Después del descuento, {(F.desp < -0.15).sum()} casos cayeron por debajo de su nivel de antes (adelantaron compras) y {(F.desp > 0.15).sum()} quedaron más altos.",
         f"• El margen por día subió en {(F.mdur >= 0).sum()} de {len(F)} casos: vender más no siempre compensó cobrar menos.",
         f"• Control (venden bien, sin ningún cambio): {signo(ctrl_dur)} durante las mismas fechas. "
-        + ("Las semanas del descuento no fueron de temporada alta: la suba de los descontados no se explica por temporada." if ctrl_dur <= 0.05
-           else "Esas semanas vendieron más en general: parte de la suba de los descontados puede ser temporada."),
+        + ("En esas semanas la venta en general no subió: la suba de los descontados no se explica por un movimiento general. " if ctrl_dur <= 0.05
+           else "Esas semanas se vendió más en general: parte de la suba de los descontados puede no ser el descuento. ")
+        + "La temporada propia de cada tipo no se puede medir: no hay datos de otros años.",
     ]
     for t in lineas:
         ws.cell(r, 1, t); r += 1
@@ -1345,7 +1347,7 @@ def hoja_como_se_calcula(wb):
         ("u/día con y sin descuento", "Solo para descuentos aplicados: unidades por día en esa sucursal durante las fechas del descuento contra el resto de la ventana."),
         ("Venta en pesos", "Unidades × precio_unitario de cada venta (el precio cobrado ese día, con los descuentos aplicados). En las tablas diarias se muestra en miles de $."),
         ("Promedio de 7 días", "Promedio de las ventas del día y los 6 anteriores. Los primeros 6 días quedan vacíos."),
-        ("Stock por día", "Stock al cierre del día = stock de la foto del 15/03 + lo vendido después de ese día. Vacío antes de la fecha de ingreso del lote. "
+        ("Stock por día", "Stock al cierre del día = stock del 15/03 (el del Excel) + lo vendido después de ese día. Vacío antes de la fecha de ingreso del lote. "
                           "Supone que no hubo reposiciones, transferencias ni devoluciones, porque los datos no los registran."),
         ("Stock al inicio", "Stock hoy + vendidas desde el 16/12/2025, o desde la fecha de ingreso si el lote llegó después."),
         ("% vendido", "Vendidas ÷ stock al inicio. Cuánto de lo que había ya se vendió."),
@@ -1404,7 +1406,7 @@ REGLAS = dict(
     mal_ubicado=0.5,            # más de la mitad del stock en sucursales sin ninguna venta
     aceptados_repetidos=3,      # 3 o más descuentos aceptados antes
     margen_minimo=0.15,         # margen que tiene que quedar después de un descuento
-    despues_minimo=0.90,        # en su tipo, la venta después del descuento no cayó más de 10 % (corregido por temporada)
+    despues_minimo=0.90,        # en su tipo, la venta después del descuento no cayó más de 10 % (descontado el movimiento general)
     stock_minimo=10,            # con menos unidades no se toca el precio
     destino_max_meses=7,        # solo se mueve stock a una sucursal que tenga menos de 7 meses de stock
     respuesta_debil=1.20,       # evidencia débil: su tipo no es firme pero vendió +20 % o más y la venta se sostuvo después -> como mucho, probar
@@ -1448,7 +1450,7 @@ def evidencia_por_tipo():
     lento = (g_.ritmo_observado.sum() / g_.ritmo_objetivo.sum()) < REGLAS["al_dia"]
     ap = ap.assign(lento=ap.sku.map(lento).fillna(False))
     candidatos = {}
-    for x in ap.itertuples():                               # mismo orden de siempre: los rangos por azar no cambian
+    for x in ap.itertuples():                               # mismo orden de siempre: los márgenes de error no cambian
         u = vp.loc[x.sku].values
         esta = np.asarray(DIAS >= desde[x.sku])
         con = np.asarray((DIAS >= x.fecha_vigencia_desde) & (DIAS <= x.fecha_vigencia_hasta))
@@ -1458,11 +1460,45 @@ def evidencia_por_tipo():
         candidatos.setdefault(prod.tipo[x.sku], []).append((bool(x.lento), x.fecha_vigencia_desde, x.Index))
         filas[(prod.tipo[x.sku], x.Index)] = dict(referencia=prod.nombre[x.sku], lento=bool(x.lento), descuento=x.descuento_pct / 100, respuesta=a.mean() / b.mean(),
                                        rango_bajo=np.percentile(sim, 5), rango_alto=np.percentile(sim, 95), firme=np.percentile(sim, 5) > 1,
-                                       despues=despues / antes / ctrl_despues)
+                                       despues=despues / antes / ctrl_despues, u_con=a.mean(), u_sin=b.mean())
     # de cada tipo, el medido en un producto lento si lo hay; si no, el más reciente
     elegidos = {t: max(c, key=lambda k: (k[0], k[1]))[2] for t, c in candidatos.items()}
     filas = {t: filas[(t, i)] for t, i in elegidos.items()}
     return pd.DataFrame(filas).T
+
+
+def evidencia_por_sucursal():
+    """La misma cuenta que la respuesta por tipo (venta por día con descuento contra el resto de la ventana, a precio de lista),
+    en cada sucursal donde está el producto descontado. Usa otra semilla: no cambia los rangos de la respuesta por tipo."""
+    ap = hist.dropna(subset=["fecha_vigencia_desde"])
+    rng = np.random.default_rng(1)
+    filas = []
+    for x in ap.itertuples():
+        for (s, sid), r in lotes.xs(x.sku, level="sku", drop_level=False).iterrows():
+            u = vd.loc[(s, sid)].values
+            esta = np.asarray(DIAS >= r.cuenta_desde)
+            con = np.asarray((DIAS >= x.fecha_vigencia_desde) & (DIAS <= x.fecha_vigencia_hasta)) & esta
+            a, b = u[con], u[~con & esta]
+            if not len(a) or not len(b) or b.mean() == 0:
+                continue
+            sim = [rng.choice(a, len(a)).mean() / max(rng.choice(b, len(b)).mean(), 1e-9) for _ in range(2000)]
+            filas.append(dict(tipo=prod.tipo[s], sku=s, producto=prod.nombre[s], suc=sid, descuento=x.descuento_pct / 100, u_sin=b.mean(), u_con=a.mean(),
+                              respuesta=a.mean() / b.mean(), bajo=np.percentile(sim, 5), alto=np.percentile(sim, 95)))
+    return filas
+
+
+def control_resto():
+    """Lo que hicieron los productos sin ningún cambio en las fechas de los descuentos, contra el resto de la ventana:
+    la misma comparación que la respuesta por tipo, así se pueden poner una al lado de la otra. Devuelve (respuesta, rango bajo, rango alto)."""
+    ap = hist.dropna(subset=["fecha_vigencia_desde"])
+    D0, D1 = ap.fecha_vigencia_desde.min(), ap.fecha_vigencia_hasta.max()
+    tocados = set(hist.sku) | set(camp.sku) | set(h["cambios_precio"].sku)
+    ctrl = [i for i in lotes.index if i[0] not in tocados and lotes.pct_esperado[i] >= REGLAS["al_dia"] and lotes.fecha_ingreso[i] <= INICIO]
+    uc = vd.loc[ctrl].sum().values
+    con = np.asarray((DIAS >= D0) & (DIAS <= D1))
+    rng = np.random.default_rng(0)
+    sim = [rng.choice(uc[con], con.sum()).mean() / rng.choice(uc[~con], (~con).sum()).mean() for _ in range(4000)]
+    return uc[con].mean() / uc[~con].mean(), np.percentile(sim, 5), np.percentile(sim, 95)
 
 
 def escenarios(tipo, d, v30, stock, precio, costo):
@@ -1470,7 +1506,7 @@ def escenarios(tipo, d, v30, stock, precio, costo):
 
     Medida: los casos del mismo tipo y el mismo %; si no hay, los del mismo % en cualquier tipo.
     Cada caso (un producto en una sucursal) aporta cuánto cambió la venta durante y el mes siguiente, contra antes,
-    corregido por lo que hizo el control esas mismas semanas (temporada).
+    corregido por lo que hizo el control esas mismas semanas (el movimiento general de la venta; la temporada de cada tipo no se puede medir).
     Escenarios: la peor sucursal, todas juntas y la mejor. Horizonte: 4 semanas con descuento + el mes siguiente sin él,
     contra seguir 2 meses sin tocar el precio. Nunca se vende más que el stock.
     """
@@ -1604,7 +1640,7 @@ def armar_propuesta():
         if not vencido:                                  # con stock vencido, adelantar compras no es un costo
             ok["despues"] = e.despues >= REGLAS["despues_minimo"]
         debil = (not e.firme) and e.respuesta >= REGLAS["respuesta_debil"] and e.despues >= REGLAS["despues_minimo"]
-        estado_tipo = "responde" if e.firme else ("respondió pero sin rango firme: evidencia débil, se prueba y no se baja" if debil else "no respondió de forma firme")
+        estado_tipo = "responde" if e.firme else ("respondió, pero su margen de error toca el 0 %: evidencia débil, se prueba y no se baja" if debil else "no respondió de forma clara")
         txt = (f"su tipo {estado_tipo} ({e.referencia}: {signo(e.respuesta - 1)}); "
                f"{'ya es el más barato de su tipo' if not ok['posicion'] else f'es el {f.rank_tipo}.º de {f.n_tipo} en precio'}; "
                + (f"en su tipo, después del descuento la venta {'se sostuvo' if ok['despues'] else 'cayó por debajo de antes'}; " if "despues" in ok
@@ -1955,7 +1991,7 @@ def hoja_propuesta(wb, D, ev):
     for sku_, nombre in SIN_STOCK_SKU:                      # también se dice algo de los que no tienen stock
         r += 1
         vals = [nombre, sku_, "— · sin stock", "—", "No tiene stock: no hay mercadería quieta.", "", "ninguna", 0, None, None, "Sin stock: nada que mover", "", "",
-                "No tiene stock en ninguna sucursal en esta foto: no hay mercadería quieta.", "Si se vendía bien, evaluar reponer.",
+                "No tiene stock en ninguna sucursal en estos datos: no hay mercadería quieta.", "Si se vendía bien, evaluar reponer.",
                 "", "", "", "", "", "", ""]
         for j, x in enumerate(vals, start=1):
             ws.cell(r, j, x).alignment = Alignment(wrap_text=True, vertical="top")
@@ -1965,7 +2001,7 @@ def hoja_propuesta(wb, D, ev):
     r += 3
     ws.cell(r, 1, "Evidencia de cada tipo (la cuenta de la consigna: venta por día con descuento ÷ resto de la ventana)").font = F_SEC
     r += 1
-    for j, t in enumerate(["tipo", "medido en", "descuento", "respuesta", "rango bajo (5 %)", "¿firme?", "después (corregido por temporada)"], start=1):
+    for j, t in enumerate(["tipo", "medido en", "descuento", "respuesta", "margen de error (desde)", "¿suba clara?", "después (descontado el movimiento general)"], start=1):
         c = ws.cell(r, j, t); c.font = F_HEAD; c.fill = FILL_HEAD
     for t, e in ev.sort_values("respuesta", ascending=False).iterrows():
         r += 1
@@ -2126,10 +2162,11 @@ def historias(D, ev):
         que_pasa="Venden poco pero parejo, y no hay otra explicación: acá sí puede ser el precio.",
         prueba=([f"Con descuento, " + y_([f"{tipo(t)} vendieron **{signo(e.respuesta - 1)}**" for t, e in firmes.iterrows()])
                  + (f"; {y_([f'{tipo(t)} {signo(e.respuesta - 1)}' for t, e in debil.iterrows()])}, una respuesta débil" if len(debil) else "") + "."] if len(firmes) else
-                ["Ningún tipo respondió de forma firme a un descuento."])
+                ["Ningún tipo respondió de forma clara a un descuento."])
                + ([f"En {tipo(nada.index[0])}, un {pct(nada.descuento.iloc[0])} de descuento movió apenas **{signo(nada.respuesta.iloc[0] - 1)}**"
                    + (f"; {y_([tipo(x) for x in nada.index[1:]])} tampoco respondieron." if len(nada) > 1 else ".")] if len(nada) else [])
-               + [f"Productos sin ningún cambio variaron {signo(RES_DESC['control'][-1]['dur'])} esas mismas semanas: la suba no fue por temporada."],
+               + [f"Productos sin ningún cambio variaron {signo(control_resto()[0] - 1)} esas mismas semanas: la suba no vino de un movimiento general de la venta. "
+                  "La temporada propia de cada tipo no se puede medir (no hay datos de otros años): por eso se prueba con una sucursal de comparación."],
         hacemos=f"Probar un descuento por 4 semanas solo en los **{n_si} de {len(p9)}** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
         por_que="Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
         dato=(y_([f"{tipo(t)} {signo(e.respuesta - 1)}" for t, e in firmes.iterrows()]) + " con descuento; " if len(firmes) else "") + "el resto casi no respondió",
@@ -2217,7 +2254,7 @@ def texto_nota(D, ev):
              "cede margen sin atacar la causa.\n")
     L.append(f"- **Descuento ya, a prueba ({len(ya)}):** " + ", ".join(f"{p} ({f.descuento} %{', el ya aceptado' if f.accion.startswith('Aplicar') else ''})" for p, f in zip(ya.producto, ya.itertuples())) + ".")
     L.append(f"- **Descuento si se cumple una condición ({len(cond)}):** " + ", ".join(cond.producto) + ".")
-    L.append(f"- **Criterios:** su tipo respondió ({tipos_firmes} firme; {', '.join(debiles.index) or 'ninguno'} débil: solo se prueba) y queda al menos {pct(REGLAS['margen_minimo'])} de margen. "
+    L.append(f"- **Criterios:** su tipo respondió ({tipos_firmes} con suba clara; {', '.join(debiles.index) or 'ninguno'} débil: solo se prueba) y queda al menos {pct(REGLAS['margen_minimo'])} de margen. "
              "Todo descuento va con fechas, 4 semanas, y se mide también el mes siguiente.")
     if len(venc):
         L.append(f"- **Stock vencido:** primero la solución de su causa; si no funcionó, liquidar con fechas "
@@ -2228,21 +2265,23 @@ def texto_nota(D, ev):
     L.append("## Qué miré")
     L.append("- **Ritmo del lote** (la cuenta de la consigna), lote por lote.")
     L.append("- **Por qué no vende cada uno**: el mismo producto en otras sucursales, los de su tipo, la última venta, campañas, cambios de precio y sugerencias anteriores.")
-    L.append(f"- **Los {len(ev)} descuentos aplicados**: cuánto cambió la venta durante, con un rango por azar, contra un control sin cambios, y qué pasó el mes siguiente.\n")
+    L.append(f"- **Los {len(ev)} descuentos aplicados**: cuánto cambió la venta durante, con su margen de error, contra un control sin cambios, y qué pasó el mes siguiente.\n")
     L.append("## Qué interpreté")
     L.append("- La decisión de precio es una por producto; las sucursales sirven para entender por qué no vende.")
     L.append("- Una sugerencia aceptada sin fechas de vigencia no se aplicó: no se ve en el precio cobrado.")
     L.append("- Un producto lento responde al descuento como el de su tipo que se descontó (con los límites de abajo).")
     L.append("- La fecha límite marca la urgencia, no el diagnóstico: un producto vencido que nunca se exhibió, primero se exhibe.")
-    L.append("- El stock de cada día se reconstruye desde la foto: supone que no hubo reposiciones ni transferencias.\n")
+    L.append(f"- El stock de cada día se reconstruye desde el del {FOTO:%d/%m}: supone que no hubo reposiciones ni transferencias.\n")
     L.append("## Qué dejé afuera y qué limita la evidencia")
-    L.append(f"- Las {len(acept) - acept_aplicadas} sugerencias aceptadas sin fechas, y las diferencias por sucursal en la respuesta al precio (con 2 locales y pocas ventas no se distinguen del azar).")
+    L.append(f"- Las {len(acept) - acept_aplicadas} sugerencias aceptadas sin fechas, y las diferencias por sucursal en la respuesta al precio (con 2 locales y pocas ventas no salen del margen de error).")
     L.append(f"- **La respuesta al descuento se midió en productos que venden bien**" + (f" (salvo {', '.join(lentos)})" if lentos else "")
              + ": para los lentos, el efecto esperado es un techo. Es un producto por tipo, en 2 sucursales y las mismas 4 semanas, con un control de 2 productos. "
              "Por eso todo descuento es una prueba; cuando haya uno medido en un producto lento, el proceso usa ese.")
-    L.append("- Temporada y talles (no hay datos), el costo de tener el stock quieto y el efecto de reponer, mover u outlet (no se pueden medir).\n")
+    L.append("- **La temporada de cada tipo**: no hay datos de otros años. El control solo descuenta el movimiento general de esas semanas; "
+             "la temporada de cada producto se va a ver con la sucursal de comparación de cada prueba.")
+    L.append("- Talles (no hay datos), el costo de tener el stock quieto y el efecto de reponer, mover u outlet (no se pueden medir).\n")
     L.append("## Cómo estimo el efecto en 30 días")
-    L.append("Con lo que pasó antes con el mismo descuento (mismo tipo y mismo %), corregido por temporada, en tres escenarios: la peor sucursal, todas juntas "
+    L.append("Con lo que pasó antes con el mismo descuento (mismo tipo y mismo %), descontado el movimiento general de esas semanas, en tres escenarios: la peor sucursal, todas juntas "
              "y la mejor. Donde no se toca el precio, el efecto de precio es cero.\n")
     if ESC:
         L.append("| producto | descuento | medido en | para empatar tiene que vender | margen en 30 días: peor / todas / mejor |")
@@ -2314,12 +2353,7 @@ def datos_tablero(D, ev):
     ap = hist.dropna(subset=["fecha_vigencia_desde"])
     D0, D1 = ap.fecha_vigencia_desde.min(), ap.fecha_vigencia_hasta.max()
     # control: productos que venden bien y no tuvieron ningún cambio, en las fechas de los descuentos
-    tocados = set(hist.sku) | set(camp.sku) | set(h["cambios_precio"].sku)
-    ctrl = [i for i in lotes.index if i[0] not in tocados and lotes.pct_esperado[i] >= REGLAS["al_dia"] and lotes.fecha_ingreso[i] <= INICIO]
-    uc = vd.loc[ctrl].sum().values
-    con = np.asarray((DIAS >= D0) & (DIAS <= D1))
-    rng = np.random.default_rng(0)
-    sim = [rng.choice(uc[con], con.sum()).mean() / rng.choice(uc[~con], (~con).sum()).mean() for _ in range(4000)]
+    c_resp, c_bajo, c_alto = control_resto()
     ya = D[D.nuestro_descuento == "ya"]
     efecto = []
     ESC_YA = escenarios_de(D)
@@ -2366,8 +2400,10 @@ def datos_tablero(D, ev):
                 for k, c in CAUSAS.items()],
         vencido=HIST.get("vencido"),
         evidencia=[dict(tipo=t, referencia=e.referencia, descuento=e.descuento, respuesta=e.respuesta, bajo=e.rango_bajo, alto=e.rango_alto,
-                        firme=bool(e.firme), debil=bool(debil[t]), despues=e.despues) for t, e in ev.sort_values("respuesta", ascending=False).iterrows()],
-        control=dict(resp=uc[con].mean() / uc[~con].mean(), bajo=np.percentile(sim, 5), alto=np.percentile(sim, 95)),
+                        firme=bool(e.firme), debil=bool(debil[t]), despues=e.despues, u_con=e.u_con, u_sin=e.u_sin)
+                   for t, e in ev.sort_values("respuesta", ascending=False).iterrows()],
+        control=dict(resp=c_resp, bajo=c_bajo, alto=c_alto),
+        evidencia_suc=evidencia_por_sucursal(),
         efecto=efecto,
         consultora=dict(por_grupo=[dict(n=n, nombre=nom.split(" · ", 1)[1], si=int(((D.grupo_n == n) & (D.coincide == "sí")).sum()),
                                         no=int(((D.grupo_n == n) & (D.coincide == "no")).sum())) for n, nom in GRUPOS.items()],

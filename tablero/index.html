@@ -24,7 +24,7 @@
 
 <div class="filtros" id="filtros" role="region" aria-label="Filtros"></div>
 
-<main class="contenido" id="vista" tabindex="-1"><p class="cargando-pagina"><span class="girando" aria-hidden="true"></span> Cargando la foto más nueva de la base…</p></main>
+<main class="contenido" id="vista" tabindex="-1"><p class="cargando-pagina"><span class="girando" aria-hidden="true"></span> Cargando los datos más nuevos…</p></main>
 
 <footer class="pie">
   <div class="pie-in" id="pie"></div>
@@ -46,7 +46,7 @@
   var json = function (r) { return r.ok ? r.json() : Promise.reject(r.status); };
   Promise.all([fetch("/api/fotos", { cache: "no-store" }).then(json), fetch("/api/abrir" + (pedida ? "?fecha=" + encodeURIComponent(pedida) : ""), { cache: "no-store" }).then(json)])
     .then(function (r) { window.DATOS = r[1]; window.BASE = { online: true, fotos: r[0].fotos }; arrancar(); })
-    .catch(function () { local(enLaCompu ? "" : pedida ? "No se encontró la foto del " + pedida + " en la base." : "La base no respondió: se muestra la foto con la que se publicó la página."); });
+    .catch(function () { local(enLaCompu ? "" : pedida ? "No se encontraron datos al " + pedida + " en la base." : "La base no respondió: se muestran los datos con los que se publicó la página."); });
 })();
 </script>
 </body>
