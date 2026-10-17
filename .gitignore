@@ -10,3 +10,4 @@ PRODUCT.md
 datos/viento_sur.db
 salidas/historia/
 web/.gitignore
+entrega_mail/
