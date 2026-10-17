@@ -233,7 +233,7 @@ python herramientas/recortar_excel.py 2026-03-08
 python herramientas/simular_futuro.py
 ```
 
-**Qué tiene hoy la base online:** el Excel de la consigna (15/03/2026) y las 4 semanas demo, cargadas por el sitio igual que con el botón. El tablero abre la fecha más nueva; los datos de la consigna se ven en **Datos al 15/03/2026** o con el link `?datos=2026-03-15`. Para dejar solo el Excel de la consigna: `python servidor.py borrar 2026-03-22 2026-03-29 2026-04-05 2026-04-12`.
+**Qué tiene la base online:** solo el Excel de la consigna (15/03/2026). Las semanas demo sirven para probar la carga y el seguimiento: se suben por el sitio igual que con el botón y después se borran con `python servidor.py borrar 2026-03-22 2026-03-29 2026-04-05 2026-04-12`. Así se probó (17/10/2026): las 4 cargas anduvieron desde Vercel, el seguimiento midió las 48 recomendaciones y todas las auditorías dieron sin diferencias.
 
 ## El Excel de análisis
 
