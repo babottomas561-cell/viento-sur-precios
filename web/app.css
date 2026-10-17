@@ -187,6 +187,51 @@ svg.evid .lab { fill: var(--ink); font-family: var(--f-ui); font-size: 12px; }
 .ficha-cab h2 { font-size: 1.5rem; }
 .ficha-cab .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .84rem; color: var(--muted); margin-top: 4px; }
 .volver { justify-self: start; }
+/* El problema y la solución en un minuto: el stock repartido por causa y una tarjeta por causa */
+.resumen { display: grid; gap: 14px; }
+.titular { font-size: 1.15rem; line-height: 1.45; margin: 0; max-width: 62rem; }
+.barra-causas { display: flex; gap: 2px; height: 34px; }
+.barra-causas .seg { border: 0; padding: 0 6px; min-width: 6px; border-radius: 4px; background: var(--line-2); color: var(--ink); font: 600 .8rem var(--f-num);
+  cursor: pointer; white-space: nowrap; overflow: hidden; }
+.barra-causas .seg.es-precio { background: var(--accent); color: var(--accent-ink); }
+.barra-causas .seg:hover, .barra-causas .seg:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.barra-nombres { display: flex; gap: 2px; margin-top: -8px; font-size: .8rem; font-weight: 650; color: var(--ink-2); line-height: 1.25; }
+.barra-nombres span { min-width: 0; padding: 0 6px; overflow-wrap: anywhere; }
+.barra-nombres .es-precio { color: var(--accent); }
+.barra-leyenda { display: none; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; gap: 4px 16px; font-size: .82rem; color: var(--ink-2); }
+.barra-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--line-2); }
+.barra-leyenda i.es-precio { background: var(--accent); }
+.causas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; margin-top: 6px; }
+.causa-card { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; align-content: start; background: var(--panel); }
+.causa-card.es-precio { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.causa-card header { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; }
+.causa-card h4 { margin: 0; font-size: 1rem; }
+.causa-card header .muted { font-size: .8rem; }
+.causa-num { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--panel-2); font: 700 .85rem var(--f-num); }
+.toca { font-size: .72rem; font-weight: 650; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
+.toca.si { border-color: var(--accent); color: var(--accent); }
+.pasos4 { margin: 0; display: grid; grid-template-columns: 6.6rem 1fr; gap: 8px 12px; font-size: .88rem; line-height: 1.45; }
+.pasos4 dt { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 2px; }
+.pasos4 dd { margin: 0; }
+.pasos4 ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; }
+.pasos4 .porque { display: block; margin-top: 4px; color: var(--ink-2); }
+.causa-card .btn { justify-self: start; }
+.causas td { vertical-align: top; font-size: .86rem; }
+.causas td:nth-child(2), .causas td:nth-child(3) { min-width: 13rem; }
+.causas td .pista { display: flex; width: 9rem; height: 10px; margin-bottom: 4px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+.causas td .pista i { display: block; height: 100%; }
+.causas .grupos { display: inline-flex; gap: 3px; margin-top: 4px; }
+.mensaje { margin-top: 12px; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--panel-2); font-size: .95rem; line-height: 1.45; }
+.problema { font-size: 1.08rem; line-height: 1.45; margin: 0 0 14px; }
+.problema .causa { display: inline-block; margin-right: 8px; padding: 1px 8px; border-radius: 4px; font-size: .74rem; font-weight: 650; text-transform: uppercase;
+  letter-spacing: .05em; vertical-align: 2px; color: var(--accent); border: 1px solid currentColor; }
+.cuatro { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.cuatro > li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 12px; }
+.cuatro h3 { margin: 2px 0 8px; }
+.cuatro .problema { margin: 0; }
+.cuatro-n { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: 700 .85rem var(--f-num); }
+.indicadores td { font-size: .86rem; vertical-align: top; }
+.indicadores td:first-child { font-weight: 600; }
 .decision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 28px; }
 .decision dl { margin: 0; display: grid; grid-template-columns: 8.5rem 1fr; gap: 8px 12px; font-size: .9rem; }
 .decision dt { color: var(--muted); font-size: .8rem; font-weight: 600; }
@@ -237,6 +282,12 @@ tfoot td { background: var(--panel-2); border-top: 1px solid var(--line-2); posi
 }
 @media (max-width: 560px) {
   .respuesta li { grid-template-columns: 1fr; gap: 2px; }
+  .barra-nombres { display: none; }
+  .barra-leyenda { display: flex; }
+  .pasos4 { grid-template-columns: 1fr; gap: 2px; }
+  .pasos4 dd { margin-bottom: 8px; }
+  .causa-card header { grid-template-columns: auto 1fr; }
+  .causa-card .toca { grid-column: 2; justify-self: start; }
   .hbar { grid-template-columns: 1fr; gap: 3px; }
   .linea-tiempo li { grid-template-columns: 1fr; gap: 2px; }
   .decision dl { grid-template-columns: 1fr; gap: 2px; }

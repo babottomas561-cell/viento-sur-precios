@@ -4,7 +4,7 @@ Todo se verifica contra un cálculo hecho **directo del Excel original** (`datos
 
 | Qué | Cómo se corre | Último resultado (17/10/2026) |
 |---|---|---|
-| **Las decisiones**: las 9 reglas, los criterios del descuento, la escalera del stock vencido, el sobrante del grupo 2, la consultora y las cifras de la nota, reimplementados por otro camino | `python salidas/auditoria/auditar_decisiones.py` | Coinciden los 48 productos |
+| **Las decisiones**: las 9 reglas, los criterios del descuento, la escalera del stock vencido, el sobrante del grupo 2, la consultora, la causa de cada producto, los indicadores de su ficha (ventas con rebaja) y las cifras de la nota (tabla de causas, Cumbre, lotes vencidos), reimplementados por otro camino | `python salidas/auditoria/auditar_decisiones.py` | Coinciden los 48 productos |
 | **La planilla**: los 100 lotes indicador por indicador, cada sucursal del Resumen y los productos de la Propuesta | `python salidas/auditoria/auditar_excel.py` | 1.031 chequeos, sin diferencias |
 | **Descuentos**: los 16 casos (antes, durante, después, pesos y margen), el control, el índice semanal y los netos | `python salidas/auditoria/auditar_descuentos.py` | 318 chequeos, sin diferencias |
 | **El tablero**: 17 combinaciones de filtros (fechas incluidas) en todas las pestañas | `esperado.py` + `auditar_filtros.js` en el navegador | 779 chequeos en el sitio, sin diferencias |

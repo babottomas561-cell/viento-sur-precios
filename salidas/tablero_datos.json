@@ -165,6 +165,118 @@
    ]
   }
  ],
+ "causas": [
+  {
+   "id": "ok",
+   "nombre": "No es un problema",
+   "grupos": [
+    1,
+    2
+   ],
+   "problema": "Vende bien o recién llegó",
+   "solucion": "Dejar el precio; reponer, mover stock entre sucursales y medir cuánto sobraría",
+   "precio": "No por ahora",
+   "que_pasa": "Venden bien, o llegaron hace poco y venden al ritmo previsto. Acá no hay nada que arreglar con el precio.",
+   "prueba": [
+    "Los 10 que andan bien venden el **133 % o más** de lo esperado y el stock les alcanza para **13 a 25 días**.",
+    "Los 3 recién llegados cumplen su objetivo, pero el objetivo es corto: al ritmo de hoy **sobraría 58 % a 76 %** de su stock a la fecha límite."
+   ],
+   "hacemos": "Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
+   "por_que": "Se venden solos: bajarles el precio es regalar margen. La consultora descuenta 4 de estos y cedería unos **$ 1,6 M en 30 días** por ventas que iban a ocurrir igual.",
+   "medimos": "Que no se queden sin stock (meta: nunca menos de 15 días en ningún local) y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **125 u**). Se revisa entre el 22/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
+  },
+  {
+   "id": "ejecucion",
+   "nombre": "Ejecución",
+   "grupos": [
+    3,
+    7
+   ],
+   "problema": "Campañas o descuentos aprobados que no llegaron a caja, o un cambio en curso",
+   "solucion": "Que lo aprobado se cobre en caja, con fechas, y medirlo antes de proponer otro precio",
+   "precio": "Lo ya aprobado",
+   "que_pasa": "Se aprobaron descuentos y campañas que nunca se cobraron en caja: el cliente siguió pagando el precio de lista. En otros hay un cambio recién hecho que todavía no se puede medir.",
+   "prueba": [
+    "De los 21 descuentos aprobados que se pueden comprobar en las ventas, **solo 8 se cobraron**.",
+    "Las 4 campañas cargadas: **0 unidades** vendidas con rebaja."
+   ],
+   "hacemos": "Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.",
+   "por_que": "Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
+   "medimos": "Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, las unidades por semana contra las de antes. Se revisa entre el 22/03 y el 12/04, producto por producto (cada ficha tiene su fecha)."
+  },
+  {
+   "id": "producto",
+   "nombre": "Producto o ubicación",
+   "grupos": [
+    4,
+    5,
+    6
+   ],
+   "problema": "Nunca vendió, se cortó o está en el local equivocado",
+   "solucion": "Contar el stock, exhibir, mover a donde vende o investigar en el local",
+   "precio": "No",
+   "que_pasa": "Hay clientes para estos productos, pero no se venden: no están a la vista, se agotaron los talles que salían o están en el local equivocado.",
+   "prueba": [
+    "3 **nunca vendieron** en 90 días, mientras otros de su mismo tipo vendieron **236 a 267 u** en esos mismos locales.",
+    "5 **se cortaron**: vendían 47 a 59 u por mes y el último mes 0 a 9, **sin que cambiara el precio**.",
+    "4 **están mal ubicados**: el 60 % a 64 % de su stock está en locales donde nunca vendieron, y en otro local se venden al mismo precio."
+   ],
+   "hacemos": "Contar el stock físico y exhibirlo, mover unidades a donde se venden e investigar en el local qué cambió.",
+   "por_que": "El mismo producto, al mismo precio, se vende en otro momento o en otro local: lo que falla no es el precio. Un descuento a algo que nadie ve no lo vende.",
+   "medimos": "La primera venta en cada local en 15 días; en los que se cortaron, volver a vender lo de antes. Si no, devolución u outlet. Se revisa entre el 30/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
+  },
+  {
+   "id": "compra",
+   "nombre": "Compra",
+   "grupos": [
+    8
+   ],
+   "problema": "Se compró tan caro que no hay margen para descontar",
+   "solucion": "Negociar devolución o bonificación con el proveedor; outlet al costo si no hay acuerdo",
+   "precio": "No",
+   "que_pasa": "Se compraron tan caro que no queda margen para bajarles el precio (Cumbre).",
+   "prueba": [
+    "Dejan **17 % a 20 % de margen**; los mismos productos de otros proveedores, **41 % a 42 %**.",
+    "Con un 10 % de descuento quedarían en 7 % a 11 %: **debajo del mínimo de 15 %**.",
+    "Para igualar a sus pares tendrían que costar **26 % a 30 % menos**: $ 3,5 M sobre el stock actual."
+   ],
+   "hacemos": "Negociar con Cumbre la devolución o una bonificación del excedente; si no hay acuerdo, outlet al costo. Renegociar el costo para la próxima compra.",
+   "por_que": "Bajar el precio sería vender casi al costo o por debajo. Y hay con qué negociar: Cumbre vendió **114 u**, contra 796 a 906 de cada uno de los otros proveedores.",
+   "medimos": "Unidades devueltas o bonificadas contra el excedente (**503 u**). Se revisa el 15/04, producto por producto (cada ficha tiene su fecha)."
+  },
+  {
+   "id": "precio",
+   "nombre": "Puede ser precio",
+   "grupos": [
+    9
+   ],
+   "problema": "Vende poco pero parejo, sin otra explicación",
+   "solucion": "Descuento a prueba solo si su tipo respondió y queda margen",
+   "precio": "Sí, a prueba",
+   "que_pasa": "Venden poco pero parejo, y no hay otra explicación: acá sí puede ser el precio.",
+   "prueba": [
+    "Con descuento, botas vendieron **+50 %** y mochilas vendieron **+42 %**; zapatillas +25 %, una respuesta débil.",
+    "En camperas, un 30 % de descuento movió apenas **+3 %**; toallas, remeras, sábanas y pelotas tampoco respondieron.",
+    "Productos sin ningún cambio variaron −9 % esas mismas semanas: la suba no fue por temporada."
+   ],
+   "hacemos": "Probar un descuento por 4 semanas solo en los **3 de 8** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
+   "por_que": "Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
+   "medimos": "Unidades por semana durante el descuento: hoy **3,7**, meta **5,7** entre los 3. Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. Se revisa entre el 12/04 y el 15/04, producto por producto (cada ficha tiene su fecha)."
+  }
+ ],
+ "vencido": {
+  "nombre": "Además: el stock vencido",
+  "productos": 32,
+  "stock": 2851,
+  "que_pasa": "Más de la mitad del stock ya pasó su fecha límite, cualquiera sea su causa. Hay urgencia.",
+  "prueba": [
+   "**57 % del stock** (2.851 u) en 32 productos.",
+   "Los 53 lotes vencidos vencieron el mismo día (01/03) y **49 no se venderían ni en un año** al ritmo actual."
+  ],
+  "hacemos": "Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó, se liquida con fechas: 20 % por 2 semanas y después 35 % por 2 semanas, y después devolución u outlet. Nunca debajo del costo.",
+  "por_que": "Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. La escalera hace las dos cosas en orden.",
+  "medimos": "Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **29/05/2026**."
+ },
  "evidencia": [
   {
    "tipo": "botas",
@@ -660,7 +772,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,6 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,6",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "15",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1009",
@@ -728,7 +862,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,8 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,8",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "10",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1006",
@@ -796,7 +952,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,6 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,6",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "17",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1004",
@@ -864,7 +1042,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,5 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,5",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "10",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1005",
@@ -932,7 +1132,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,5 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,5",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "6",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1003",
@@ -1000,7 +1222,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 134 % de lo esperado y el stock alcanza para 0,6 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "134 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,6",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "17",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1002",
@@ -1068,7 +1312,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,6 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,6",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "5",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1007",
@@ -1136,7 +1402,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,6 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,6",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "8",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1008",
@@ -1204,7 +1492,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,5 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,5",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "9",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1010",
@@ -1272,7 +1582,29 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ok",
+   "problema": "Vende el 133 % de lo esperado y el stock alcanza para 0,4 meses: no tiene un problema de venta.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "133 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "0,4",
+     "regla": "se vende solo: menos de 3",
+     "ok": true
+    },
+    {
+     "nombre": "Días de stock en el local más justo",
+     "valor": "11",
+     "regla": "reponer si baja de 30",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1027",
@@ -1346,7 +1678,35 @@
    "evalua_descuento": true,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": 36.121212121212125
+   "sobrante": 36.121212121212125,
+   "causa": "ok",
+   "problema": "Vende al ritmo de su objetivo, pero el objetivo no alcanza para el stock: sobrarían 36 u (58 %) a la fecha límite.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "121 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "8,9",
+     "regla": "3 o más: el stock dura más que el objetivo",
+     "ok": true
+    },
+    {
+     "nombre": "Días en el local",
+     "valor": "32",
+     "regla": "recién llegado: temprano para medir el precio",
+     "ok": null
+    },
+    {
+     "nombre": "Sobrante proyectado a la fecha límite",
+     "valor": "36 u (58 %)",
+     "regla": "el objetivo no alcanza: sobra stock (se revisa que baje)",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1028",
@@ -1420,7 +1780,35 @@
    "evalua_descuento": true,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": 47.06122448979592
+   "sobrante": 47.06122448979592,
+   "causa": "ok",
+   "problema": "Vende al ritmo de su objetivo, pero el objetivo no alcanza para el stock: sobrarían 47 u (76 %) a la fecha límite.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "110 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "31,0",
+     "regla": "3 o más: el stock dura más que el objetivo",
+     "ok": true
+    },
+    {
+     "nombre": "Días en el local",
+     "valor": "48",
+     "regla": "recién llegado: temprano para medir el precio",
+     "ok": null
+    },
+    {
+     "nombre": "Sobrante proyectado a la fecha límite",
+     "valor": "47 u (76 %)",
+     "regla": "el objetivo no alcanza: sobra stock (se revisa que baje)",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1029",
@@ -1494,7 +1882,35 @@
    "evalua_descuento": true,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": 41.85294117647059
+   "sobrante": 41.85294117647059,
+   "causa": "ok",
+   "problema": "Vende al ritmo de su objetivo, pero el objetivo no alcanza para el stock: sobrarían 42 u (72 %) a la fecha límite.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "109 %",
+     "regla": "al día: 90 % o más",
+     "ok": true
+    },
+    {
+     "nombre": "Meses de stock al ritmo del último mes",
+     "valor": "11,6",
+     "regla": "3 o más: el stock dura más que el objetivo",
+     "ok": true
+    },
+    {
+     "nombre": "Días en el local",
+     "valor": "67",
+     "regla": "recién llegado: temprano para medir el precio",
+     "ok": null
+    },
+    {
+     "nombre": "Sobrante proyectado a la fecha límite",
+     "valor": "42 u (72 %)",
+     "regla": "el objetivo no alcanza: sobra stock (se revisa que baje)",
+     "ok": true
+    }
+   ]
   },
   {
    "sku": "VS-1030",
@@ -1556,7 +1972,35 @@
    "evalua_descuento": true,
    "u_vencidas": 14,
    "salida": "2026-05-02",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Se le subió el precio +8 % el 04/03: todavía no se puede medir la suba.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "cambio de precio el 04/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Días desde la suba",
+     "valor": "11",
+     "regla": "todavía no se puede medir: menos de 31",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "21 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "14 u (9 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 02/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1036",
@@ -1618,7 +2062,35 @@
    "evalua_descuento": true,
    "u_vencidas": 48,
    "salida": "2026-05-10",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "El local aceptó un 10 % el 11/03, pero sin fechas: no llegó a caja.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "sugerencia del 11/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde la sugerencia",
+     "valor": "0 de 0",
+     "regla": "no se aplicó: 0 con rebaja",
+     "ok": null
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "29 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "48 u (34 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 10/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1037",
@@ -1680,7 +2152,35 @@
    "evalua_descuento": true,
    "u_vencidas": 120,
    "salida": "2026-04-19",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Se le sugirió un 10 % el 06/03 y el local lo rechazó: falta saber por qué.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "sugerencia del 06/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde la sugerencia",
+     "valor": "0 de 1",
+     "regla": "no se aplicó: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "26 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "120 u (95 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1034",
@@ -1742,7 +2242,35 @@
    "evalua_descuento": true,
    "u_vencidas": 35,
    "salida": "2026-05-29",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Tiene una campaña cargada desde el 01/03, pero ninguna venta tuvo la rebaja: no se sabe si se aplica.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "campaña liquidacion hasta el 30/04",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde que empezó la campaña",
+     "valor": "0 de 4",
+     "regla": "la campaña no se ve en caja: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "33 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "35 u (30 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1032",
@@ -1804,7 +2332,35 @@
    "evalua_descuento": true,
    "u_vencidas": 117,
    "salida": "2026-05-10",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Se le subió el precio +8 % el 12/03: todavía no se puede medir la suba.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "cambio de precio el 12/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Días desde la suba",
+     "valor": "3",
+     "regla": "todavía no se puede medir: menos de 31",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "13 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "117 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 10/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1033",
@@ -1866,7 +2422,35 @@
    "evalua_descuento": true,
    "u_vencidas": 2,
    "salida": "2026-05-29",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Tiene una campaña cargada desde el 01/03, pero desde entonces no vendió nada: no se sabe si se aplica.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "campaña markdown hasta el 30/04",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde que empezó la campaña",
+     "valor": "0 de 0",
+     "regla": "la campaña no se ve en caja: 0 con rebaja",
+     "ok": null
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "13 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "2 u (2 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1035",
@@ -1928,7 +2512,35 @@
    "evalua_descuento": true,
    "u_vencidas": 113,
    "salida": "2026-05-29",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Tiene una campaña cargada desde el 01/03, pero ninguna venta tuvo la rebaja: no se sabe si se aplica.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "campaña excepcion hasta el 30/04",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde que empezó la campaña",
+     "valor": "0 de 1",
+     "regla": "la campaña no se ve en caja: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "17 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "113 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1038",
@@ -1990,7 +2602,35 @@
    "evalua_descuento": true,
    "u_vencidas": 6,
    "salida": "2026-04-19",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Se le sugirió un 10 % el 02/03 y el local no respondió: falta la decisión.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "sugerencia del 02/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades con rebaja desde la sugerencia",
+     "valor": "0 de 4",
+     "regla": "no se aplicó: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "29 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "6 u (5 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1031",
@@ -2052,7 +2692,35 @@
    "evalua_descuento": true,
    "u_vencidas": 69,
    "salida": "2026-05-07",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Se le subió el precio +8 % el 09/03: todavía no se puede medir la suba.",
+   "indicadores": [
+    {
+     "nombre": "Algo en curso",
+     "valor": "cambio de precio el 09/03",
+     "regla": "campaña vigente, cambio de precio o sugerencia de los últimos 30 días",
+     "ok": true
+    },
+    {
+     "nombre": "Días desde la suba",
+     "valor": "6",
+     "regla": "todavía no se puede medir: menos de 31",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "26 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "69 u (63 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 07/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1025",
@@ -2132,7 +2800,35 @@
    "evalua_descuento": false,
    "u_vencidas": 121,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "No vendió ni una unidad en 90 días (121 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
+   "indicadores": [
+    {
+     "nombre": "Unidades vendidas en la ventana",
+     "valor": "0",
+     "regla": "nunca vendió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas de su tipo en S01, S04",
+     "valor": "245",
+     "regla": "hay demanda: más de 0",
+     "ok": true
+    },
+    {
+     "nombre": "Precio dentro de su tipo",
+     "valor": "1.º de 8",
+     "regla": "ya es el más barato: el precio no lo explica",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "121 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1026",
@@ -2212,7 +2908,35 @@
    "evalua_descuento": false,
    "u_vencidas": 111,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "No vendió ni una unidad en 90 días (111 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
+   "indicadores": [
+    {
+     "nombre": "Unidades vendidas en la ventana",
+     "valor": "0",
+     "regla": "nunca vendió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas de su tipo en S03, S04",
+     "valor": "236",
+     "regla": "hay demanda: más de 0",
+     "ok": true
+    },
+    {
+     "nombre": "Precio dentro de su tipo",
+     "valor": "3.º de 6",
+     "regla": "ya es el más barato: el precio no lo explica",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "111 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1024",
@@ -2292,7 +3016,35 @@
    "evalua_descuento": false,
    "u_vencidas": 50,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "No vendió ni una unidad en 90 días (50 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
+   "indicadores": [
+    {
+     "nombre": "Unidades vendidas en la ventana",
+     "valor": "0",
+     "regla": "nunca vendió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas de su tipo en S01, S04",
+     "valor": "267",
+     "regla": "hay demanda: más de 0",
+     "ok": true
+    },
+    {
+     "nombre": "Precio dentro de su tipo",
+     "valor": "1.º de 8",
+     "regla": "ya es el más barato: el precio no lo explica",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "50 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1019",
@@ -2378,7 +3130,35 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vendía 50 u por mes a precio de lista y se cortó: el último mes vendió 0.",
+   "indicadores": [
+    {
+     "nombre": "Venta por mes antes del último",
+     "valor": "50",
+     "regla": "vendía: 15 u o más",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes",
+     "valor": "0 (0 % de antes)",
+     "regla": "se cortó: menos de 25 % de antes",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 100",
+     "regla": "el precio no cambió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Última venta",
+     "valor": "S02: 11/01, S03: 11/02",
+     "regla": "",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1023",
@@ -2464,7 +3244,41 @@
    "evalua_descuento": false,
    "u_vencidas": 171,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vendía 59 u por mes a precio de lista y se cortó: el último mes vendió 9.",
+   "indicadores": [
+    {
+     "nombre": "Venta por mes antes del último",
+     "valor": "59",
+     "regla": "vendía: 15 u o más",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes",
+     "valor": "9 (15 % de antes)",
+     "regla": "se cortó: menos de 25 % de antes",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 127",
+     "regla": "el precio no cambió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Última venta",
+     "valor": "S01: 22/02, S03: 18/01",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "171 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1021",
@@ -2550,7 +3364,41 @@
    "evalua_descuento": false,
    "u_vencidas": 104,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vendía 54 u por mes a precio de lista y se cortó: el último mes vendió 0.",
+   "indicadores": [
+    {
+     "nombre": "Venta por mes antes del último",
+     "valor": "54",
+     "regla": "vendía: 15 u o más",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes",
+     "valor": "0 (0 % de antes)",
+     "regla": "se cortó: menos de 25 % de antes",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 107",
+     "regla": "el precio no cambió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Última venta",
+     "valor": "S01: 13/01, S03: 12/02",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "104 u (70 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1022",
@@ -2636,7 +3484,41 @@
    "evalua_descuento": false,
    "u_vencidas": 127,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vendía 47 u por mes a precio de lista y se cortó: el último mes vendió 0.",
+   "indicadores": [
+    {
+     "nombre": "Venta por mes antes del último",
+     "valor": "47",
+     "regla": "vendía: 15 u o más",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes",
+     "valor": "0 (0 % de antes)",
+     "regla": "se cortó: menos de 25 % de antes",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 94",
+     "regla": "el precio no cambió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Última venta",
+     "valor": "S01: 09/01, S02: 09/02",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "127 u (97 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1020",
@@ -2722,7 +3604,35 @@
    "evalua_descuento": false,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vendía 48 u por mes a precio de lista y se cortó: el último mes vendió 0.",
+   "indicadores": [
+    {
+     "nombre": "Venta por mes antes del último",
+     "valor": "48",
+     "regla": "vendía: 15 u o más",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes",
+     "valor": "0 (0 % de antes)",
+     "regla": "se cortó: menos de 25 % de antes",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 96",
+     "regla": "el precio no cambió: 0",
+     "ok": true
+    },
+    {
+     "nombre": "Última venta",
+     "valor": "S02: 13/02, S04: 10/01",
+     "regla": "",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1041",
@@ -2814,7 +3724,29 @@
    "evalua_descuento": false,
    "u_vencidas": 68,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vende en F01 y nada en S01, S02, donde está el 62 % del stock: es la ubicación, no el precio.",
+   "indicadores": [
+    {
+     "nombre": "Stock en locales sin ninguna venta",
+     "valor": "62 %",
+     "regla": "mal ubicado: más de 50 %",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas en F01",
+     "valor": "15",
+     "regla": "el mismo producto, al mismo precio, se vende en otro local",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "68 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1042",
@@ -2906,7 +3838,29 @@
    "evalua_descuento": false,
    "u_vencidas": 66,
    "salida": "2026-04-27",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vende en F01 y nada en S01, S02, donde está el 64 % del stock: es la ubicación, no el precio.",
+   "indicadores": [
+    {
+     "nombre": "Stock en locales sin ninguna venta",
+     "valor": "64 %",
+     "regla": "mal ubicado: más de 50 %",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas en F01",
+     "valor": "12",
+     "regla": "el mismo producto, al mismo precio, se vende en otro local",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "66 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1043",
@@ -2998,7 +3952,29 @@
    "evalua_descuento": false,
    "u_vencidas": 3,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vende en S01 y nada en S02, S03, donde está el 60 % del stock: es la ubicación, no el precio.",
+   "indicadores": [
+    {
+     "nombre": "Stock en locales sin ninguna venta",
+     "valor": "60 %",
+     "regla": "mal ubicado: más de 50 %",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas en S01",
+     "valor": "2",
+     "regla": "el mismo producto, al mismo precio, se vende en otro local",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "3 u (60 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1044",
@@ -3090,7 +4066,29 @@
    "evalua_descuento": false,
    "u_vencidas": 3,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "producto",
+   "problema": "Vende en S01 y nada en S02, S03, donde está el 60 % del stock: es la ubicación, no el precio.",
+   "indicadores": [
+    {
+     "nombre": "Stock en locales sin ninguna venta",
+     "valor": "60 %",
+     "regla": "mal ubicado: más de 50 %",
+     "ok": true
+    },
+    {
+     "nombre": "Vendidas en S01",
+     "valor": "2",
+     "regla": "el mismo producto, al mismo precio, se vende en otro local",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "3 u (60 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1040",
@@ -3188,7 +4186,35 @@
    "evalua_descuento": true,
    "u_vencidas": 168,
    "salida": "2026-04-19",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Tiene 4 descuentos aceptados y ninguno se cobró en caja: el precio nunca se probó.",
+   "indicadores": [
+    {
+     "nombre": "Descuentos aceptados antes",
+     "valor": "4",
+     "regla": "3 o más",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 22",
+     "regla": "ninguno se cobró: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "28 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "168 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1039",
@@ -3286,7 +4312,35 @@
    "evalua_descuento": true,
    "u_vencidas": 119,
    "salida": "2026-04-19",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "ejecucion",
+   "problema": "Tiene 4 descuentos aceptados y ninguno se cobró en caja: el precio nunca se probó.",
+   "indicadores": [
+    {
+     "nombre": "Descuentos aceptados antes",
+     "valor": "4",
+     "regla": "3 o más",
+     "ok": true
+    },
+    {
+     "nombre": "Unidades vendidas con rebaja",
+     "valor": "0 de 11",
+     "regla": "ninguno se cobró: 0 con rebaja",
+     "ok": true
+    },
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "20 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "119 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1045",
@@ -3390,7 +4444,41 @@
    "evalua_descuento": false,
    "u_vencidas": 79,
    "salida": "2026-04-15",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "compra",
+   "problema": "Se compró caro: deja 17 % de margen contra 41 % de su tipo con otros proveedores, y no hay margen para descontar.",
+   "indicadores": [
+    {
+     "nombre": "Margen a precio de lista",
+     "valor": "17 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Margen con 10 % de descuento",
+     "valor": "8 %",
+     "regla": "no se puede descontar: menos de 15 %",
+     "ok": true
+    },
+    {
+     "nombre": "Margen de su tipo con otros proveedores (mediana)",
+     "valor": "41 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Costo para dejar ese margen",
+     "valor": "$ 23.784 (−29 % contra $ 33.438)",
+     "regla": "lo que se negocia con el proveedor",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "79 u (48 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1046",
@@ -3494,7 +4582,41 @@
    "evalua_descuento": false,
    "u_vencidas": 163,
    "salida": "2026-04-15",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "compra",
+   "problema": "Se compró caro: deja 20 % de margen contra 41 % de su tipo con otros proveedores, y no hay margen para descontar.",
+   "indicadores": [
+    {
+     "nombre": "Margen a precio de lista",
+     "valor": "20 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Margen con 10 % de descuento",
+     "valor": "11 %",
+     "regla": "no se puede descontar: menos de 15 %",
+     "ok": true
+    },
+    {
+     "nombre": "Margen de su tipo con otros proveedores (mediana)",
+     "valor": "41 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Costo para dejar ese margen",
+     "valor": "$ 19.358 (−26 % contra $ 26.249)",
+     "regla": "lo que se negocia con el proveedor",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "163 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1048",
@@ -3598,7 +4720,41 @@
    "evalua_descuento": false,
    "u_vencidas": 136,
    "salida": "2026-04-15",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "compra",
+   "problema": "Se compró caro: deja 18 % de margen contra 42 % de su tipo con otros proveedores, y no hay margen para descontar.",
+   "indicadores": [
+    {
+     "nombre": "Margen a precio de lista",
+     "valor": "18 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Margen con 10 % de descuento",
+     "valor": "9 %",
+     "regla": "no se puede descontar: menos de 15 %",
+     "ok": true
+    },
+    {
+     "nombre": "Margen de su tipo con otros proveedores (mediana)",
+     "valor": "42 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Costo para dejar ese margen",
+     "valor": "$ 8.301 (−29 % contra $ 11.632)",
+     "regla": "lo que se negocia con el proveedor",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "136 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1047",
@@ -3702,7 +4858,41 @@
    "evalua_descuento": false,
    "u_vencidas": 118,
    "salida": "2026-04-15",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "compra",
+   "problema": "Se compró caro: deja 17 % de margen contra 42 % de su tipo con otros proveedores, y no hay margen para descontar.",
+   "indicadores": [
+    {
+     "nombre": "Margen a precio de lista",
+     "valor": "17 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Margen con 10 % de descuento",
+     "valor": "7 %",
+     "regla": "no se puede descontar: menos de 15 %",
+     "ok": true
+    },
+    {
+     "nombre": "Margen de su tipo con otros proveedores (mediana)",
+     "valor": "42 %",
+     "regla": "",
+     "ok": null
+    },
+    {
+     "nombre": "Costo para dejar ese margen",
+     "valor": "$ 7.541 (−30 % contra $ 10.757)",
+     "regla": "lo que se negocia con el proveedor",
+     "ok": null
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "118 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1017",
@@ -3812,7 +5002,35 @@
    "evalua_descuento": true,
    "u_vencidas": 193,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "20 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "3 u (75 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "no pasa",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": false
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "193 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1018",
@@ -3922,7 +5140,35 @@
    "evalua_descuento": true,
    "u_vencidas": 173,
    "salida": "2026-04-26",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Su tipo respondió al descuento: se prueba.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "25 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "7 u (127 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "probar 20 %",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "173 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 26/04",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1013",
@@ -4032,7 +5278,35 @@
    "evalua_descuento": true,
    "u_vencidas": 41,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "23 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "4 u (80 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "no pasa",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": false
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "41 u (27 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1011",
@@ -4142,7 +5416,29 @@
    "evalua_descuento": true,
    "u_vencidas": 0,
    "salida": null,
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "19 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "3 u (86 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "no pasa",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": false
+    }
+   ]
   },
   {
    "sku": "VS-1015",
@@ -4252,7 +5548,35 @@
    "evalua_descuento": true,
    "u_vencidas": 146,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "20 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "5 u (167 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "no pasa",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": false
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "146 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1012",
@@ -4362,7 +5686,35 @@
    "evalua_descuento": true,
    "u_vencidas": 21,
    "salida": "2026-05-10",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Su tipo respondió al descuento: se prueba.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "25 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "5 u (83 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "probar 10 %",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "21 u (23 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 10/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1016",
@@ -4472,7 +5824,35 @@
    "evalua_descuento": true,
    "u_vencidas": 91,
    "salida": "2026-05-13",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "22 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "3 u (67 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "no pasa",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": false
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "91 u (100 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "ok": null
+    }
+   ]
   },
   {
    "sku": "VS-1014",
@@ -4582,7 +5962,35 @@
    "evalua_descuento": true,
    "u_vencidas": 55,
    "salida": "2026-04-26",
-   "sobrante": null
+   "sobrante": null,
+   "causa": "precio",
+   "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Su tipo respondió al descuento: se prueba.",
+   "indicadores": [
+    {
+     "nombre": "% de lo esperado (ritmo del lote)",
+     "valor": "25 %",
+     "regla": "atrasado: menos de 90 %",
+     "ok": true
+    },
+    {
+     "nombre": "Venta el último mes contra los anteriores",
+     "valor": "4 u (80 % de antes)",
+     "regla": "parejo: no se cortó",
+     "ok": true
+    },
+    {
+     "nombre": "Criterios del descuento",
+     "valor": "probar 20 %",
+     "regla": "su tipo responde y le queda margen (detalle abajo)",
+     "ok": true
+    },
+    {
+     "nombre": "Stock que ya pasó su fecha límite",
+     "valor": "55 u (74 %)",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 26/04",
+     "ok": null
+    }
+   ]
   }
  ],
  "catalogo": [

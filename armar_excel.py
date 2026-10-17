@@ -1415,6 +1415,18 @@ REGLAS = dict(
 )
 GRUPOS = {1: "1 · Vende bien", 2: "2 · Recién llegado, al día", 3: "3 · Algo en curso", 4: "4 · Nunca vendió", 5: "5 · Se cortó",
           6: "6 · Mal ubicado", 7: "7 · Descuentos aceptados varias veces", 8: "8 · Margen bajo", 9: "9 · Lento parejo"}
+# Los 9 grupos se cuentan en 5 causas: por qué no se vende y qué herramienta lo resuelve. Solo la última es de precio.
+CAUSAS = {"ok": dict(nombre="No es un problema", grupos=[1, 2], problema="Vende bien o recién llegó",
+                     solucion="Dejar el precio; reponer, mover stock entre sucursales y medir cuánto sobraría", precio="No por ahora"),
+          "ejecucion": dict(nombre="Ejecución", grupos=[3, 7], problema="Campañas o descuentos aprobados que no llegaron a caja, o un cambio en curso",
+                            solucion="Que lo aprobado se cobre en caja, con fechas, y medirlo antes de proponer otro precio", precio="Lo ya aprobado"),
+          "producto": dict(nombre="Producto o ubicación", grupos=[4, 5, 6], problema="Nunca vendió, se cortó o está en el local equivocado",
+                           solucion="Contar el stock, exhibir, mover a donde vende o investigar en el local", precio="No"),
+          "compra": dict(nombre="Compra", grupos=[8], problema="Se compró tan caro que no hay margen para descontar",
+                         solucion="Negociar devolución o bonificación con el proveedor; outlet al costo si no hay acuerdo", precio="No"),
+          "precio": dict(nombre="Puede ser precio", grupos=[9], problema="Vende poco pero parejo, sin otra explicación",
+                         solucion="Descuento a prueba solo si su tipo respondió y queda margen", precio="Sí, a prueba")}
+CAUSA_DE = {g: k for k, c in CAUSAS.items() for g in c["grupos"]}
 FECHA = lambda dias_: (FOTO + pd.Timedelta(days=dias_)).strftime("%d/%m/%Y")
 
 
@@ -1502,6 +1514,20 @@ def meta_esc(f, dpct, u_sem):
     peor, todas = e["escenarios"][0], e["escenarios"][1]
     return (f"{dec(u_sem * (1 + todas['dur']))} u/sem durante (como {todas['medido_en'].split(' · ')[0]} al {dpct} %); "
             f"menos de {dec(u_sem * max(1 + peor['dur'], 1))} es que no funcionó")
+
+
+# Ventas con rebaja: precio cobrado debajo del precio de lista vigente ese día (antes de una suba, vale el anterior).
+# Es la forma de saber si un descuento o una campaña llegó a caja.
+_vr = ventas.assign(lista=ventas.sku.map(prod.precio_lista))
+for _c in h["cambios_precio"].assign(fecha=pd.to_datetime(h["cambios_precio"].fecha)).sort_values("fecha", ascending=False).itertuples():
+    _vr.loc[(_vr.sku == _c.sku) & (_vr.fecha < _c.fecha), "lista"] = _c.precio_anterior
+_vr["rebaja"] = _vr.precio_unitario < _vr.lista - 0.5
+
+
+def con_rebaja(s, desde=None, hasta=None):
+    """(unidades vendidas con rebaja, unidades vendidas) de un producto entre dos fechas."""
+    v = _vr[(_vr.sku == s) & (_vr.fecha >= (desde if desde is not None else INICIO)) & (_vr.fecha <= (hasta if hasta is not None else FOTO))]
+    return int(v.unidades[v.rebaja].sum()), int(v.unidades.sum())
 
 
 def armar_propuesta():
@@ -1621,6 +1647,89 @@ def armar_propuesta():
         txt = (f"Stock vencido ({mil(f.u_vencidas)} u): si al {ini:%d/%m} no se cumplió, liquidar con fechas: " + "; si la venta no se duplica, ".join(tramos)
                + f"; lo que quede, devolución a {f.proveedor} u outlet desde el {fin:%d/%m}. Piso: el costo.")
         return dict(si_no=txt, salida=f"{fin:%Y-%m-%d}")
+
+    def sintesis(s, f, L, R, det):
+        """El problema en una frase y los indicadores que lo deciden, con su valor y su regla: lo que la ficha muestra para revisar la decisión.
+        La regla está escrita como la condición del diagnóstico. ok: True = se cumple, False = no se cumple, None = dato de contexto."""
+        I = lambda nombre, valor, regla, ok=None: dict(nombre=nombre, valor=valor, regla=regla, ok=ok)
+        G, ind = f.grupo_n, []
+        esperado = I("% de lo esperado (ritmo del lote)", pct(f.pct_esperado), f"al día: {pct(REGLAS['al_dia'])} o más", bool(f.pct_esperado >= REGLAS["al_dia"]))
+        lento = I("% de lo esperado (ritmo del lote)", pct(f.pct_esperado), f"atrasado: menos de {pct(REGLAS['al_dia'])}", bool(f.pct_esperado < REGLAS["al_dia"]))
+        meses = I("Meses de stock al ritmo del último mes", dec(f.meses) if f.meses == f.meses else "sin venta el último mes",
+                  f"se vende solo: menos de {REGLAS['meses_reponer']}", bool(f.meses < REGLAS["meses_reponer"]))
+        if G == 1:
+            problema = f"Vende el {pct(f.pct_esperado)} de lo esperado y el stock alcanza para {dec(f.meses)} meses: no tiene un problema de venta."
+            ind += [esperado, meses, I("Días de stock en el local más justo", mil(L.dias_de_stock.min()), "reponer si baja de 30", bool(L.dias_de_stock.min() < 30))]
+        elif G == 2:
+            sobra = R["sobrante"]
+            problema = f"Vende al ritmo de su objetivo, pero el objetivo no alcanza para el stock: sobrarían {mil(sobra)} u ({pct(sobra / f.stock)}) a la fecha límite."
+            ind += [esperado, I("Meses de stock al ritmo del último mes", dec(f.meses), f"{REGLAS['meses_reponer']} o más: el stock dura más que el objetivo", True),
+                    I("Días en el local", mil((FOTO - L.fecha_ingreso.min()).days), "recién llegado: temprano para medir el precio"),
+                    I("Sobrante proyectado a la fecha límite", f"{mil(sobra)} u ({pct(sobra / f.stock)})", "el objetivo no alcanza: sobra stock (se revisa que baje)", sobra > 0)]
+        elif G == 3:
+            ind.append(I("Algo en curso", f.pasos[-1]["dato"], f"campaña vigente, cambio de precio o sugerencia de los últimos {REGLAS['dias_en_curso']} días", True))
+            if s in cambio_r.index:
+                c = cambio_r.loc[[s]].iloc[-1]
+                problema = f"Se le subió el precio {signo(c.precio_nuevo / c.precio_anterior - 1)} el {c.fecha:%d/%m}: todavía no se puede medir la suba."
+                ind += [I("Días desde la suba", mil((FOTO - c.fecha).days), "todavía no se puede medir: menos de 31", (FOTO - c.fecha).days < 31), lento]
+            elif s in camp_v.index:
+                c = camp_v.loc[s]
+                ur, ut = con_rebaja(s, c.fecha_desde)
+                problema = f"Tiene una campaña cargada desde el {c.fecha_desde:%d/%m}, pero {'desde entonces no vendió nada' if ut == 0 else 'ninguna venta tuvo la rebaja' if ur == 0 else f'solo {mil(ur)} de {mil(ut)} u se vendieron con rebaja'}: no se sabe si se aplica."
+                ind += [I("Unidades con rebaja desde que empezó la campaña", f"{mil(ur)} de {mil(ut)}", "la campaña no se ve en caja: 0 con rebaja",
+                          (ur == 0) if ut else None), lento]
+            else:
+                sg = sug_r.loc[[s]].iloc[-1]
+                problema = {1: f"El local aceptó un {sg.descuento_pct} % el {sg.fecha_sugerencia:%d/%m}, pero sin fechas: no llegó a caja.",
+                            2: f"Se le sugirió un {sg.descuento_pct} % el {sg.fecha_sugerencia:%d/%m} y el local lo rechazó: falta saber por qué."
+                            }.get(sg.aceptacion, f"Se le sugirió un {sg.descuento_pct} % el {sg.fecha_sugerencia:%d/%m} y el local no respondió: falta la decisión.")
+                ur, ut = con_rebaja(s, sg.fecha_sugerencia)
+                ind += [I("Unidades con rebaja desde la sugerencia", f"{mil(ur)} de {mil(ut)}", "no se aplicó: 0 con rebaja", (ur == 0) if ut else None), lento]
+        elif G == 4:
+            vecinos = lotes[(lotes.index.get_level_values("sku").map(prod.tipo) == f.tipo) & lotes.index.get_level_values("sucursal_id").isin(L.index)
+                            & (lotes.index.get_level_values("sku") != s)].vendidas.groupby(level="sku").sum()
+            problema = f"No vendió ni una unidad en 90 días ({mil(f.stock)} u), aunque su tipo se vende en esos locales: o no se ve o no está."
+            ind += [I("Unidades vendidas en la ventana", "0", "nunca vendió: 0", True),
+                    I(f"Vendidas de su tipo en {', '.join(L.index)}", mil(vecinos.sum()), "hay demanda: más de 0", bool(vecinos.sum() > 0)),
+                    I("Precio dentro de su tipo", f"{f.rank_tipo}.º de {f.n_tipo}", "ya es el más barato: el precio no lo explica", True if f.rank_tipo == 1 else None)]
+        elif G == 5:
+            ur, ut = con_rebaja(s)
+            problema = f"Vendía {mil(f.v_antes_mes)} u por mes a precio de lista y se cortó: el último mes vendió {mil(f.v30)}."
+            ind += [I("Venta por mes antes del último", mil(f.v_antes_mes), f"vendía: {dec(REGLAS['corte_u_dia'] * 30, 0)} u o más", True),
+                    I("Venta el último mes", f"{mil(f.v30)} ({pct(f.v30 / f.v_antes_mes)} de antes)", f"se cortó: menos de {pct(REGLAS['corte_ratio'])} de antes", True),
+                    I("Unidades vendidas con rebaja", f"{mil(ur)} de {mil(ut)}", "el precio no cambió: 0", ur == 0),
+                    I("Última venta", ", ".join(f"{k}: {d:%d/%m}" for k, d in L.ultima_venta.dropna().items()), "")]
+        elif G == 6:
+            vende = L[L.vendidas > 0]
+            problema = f"Vende en {', '.join(vende.index)} y nada en {', '.join(L[L.vendidas == 0].index)}, donde está el {pct(f.share_sin_venta)} del stock: es la ubicación, no el precio."
+            ind += [I("Stock en locales sin ninguna venta", pct(f.share_sin_venta), f"mal ubicado: más de {pct(REGLAS['mal_ubicado'])}", True),
+                    I(f"Vendidas en {', '.join(vende.index)}", mil(vende.vendidas.sum()), "el mismo producto, al mismo precio, se vende en otro local", True)]
+        elif G == 7:
+            ur, ut = con_rebaja(s)
+            problema = (f"Tiene {f.aceptados_antes} descuentos aceptados y " + ("ninguno se cobró en caja: el precio nunca se probó." if ur == 0
+                        else f"solo {mil(ur)} de {mil(ut)} u se vendieron con rebaja."))
+            ind += [I("Descuentos aceptados antes", mil(f.aceptados_antes), f"{REGLAS['aceptados_repetidos']} o más", True),
+                    I("Unidades vendidas con rebaja", f"{mil(ur)} de {mil(ut)}", "ninguno se cobró: 0 con rebaja", ur == 0), lento]
+        elif G == 8:
+            pares = P[(P.tipo == f.tipo) & (P.proveedor != f.proveedor)].margen       # lo mismo que P_margen_pares
+            costo_par = f.precio * (1 - pares.median())
+            m10 = (f.margen - 0.10) / 0.90
+            problema = f"Se compró caro: deja {pct(f.margen)} de margen contra {pct(pares.median())} de su tipo con otros proveedores, y no hay margen para descontar."
+            ind += [I("Margen a precio de lista", pct(f.margen), ""),
+                    I("Margen con 10 % de descuento", pct(m10), f"no se puede descontar: menos de {pct(REGLAS['margen_minimo'])}", bool(m10 < REGLAS["margen_minimo"])),
+                    I("Margen de su tipo con otros proveedores (mediana)", pct(pares.median()), ""),
+                    I("Costo para dejar ese margen", f"$ {mil(costo_par)} ({signo(costo_par / f.costo - 1)} contra $ {mil(f.costo)})", "lo que se negocia con el proveedor")]
+        else:
+            problema = "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio." + (
+                " Su tipo respondió al descuento: se prueba." if R["descuento"] != "" else " Pero el descuento no pasa los criterios: no se baja.")
+            ind += [lento, I("Venta el último mes contra los anteriores", f"{mil(f.v30)} u ({pct(f.v30 / f.v_antes_mes) if f.v_antes_mes else '—'} de antes)",
+                                "parejo: no se cortó", bool(not f.v_antes_mes or f.v30 >= REGLAS["corte_ratio"] * f.v_antes_mes)),
+                    I("Criterios del descuento", {"bajar": f"bajar {round(det['descuento'] * 100)} %", "probar": f"probar {round(det['descuento'] * 100)} %"}.get(det.get("veredicto"), "no pasa") if det else "sin evidencia de su tipo",
+                      "su tipo responde y le queda margen (detalle abajo)", bool(det) and det.get("veredicto") in ("bajar", "probar"))]
+        if f.u_vencidas:
+            ind.append(I("Stock que ya pasó su fecha límite", f"{mil(f.u_vencidas)} u ({pct(f.share_vencido)})",
+                         "si la primera acción no cumple, se liquida con fechas" + (f": salida el {pd.Timestamp(R['salida']):%d/%m}" if R.get("salida") else "")))
+        return dict(problema=problema, indicadores=ind)
 
     filas = []
     for s, f in P.iterrows():
@@ -1760,6 +1869,7 @@ def armar_propuesta():
                                 + (f". Revisar la exhibición en {', '.join(no_vende.index)} (sin ventas)" if len(no_vende) else ""),
                          indicador="unidades fuera por outlet o devolución", linea_base="0", meta=mil(excedente), revisar=FECHA(31), si_no="escalar a Compras")
         R.update(escalera(s, f, R))
+        R.update(sintesis(s, f, L, R, det_crit))
         filas.append(dict(sku=s, criterios=det_crit, **R))
     D = P.join(pd.DataFrame(filas).set_index("sku"))
     D["grupo"] = D.grupo_n.map(GRUPOS)
@@ -1777,14 +1887,33 @@ COLOR_ACCION = lambda a: ("CDE8D6" if a.startswith(("Bajar", "Probar", "Aplicar"
                           else "F5E2A8" if a.startswith(("Esperar", "Confirmar")) else "EEEEEE" if a.startswith("No tocar") else "F2C4BC")
 
 
+def texto_indicadores(ind):
+    """Los indicadores de un producto en una celda: ✓ se cumple la regla, ✗ no se cumple, · dato de contexto."""
+    marca = {True: "✓", False: "✗", None: "·"}
+    return "\n".join(f"{marca[i['ok']]} {i['nombre']}: {i['valor']}" + (f" ({i['regla']})" if i["regla"] else "") for i in ind)
+
+
 def hoja_propuesta(wb, D, ev):
     ws = wb.create_sheet("Propuesta", 0)
     ws.sheet_view.zoomScale = 90
     ws.cell(1, 1, "Propuesta de precio para los 48 productos").font = F_TIT
     nota(ws, 2, f"Datos al {FOTO:%d/%m/%Y}. Cada producto cae en el primer grupo que lo explica; el descuento se evalúa solo donde su grupo lo admite, "
                 f"con los mismos criterios para todos (ver hoja 'Cómo se calcula' y la nota).")
-    # resumen por grupo
+    # resumen por causa: los 9 grupos contados en 5 causas, y qué herramienta resuelve cada una
     r = 4
+    ws.cell(r, 1, "Por qué no se vende: 5 causas").font = F_SEC
+    r += 1
+    for j, t in enumerate(["causa", "grupos", "productos", "stock (u)", "% del stock", "ya vencido (u)", "el problema", "la solución", "¿toca el precio?"], start=1):
+        c = ws.cell(r, j, t); c.font = F_HEAD; c.fill = FILL_HEAD; c.alignment = Alignment(wrap_text=True)
+    for k, ca in CAUSAS.items():
+        g = D[D.grupo_n.isin(ca["grupos"])]
+        r += 1
+        for j, x in enumerate([ca["nombre"], ", ".join(map(str, ca["grupos"])), len(g), int(g.stock.sum()), g.stock.sum() / D.stock.sum(), int(g.u_vencidas.sum()),
+                               ca["problema"], ca["solucion"], ca["precio"]], start=1):
+            c = ws.cell(r, j, x); c.number_format = "0%" if j == 5 else "#,##0"; c.alignment = Alignment(wrap_text=True, vertical="top")
+    r += 3
+
+    # resumen por grupo
     ws.cell(r, 1, "Resumen por grupo").font = F_SEC
     r += 1
     for j, t in enumerate(["grupo", "productos", "stock (u)", "stock a costo ($)", "descuento ya", "descuento condicional", "sin descuento", "consultora descuenta"], start=1):
@@ -1804,7 +1933,7 @@ def hoja_propuesta(wb, D, ev):
     # tabla de los 48
     ws.cell(r, 1, "Producto por producto").font = F_SEC
     r += 1
-    cols = [("producto", 30), ("sku", 9), ("grupo", 24), ("sucursales (stock)", 22), ("stock", 8), ("% de lo esperado", 10), ("vendidas último mes", 10),
+    cols = [("producto", 30), ("sku", 9), ("grupo", 24), ("causa", 18), ("el problema", 50), ("indicadores que lo deciden", 62), ("sucursales (stock)", 22), ("stock", 8), ("% de lo esperado", 10), ("vendidas último mes", 10),
             ("acción", 26), ("descuento", 9), ("condición", 40), ("motivo", 60), ("además", 48), ("indicador", 26), ("línea base", 12), ("meta", 30),
             ("revisar el", 11), ("si no se cumple", 26), ("consultora", 16), ("¿coincide con la consultora?", 12)]
     for j, (t, w) in enumerate(cols, start=1):
@@ -1813,24 +1942,24 @@ def hoja_propuesta(wb, D, ev):
     head = r
     for s, f in D.iterrows():
         r += 1
-        vals = [f.producto, s, f.grupo, f.sucursales, int(f.stock), f.pct_esperado, int(f.v30), f.accion, f"{f.descuento} %" if f.descuento != "" else "",
+        vals = [f.producto, s, f.grupo, CAUSAS[CAUSA_DE[f.grupo_n]]["nombre"], f.problema, texto_indicadores(f.indicadores), f.sucursales, int(f.stock), f.pct_esperado, int(f.v30), f.accion, f"{f.descuento} %" if f.descuento != "" else "",
                 f.condicion, f.motivo, f.ademas, f.indicador, f.linea_base, f.meta, f.revisar, f.si_no, f.consultora, f.coincide]
         for j, x in enumerate(vals, start=1):
             c = ws.cell(r, j, x)
             c.alignment = Alignment(wrap_text=True, vertical="top")
-            if j == 6:
+            if j == 9:
                 c.number_format = "0%"
-        ws.cell(r, 8).fill = PatternFill("solid", fgColor=COLOR_ACCION(f.accion))
-        ws.cell(r, 8).font = Font(bold=True)
-        ws.cell(r, 19).fill = PatternFill("solid", fgColor="CDE8D6" if f.coincide == "sí" else "F2C4BC")
+        ws.cell(r, 11).fill = PatternFill("solid", fgColor=COLOR_ACCION(f.accion))
+        ws.cell(r, 11).font = Font(bold=True)
+        ws.cell(r, 22).fill = PatternFill("solid", fgColor="CDE8D6" if f.coincide == "sí" else "F2C4BC")
     for sku_, nombre in SIN_STOCK_SKU:                      # también se dice algo de los que no tienen stock
         r += 1
-        vals = [nombre, sku_, "— · sin stock", "ninguna", 0, None, None, "Sin stock: nada que mover", "", "",
+        vals = [nombre, sku_, "— · sin stock", "—", "No tiene stock: no hay mercadería quieta.", "", "ninguna", 0, None, None, "Sin stock: nada que mover", "", "",
                 "No tiene stock en ninguna sucursal en esta foto: no hay mercadería quieta.", "Si se vendía bien, evaluar reponer.",
                 "", "", "", "", "", "", ""]
         for j, x in enumerate(vals, start=1):
             ws.cell(r, j, x).alignment = Alignment(wrap_text=True, vertical="top")
-        ws.cell(r, 8).font = Font(bold=True)
+        ws.cell(r, 11).font = Font(bold=True)
     ws.freeze_panes = ws.cell(head + 1, 2)
     ws.auto_filter.ref = f"A{head}:{get_column_letter(len(cols))}{r}"
     r += 3
@@ -1886,6 +2015,132 @@ def hoja_propuesta(wb, D, ev):
             ws.cell(r, j).fill = FILL_TOTAL
 
 
+def regalo_g1(D):
+    """Margen que cedería la consultora en 30 días descontando productos que venden al día (se iban a vender igual)."""
+    cd = h["propuesta_consultora"].set_index("sku").descuento_pct / 100
+    g1 = D[(D.grupo_n == 1) & D.consultora_descuenta]
+    return float((g1.v30.clip(upper=g1.stock) * g1.precio * cd[g1.index]).sum())
+
+
+def P_margen_pares(D, f):
+    """Margen mediano de los productos del mismo tipo con otros proveedores."""
+    return D[(D.tipo == f.tipo) & (D.proveedor != f.proveedor)].margen.median()
+
+
+def historias(D, ev):
+    """Cada causa contada en 4 pasos simples, con sus datos: qué pasa, la prueba, qué hacemos y por qué, y cómo lo medimos.
+    Es lo mismo que muestran la nota y la primera pantalla del tablero. Entre ** va lo que se resalta."""
+    rango = lambda a, b, f=mil: f(a) if f(a) == f(b) else f"{f(a)} a {f(b)}"
+    tipo = lambda x: {"sabanas": "sábanas"}.get(x, x)
+    y_ = lambda xs: " y ".join([", ".join(xs[:-1]), xs[-1]] if len(xs) > 1 else xs)
+    fechas = lambda d: pd.to_datetime(d.revisar, format="%d/%m/%Y")
+    revisa = lambda d: (f"Se revisa el {fechas(d).min():%d/%m}" if fechas(d).nunique() == 1
+                        else f"Se revisa entre el {fechas(d).min():%d/%m} y el {fechas(d).max():%d/%m}") + ", producto por producto (cada ficha tiene su fecha)."
+    cz = {k: D[D.grupo_n.isin(c["grupos"])] for k, c in CAUSAS.items()}
+    H = {}
+
+    g1, g2 = D[D.grupo_n == 1], D[D.grupo_n == 2]
+    H["ok"] = dict(
+        que_pasa="Venden bien, o llegaron hace poco y venden al ritmo previsto. Acá no hay nada que arreglar con el precio.",
+        prueba=[f"Los {len(g1)} que andan bien venden el **{pct(g1.pct_esperado.min())} o más** de lo esperado y el stock les alcanza para **{rango(g1.meses.min() * 30, g1.meses.max() * 30)} días**."]
+               + ([f"Los {len(g2)} recién llegados cumplen su objetivo, pero el objetivo es corto: al ritmo de hoy **sobraría {rango((g2.sobrante / g2.stock).min(), (g2.sobrante / g2.stock).max(), pct)}** "
+                   "de su stock a la fecha límite."] if len(g2) else []),
+        hacemos="Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
+        por_que=f"Se venden solos: bajarles el precio es regalar margen. La consultora descuenta {int(g1.consultora_descuenta.sum())} de estos y cedería unos "
+                f"**$ {dec(regalo_g1(D) / 1e6)} M en 30 días** por ventas que iban a ocurrir igual.",
+        medimos="Que no se queden sin stock (meta: nunca menos de 15 días en ningún local)"
+                + (f" y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **{mil(g2.sobrante.sum())} u**)" if len(g2) else "") + ". " + revisa(cz["ok"]))
+
+    acept = hist[hist.aceptacion == 1]
+    verif = len(acept) - int((acept.fecha_vigencia_desde.isna() & (acept.fecha_sugerencia < INICIO)).sum())
+    aplic = int(acept.fecha_vigencia_desde.notna().sum())
+    camp_t = camp[camp.fecha_desde <= FOTO]
+    camp_reb = sum(con_rebaja(x.sku, x.fecha_desde, min(x.fecha_hasta, FOTO))[0] for x in camp_t.itertuples())
+    ej = cz["ejecucion"]
+    H["ejecucion"] = dict(
+        que_pasa="Se aprobaron descuentos y campañas que nunca se cobraron en caja: el cliente siguió pagando el precio de lista. En otros hay un cambio recién hecho que todavía no se puede medir.",
+        prueba=[f"De los {verif} descuentos aprobados que se pueden comprobar en las ventas, **solo {aplic} se cobraron**.",
+                f"Las {len(camp_t)} campañas cargadas: **{mil(camp_reb)} unidades** vendidas con rebaja."],
+        hacemos="Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.",
+        por_que="Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
+        medimos="Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, "
+                "las unidades por semana contra las de antes. " + revisa(ej))
+
+    pr = cz["producto"]
+    g4, g5, g6 = D[D.grupo_n == 4], D[D.grupo_n == 5], D[D.grupo_n == 6]
+    vec = []
+    for s, f in g4.iterrows():
+        L_ = lotes.xs(s, level="sku")
+        vec.append(lotes[(lotes.index.get_level_values("sku").map(prod.tipo) == f.tipo) & lotes.index.get_level_values("sucursal_id").isin(L_.index)
+                         & (lotes.index.get_level_values("sku") != s)].vendidas.sum())
+    H["producto"] = dict(
+        que_pasa="Hay clientes para estos productos, pero no se venden: no están a la vista, se agotaron los talles que salían o están en el local equivocado.",
+        prueba=([f"{len(g4)} **nunca vendieron** en 90 días, mientras otros de su mismo tipo vendieron **{rango(min(vec), max(vec))} u** en esos mismos locales."] if len(g4) else [])
+               + ([f"{len(g5)} **se cortaron**: vendían {rango(g5.v_antes_mes.min(), g5.v_antes_mes.max())} u por mes y el último mes {rango(g5.v30.min(), g5.v30.max())}, "
+                   "**sin que cambiara el precio**."] if len(g5) else [])
+               + ([f"{len(g6)} **están mal ubicados**: el {rango(g6.share_sin_venta.min(), g6.share_sin_venta.max(), pct)} de su stock está en locales donde nunca vendieron, "
+                   "y en otro local se venden al mismo precio."] if len(g6) else []),
+        hacemos="Contar el stock físico y exhibirlo, mover unidades a donde se venden e investigar en el local qué cambió.",
+        por_que="El mismo producto, al mismo precio, se vende en otro momento o en otro local: lo que falla no es el precio. Un descuento a algo que nadie ve no lo vende.",
+        medimos="La primera venta en cada local en 15 días; en los que se cortaron, volver a vender lo de antes. Si no, devolución u outlet. " + revisa(pr))
+
+    co = cz["compra"]
+    if len(co):
+        par = co.apply(lambda f: P_margen_pares(D, f), axis=1)
+        costo_par = co.precio * (1 - par)
+        m10 = (co.margen - 0.10) / 0.90
+        prov = D.groupby("proveedor").vendidas.sum()
+        provs = list(co.proveedor.unique())
+        otros = prov.drop(provs)
+        exced = (co.stock - co.v30 * REGLAS["meses_reponer"]).clip(lower=0).sum()
+        H["compra"] = dict(
+            que_pasa=f"Se compraron tan caro que no queda margen para bajarles el precio ({', '.join(provs)}).",
+            prueba=[f"Dejan **{rango(co.margen.min(), co.margen.max(), pct)} de margen**; los mismos productos de otros proveedores, **{rango(par.min(), par.max(), pct)}**.",
+                    f"Con un 10 % de descuento quedarían en {rango(m10.min(), m10.max(), pct)}: **debajo del mínimo de {pct(REGLAS['margen_minimo'])}**.",
+                    f"Para igualar a sus pares tendrían que costar **{rango((1 - costo_par / co.costo).min(), (1 - costo_par / co.costo).max(), pct)} menos**: "
+                    f"$ {dec(((co.costo - costo_par) * co.stock).sum() / 1e6)} M sobre el stock actual."],
+            hacemos=f"Negociar con {', '.join(provs)} la devolución o una bonificación del excedente; si no hay acuerdo, outlet al costo. Renegociar el costo para la próxima compra.",
+            por_que=f"Bajar el precio sería vender casi al costo o por debajo. Y hay con qué negociar: {', '.join(provs)} vendió **{mil(prov[provs].sum())} u**, "
+                    f"contra {rango(otros.min(), otros.max())} de cada uno de los otros proveedores.",
+            medimos=f"Unidades devueltas o bonificadas contra el excedente (**{mil(exced)} u**). " + revisa(co))
+
+    p9 = cz["precio"]
+    firmes = ev[ev.firme.astype(bool)].sort_values("respuesta", ascending=False)
+    debil = ev[(~ev.firme.astype(bool)) & (ev.respuesta >= REGLAS["respuesta_debil"]) & (ev.despues >= REGLAS["despues_minimo"])]
+    nada = ev[~ev.index.isin(firmes.index) & ~ev.index.isin(debil.index)].sort_values("descuento", ascending=False)
+    ESC = escenarios_de(D)
+    ya9 = [s for s in p9.index if s in ESC and ESC[s]]
+    base = sum(D.v30[s] / 30 * 7 for s in ya9)
+    meta = sum(D.v30[s] / 30 * 7 * (1 + ESC[s]["escenarios"][1]["dur"]) for s in ya9)
+    n_si = int((p9.nuestro_descuento != "no").sum())
+    H["precio"] = dict(
+        que_pasa="Venden poco pero parejo, y no hay otra explicación: acá sí puede ser el precio.",
+        prueba=[f"Con descuento, " + y_([f"{tipo(t)} vendieron **{signo(e.respuesta - 1)}**" for t, e in firmes.iterrows()])
+                + (f"; {y_([f'{tipo(t)} {signo(e.respuesta - 1)}' for t, e in debil.iterrows()])}, una respuesta débil" if len(debil) else "") + ".",
+                f"En {tipo(nada.index[0])}, un {pct(nada.descuento.iloc[0])} de descuento movió apenas **{signo(nada.respuesta.iloc[0] - 1)}**; "
+                f"{y_([tipo(x) for x in nada.index[1:]])} tampoco respondieron.",
+                f"Productos sin ningún cambio variaron {signo(RES_DESC['control'][-1]['dur'])} esas mismas semanas: la suba no fue por temporada."],
+        hacemos=f"Probar un descuento por 4 semanas solo en los **{n_si} de {len(p9)}** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
+        por_que="Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
+        medimos=(f"Unidades por semana durante el descuento: hoy **{dec(base)}**, meta **{dec(meta)}** entre los {len(ya9)}. " if ya9 else "")
+                + "Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. " + revisa(p9))
+
+    venc = D[D.u_vencidas > 0]
+    lv = lotes[lotes.vencido == "sí"]
+    anio = int((lv.unidades > lv.venta_ultimos_30 / 30 * 365).sum())
+    H["vencido"] = dict(
+        nombre="Además: el stock vencido", productos=len(venc), stock=int(venc.u_vencidas.sum()),
+        que_pasa="Más de la mitad del stock ya pasó su fecha límite, cualquiera sea su causa. Hay urgencia.",
+        prueba=[f"**{pct(venc.u_vencidas.sum() / D.stock.sum())} del stock** ({mil(venc.u_vencidas.sum())} u) en {len(venc)} productos.",
+                f"Los {len(lv)} lotes vencidos vencieron {f'el mismo día ({lv.fecha_limite.min():%d/%m})' if lv.fecha_limite.nunique() == 1 else 'en fechas distintas'} "
+                f"y **{anio} no se venderían ni en un año** al ritmo actual."],
+        hacemos=f"Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó, se liquida con fechas: "
+                + " y después ".join(f"{pct(d)} por {REGLAS['escalon_dias'] // 7} semanas" for d in REGLAS["escalera"]) + ", y después devolución u outlet. Nunca debajo del costo.",
+        por_que="Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. La escalera hace las dos cosas en orden.",
+        medimos=f"Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **{pd.Timestamp(venc.salida.dropna().max()):%d/%m/%Y}**.")
+    return H
+
+
 def texto_nota(D, ev):
     ya = D[D.nuestro_descuento == "ya"]
     cond = D[D.nuestro_descuento == "condicional"]
@@ -1910,21 +2165,48 @@ def texto_nota(D, ev):
     sg = lambda x: f"{'+' if x >= 0 else '−'}$ {mil(abs(x))}"
     lentos = [t for t, e in ev.iterrows() if e.lento]
     L.append(f"# Viento Sur · Nota de la propuesta (datos al {FOTO:%d/%m/%Y})\n")
-    L.append("## Qué propongo")
-    L.append("Primero entender por qué no vende cada producto; el precio se toca solo si ese es el problema. Cada producto cae en uno de 9 grupos "
+    # ---- las tres capas: el problema, sus causas y una solución por causa
+    tot = D.stock.sum()
+    cz = {k: D[D.grupo_n.isin(c["grupos"])] for k, c in CAUSAS.items()}
+    n_u = lambda d: f"{len(d)} {'producto' if len(d) == 1 else 'productos'}, {mil(d.stock.sum())} u"
+    L.append("## El problema, en una frase")
+    L.append(f"Hay {mil(tot)} u en stock y {(D.pct_esperado < REGLAS['al_dia']).sum()} de {len(D)} productos venden menos del {pct(REGLAS['al_dia'])} de lo esperado; "
+             f"el {pct(venc.u_vencidas.sum() / tot)} del stock ({mil(venc.u_vencidas.sum())} u) ya pasó su fecha límite. Pero no es un solo problema, "
+             "y el precio explica una parte chica.\n")
+    L.append("## Por qué no se vende: 5 causas")
+    L.append("| causa | grupos | productos | stock | ya vencido | el problema | ¿toca el precio? |")
+    L.append("|---|---|---|---|---|---|---|")
+    for k, c in CAUSAS.items():
+        d = cz[k]
+        L.append(f"| **{c['nombre']}** | {', '.join(map(str, c['grupos']))} | {len(d)} | {mil(d.stock.sum())} u ({pct(d.stock.sum() / tot)}) | {mil(d.u_vencidas.sum())} u | {c['problema']} | {c['precio']} |")
+    p9 = cz["precio"]
+    L.append(f"\n**El mensaje central:** solo el {pct(p9.stock.sum() / tot)} del stock ({mil(p9.stock.sum())} u) está en productos donde el precio puede ser la causa, "
+             f"y aun ahí el descuento pasa los criterios en {int((p9.nuestro_descuento != 'no').sum())} de {len(p9)}. El resto tiene otra causa, que un descuento no arregla. "
+             f"Descontar {len(cons_desc)} de {len(D)}, como la consultora, cede margen sin atacar la causa.\n")
+
+    L.append("## Cada causa: qué pasa, la prueba, qué hacemos y cómo lo medimos")
+    L.append("Cada producto tiene además su ficha en el tablero (y su fila en la hoja **Propuesta**) con su causa, el problema en una frase y los indicadores que lo deciden.\n")
+    H = historias(D, ev)
+    for i, (k, hh) in enumerate(H.items(), start=1):
+        if k in CAUSAS:
+            d = cz[k]
+            L.append(f"### {i} · {CAUSAS[k]['nombre']} ({n_u(d)})")
+        else:
+            L.append(f"### {hh['nombre']} ({mil(hh['stock'])} u en {hh['productos']} productos)")
+        L.append(f"- **Qué pasa:** {hh['que_pasa']}")
+        L.append("- **La prueba:** " + " ".join(hh["prueba"]))
+        L.append(f"- **Qué hacemos:** {hh['hacemos']}")
+        L.append(f"- **Por qué:** {hh['por_que']}")
+        L.append(f"- **Cómo lo medimos:** {hh['medimos']}\n")
+
+    L.append("## El detalle: 9 grupos y los criterios del descuento")
+    L.append("Cada producto cae en uno de 9 grupos "
              "(reglas en orden, la primera que se cumple) y el grupo define la acción. El descuento se evalúa solo donde el grupo lo admite: su tipo tiene que haber "
              f"respondido a un descuento ({tipos_firmes} de forma firme; {', '.join(debiles.index) or 'ninguno'} débil, y entonces solo se prueba) y le tiene que quedar "
              f"al menos {pct(REGLAS['margen_minimo'])} de margen. Todo descuento va con fechas, dura 4 semanas y se mide también el mes siguiente.\n")
     L.append(f"- **Descuento ya, a prueba: {len(ya)}** — " + ", ".join(f"{p} ({a.lower()})" for p, a in zip(ya.producto, ya.accion)) + ".")
     L.append(f"- **Descuento si se cumple una condición: {len(cond)}** — " + ", ".join(cond.producto) + ".")
     L.append(f"- **Sin descuento: {(D.nuestro_descuento == 'no').sum()}**: reponer, mover stock entre sucursales, revisar exhibición y stock físico, o devolver y negociar con el proveedor.")
-    if len(venc):
-        L.append(f"- **Stock vencido** ({pct(venc.u_vencidas.sum() / D.stock.sum())} del stock, {mil(venc.u_vencidas.sum())} u en {len(venc)} productos): cada producto mantiene su "
-                 "diagnóstico, pero \"no bajar\" no es para siempre. Si la primera acción no cumple, se liquida con fechas: "
-                 f"{' y después '.join(pct(d) for d in REGLAS['escalera'])}, {REGLAS['escalon_dias']} días cada uno (se pasa al siguiente si la venta no se duplica), "
-                 f"y lo que quede va a devolución u outlet, con piso en el costo. Todo el stock vencido tiene fecha de salida; la última, el {pd.Timestamp(con_salida.salida.max()):%d/%m/%Y}"
-                 + (f". Los {len(sin_esc)} que no aguantan ni el primer escalón ({sin_esc.proveedor.iloc[0] if sin_esc.proveedor.nunique() == 1 else 'margen bajo'}) van directo a devolución o bonificación" if len(sin_esc) else "")
-                 + ".")
     L.append("\nAcción, motivo, meta, fecha de revisión y plan de salida de los 48: hoja **Propuesta**.\n")
     L.append("## Qué miré")
     L.append(f"- **Ritmo del lote** (la cuenta de la consigna): {(D.pct_esperado < REGLAS['al_dia']).sum()} de 48 productos venden menos del {pct(REGLAS['al_dia'])} de lo esperado.")
@@ -2037,8 +2319,8 @@ def datos_tablero(D, ev):
                            meses_antes=f.stock / f.v30 if f.v30 else None, meses_despues=f.stock / todas["u_dur"] if todas["u_dur"] else None))
     E = pd.DataFrame(efecto)
     cd = cons.descuento_pct / 100
-    g1 = D[(D.grupo_n == 1) & D.consultora_descuenta]
-    regalo = float((g1.v30.clip(upper=g1.stock) * g1.precio * cd[g1.index]).sum())
+    regalo = regalo_g1(D)
+    HIST = historias(D, ev)
     debil = (~ev.firme.astype(bool)) & (ev.respuesta >= REGLAS["respuesta_debil"]) & (ev.despues >= REGLAS["despues_minimo"])
     tipo_sin = D.tipo.map(lambda t: not (ev.firme.get(t, False) or debil.get(t, False)))
     chequeos = [("descuenta productos que venden bien", ((D.grupo_n == 1) & D.consultora_descuenta).sum()),
@@ -2064,6 +2346,9 @@ def datos_tablero(D, ev):
                      capital=(D.stock * D.costo)[D.grupo_n == n].sum(),
                      acciones=sorted(set(a.split(" ·")[0] if not a.startswith(("Bajar", "Probar", "Aplicar")) else a for a in D.accion[D.grupo_n == n])))
                 for n, nom in GRUPOS.items()],
+        causas=[dict(id=k, nombre=c["nombre"], grupos=c["grupos"], problema=c["problema"], solucion=c["solucion"], precio=c["precio"], **HIST.get(k, {}))
+                for k, c in CAUSAS.items()],
+        vencido=HIST["vencido"],
         evidencia=[dict(tipo=t, referencia=e.referencia, descuento=e.descuento, respuesta=e.respuesta, bajo=e.rango_bajo, alto=e.rango_alto,
                         firme=bool(e.firme), debil=bool(debil[t]), despues=e.despues) for t, e in ev.sort_values("respuesta", ascending=False).iterrows()],
         control=dict(resp=uc[con].mean() / uc[~con].mean(), bajo=np.percentile(sim, 5), alto=np.percentile(sim, 95)),
@@ -2083,7 +2368,8 @@ def datos_tablero(D, ev):
                         vendidas=int(f.vendidas), v30=int(f.v30), meses=(None if f.meses != f.meses else float(f.meses)),
                         pasos=f.pasos, criterios=f.criterios, evalua_descuento=bool(f.grupo_n in (2, 3, 7, 9)),
                         u_vencidas=int(f.u_vencidas), salida=(f.salida if isinstance(f.salida, str) else None),
-                        sobrante=(None if f.sobrante != f.sobrante else float(f.sobrante)))
+                        sobrante=(None if f.sobrante != f.sobrante else float(f.sobrante)),
+                        causa=CAUSA_DE[f.grupo_n], problema=f.problema, indicadores=f.indicadores)
                    for s, f in D.iterrows()],
         # tablas para explorar y auditar
         catalogo=[dict(sku=s, nombre=r.nombre, rubro=r.rubro, tipo=r.tipo, proveedor=r.proveedor, precio=float(r.precio_lista), costo=float(r.costo_unitario))

@@ -18,9 +18,21 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 
 ## La respuesta en corto
 
-- **El problema no es solo de precio.** 35 de 48 productos venden menos de lo esperado, pero por motivos distintos: se cortaron, están mal ubicados, nunca se exhibieron, tienen margen bajo de origen. Cada producto cae en uno de 9 grupos, y el grupo define la acción.
-- **Descuento solo donde hay evidencia de que funciona**: 4 ahora (a prueba, con fechas y medidos) y 6 si se cumple una condición. Los otros 38 se resuelven sin tocar el precio: reponer, mover stock entre sucursales, revisar exhibición, devolver o negociar con el proveedor.
-- **El stock vencido tiene fecha de salida**: el 57 % del stock ya pasó su fecha límite. Cada producto mantiene su diagnóstico, pero si la primera acción no cumple se liquida con fechas (20 %, después 35 %, después devolución u outlet), siempre con piso en el costo.
+**El problema:** hay 5.006 u en stock, 35 de 48 productos venden menos de lo esperado y el 57 % del stock ya pasó su fecha límite. Pero no es un solo problema, y el precio explica una parte chica.
+
+| Por qué no se vende | Productos | Stock | Qué proponemos | ¿Toca el precio? |
+|---|---|---|---|---|
+| **No es un problema**: vende bien o recién llegó | 13 | 783 u | Dejar el precio; reponer, mover stock y medir cuánto sobraría | No por ahora |
+| **Ejecución**: lo aprobado no llegó a caja, o hay un cambio en curso | 11 | 1.394 u | Que lo aprobado se cobre en caja, con fechas, y medirlo | Lo ya aprobado |
+| **Producto o ubicación**: nunca vendió, se cortó o está en el local equivocado | 12 | 1.180 u | Contar el stock, exhibir, mover o investigar en el local | No |
+| **Compra**: tan caro que no hay margen para descontar (Cumbre) | 4 | 581 u | Negociar devolución o bonificación con el proveedor | No |
+| **Puede ser precio**: vende poco pero parejo, sin otra explicación | 8 | 1.068 u | Descuento a prueba solo si su tipo respondió y queda margen | Sí, a prueba |
+
+Cada causa está contada en cuatro pasos, con sus datos (**qué pasa, la prueba, qué hacemos y por qué, y cómo lo medimos**) en la [nota](salidas/nota.md) y en la primera pantalla del tablero. La ficha de cada producto repite los mismos cuatro pasos con sus propios indicadores.
+
+- **El mensaje central:** solo el 21 % del stock está en productos donde el precio puede ser la causa, y aun ahí el descuento pasa los criterios en 3 de 8. En total: 4 descuentos ahora (a prueba, con fechas y medidos) y 6 si se cumple una condición; los otros 38 se resuelven sin tocar el precio.
+- **Cada decisión se puede revisar**: la ficha de cada producto (y la hoja Propuesta) muestra su causa, el problema en una frase y los indicadores que lo deciden, con su valor, su regla y si se cumple.
+- **El stock vencido tiene fecha de salida**: cada producto arranca por la acción de su causa, pero si no cumple se liquida con fechas (20 %, después 35 %, después devolución u outlet), siempre con piso en el costo. Última salida: 29/05/2026.
 - **La consultora: tomaría solo una parte.** Descuenta 39 de 48 productos, en 12 proyecta vender más de lo que hay en stock y en 4 vende bajo costo.
 - **Hallazgo de proceso:** de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado.
 

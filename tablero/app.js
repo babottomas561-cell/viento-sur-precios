@@ -48,10 +48,15 @@ const VIAS = [
   ["Outlet o devolución del excedente", p => p.n === 9],
 ];
 const viaDe = p => VIAS.find(([, f]) => f(p))[0];
+// Las 5 causas: los 9 grupos contados por qué no se vende. Las fotos anteriores de la base pueden no traerlas.
+const CAUSAS = D.causas || [];
+const CAUSA = Object.fromEntries(CAUSAS.map(c => [c.id, c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/ (%|u\b)/g, "\u00a0$1");      // resaltado entre **; el % y la u no se separan del número
+const MARCA = ok => ok === true ? '<span class="ok">✓ sí</span>' : ok === false ? '<span class="mal">✗ no</span>' : '<span class="muted">· dato</span>';
 
 // ---------------------------------------------------------------------------------------------- estado (en el link)
 const TABS = [["decision", "Decisión"], ["ventas", "Ventas"], ["stock", "Stock y rotación"], ["sucursales", "Sucursales"], ["descuentos", "Descuentos"], ["productos", "Productos"], ["seguimiento", "Seguimiento"], ["datos", "Datos"]];
-const DEF = { tab: "decision", desde: F_MIN, hasta: F_MAX, suc: "", rubro: "", tipo: "", grupo: "", sku: "", tabla: "lotes", orden: "", dir: "1", rev: "",
+const DEF = { tab: "decision", desde: F_MIN, hasta: F_MAX, suc: "", rubro: "", tipo: "", causa: "", grupo: "", sku: "", tabla: "lotes", orden: "", dir: "1", rev: "",
   med: "u", gran: "sem", por: "suc", mapa: "pe" };
 const S = { ...DEF };
 // Deja el estado siempre coherente, venga de un link o de un selector: valores que no existen se descartan,
@@ -70,7 +75,9 @@ function normalizar() {
   if (S.rubro && !D.catalogo.some(p => p.rubro === S.rubro)) descartar("rubro");
   if (S.tipo && !D.catalogo.some(p => p.tipo === S.tipo)) descartar("tipo");
   if (S.tipo && !D.catalogo.some(p => p.tipo === S.tipo && (!S.rubro || p.rubro === S.rubro))) { avisos.push(`No hay ${S.tipo} en ${S.rubro}: se sacó el filtro de tipo.`); S.tipo = ""; }
+  if (S.causa && !CAUSA[S.causa]) descartar("causa");
   if (S.grupo && !D.grupos.some(g => String(g.n) === S.grupo)) descartar("grupo");
+  if (S.grupo && S.causa && !CAUSA[S.causa].grupos.includes(+S.grupo)) { avisos.push(`El grupo ${S.grupo} no es de la causa "${CAUSA[S.causa].nombre}": se sacó el filtro de grupo.`); S.grupo = ""; }
   if (S.sku && !DEC[S.sku]) descartar("sku");
   if (S.sku && !prodsFiltrados(false, true).some(p => p.sku === S.sku)) { avisos.push(`${DEC[S.sku].producto} no entra en los filtros elegidos: se sacó el filtro de producto.`); S.sku = ""; }
   if (!(S.tabla in TABLAS)) descartar("tabla");
@@ -108,7 +115,7 @@ function cambiar(cambios, irArriba = false) {
 }
 
 // ---------------------------------------------------------------------------------------------- filtros
-const prodsFiltrados = (ignorarSuc = false, ignorarSku = false) => D.productos.filter(p => (!S.rubro || p.rubro === S.rubro) && (!S.tipo || p.tipo === S.tipo) && (!S.grupo || String(p.n) === S.grupo)
+const prodsFiltrados = (ignorarSuc = false, ignorarSku = false) => D.productos.filter(p => (!S.rubro || p.rubro === S.rubro) && (!S.tipo || p.tipo === S.tipo) && (!S.causa || p.causa === S.causa) && (!S.grupo || String(p.n) === S.grupo)
   && (ignorarSku || !S.sku || p.sku === S.sku) && (ignorarSuc || !S.suc || (LOTES_SKU[p.sku] || []).some(l => l.suc === S.suc)));
 const ventasDe = skus => { const set = new Set(skus); return VENTAS.filter(v => v.fecha >= S.desde && v.fecha <= S.hasta && (!S.suc || v.suc === S.suc) && set.has(v.sku)); };
 const lotesDe = skus => { const set = new Set(skus); return D.lotes.filter(l => set.has(l.sku) && (!S.suc || l.suc === S.suc)); };
@@ -154,22 +161,23 @@ function renderFiltros() {
   const tipos = [...new Set(D.catalogo.filter(p => !S.rubro || p.rubro === S.rubro).map(p => p.tipo))].sort().map(t => [t, t]);
   const prods = prodsFiltrados(false, true)        // el producto se elige dentro de los demás filtros, sucursal incluida
     .sort((a, b) => a.producto.localeCompare(b.producto, "es")).map(p => [p.sku, p.producto]);
-  const n = ["suc", "rubro", "tipo", "grupo", "sku"].filter(k => S[k]).length + (S.desde !== DEF.desde || S.hasta !== DEF.hasta ? 1 : 0);
+  const n = ["suc", "rubro", "tipo", "causa", "grupo", "sku"].filter(k => S[k]).length + (S.desde !== DEF.desde || S.hasta !== DEF.hasta ? 1 : 0);
   $("#filtros").innerHTML = `<div class="filtros-in">
     <label class="campo" for="f-desde">Desde<input type="date" id="f-desde" value="${S.desde}" min="${F_MIN}" max="${F_MAX}"></label>
     <label class="campo" for="f-hasta">Hasta<input type="date" id="f-hasta" value="${S.hasta}" min="${F_MIN}" max="${F_MAX}"></label>
     <label class="campo" for="f-suc">Sucursal<select id="f-suc">${opciones(SUCS.map(s => [s.id, `${s.id} · ${s.nombre}`]), S.suc, "Todas")}</select></label>
     <label class="campo" for="f-rubro">Rubro<select id="f-rubro">${opciones(rubros, S.rubro, "Todos")}</select></label>
     <label class="campo" for="f-tipo">Tipo<select id="f-tipo">${opciones(tipos, S.tipo, "Todos")}</select></label>
-    <label class="campo" for="f-grupo">Grupo<select id="f-grupo">${opciones(D.grupos.map(g => [String(g.n), `${g.n} · ${g.nombre}`]), S.grupo, "Todos")}</select></label>
+    ${CAUSAS.length ? `<label class="campo" for="f-causa">Causa<select id="f-causa">${opciones(CAUSAS.map(c => [c.id, c.nombre]), S.causa, "Todas")}</select></label>` : ""}
+    <label class="campo" for="f-grupo">Grupo<select id="f-grupo">${opciones(D.grupos.filter(g => !S.causa || CAUSA[S.causa].grupos.includes(g.n)).map(g => [String(g.n), `${g.n} · ${g.nombre}`]), S.grupo, "Todos")}</select></label>
     <label class="campo" for="f-sku">Producto<select id="f-sku">${opciones(prods, S.sku, "Todos")}</select></label>
     <button class="btn" type="button" id="f-limpiar"${n ? "" : " disabled"}>Limpiar filtros</button>
     <span class="activos">${n ? `<b>${n}</b> ${n === 1 ? "filtro activo" : "filtros activos"} · ` : ""}${fmt(prodsFiltrados().length)} de ${D.productos.length} productos</span>
     ${AVISOS.map(a => `<span class="aviso" role="status">${esc(a)}</span>`).join("")}
   </div>`;
-  const on = (id, k) => $(id).addEventListener("change", e => cambiar({ [k]: e.target.value, ...(k === "rubro" ? { tipo: "", sku: "" } : {}) }));
-  on("#f-desde", "desde"); on("#f-hasta", "hasta"); on("#f-suc", "suc"); on("#f-rubro", "rubro"); on("#f-tipo", "tipo"); on("#f-grupo", "grupo"); on("#f-sku", "sku");
-  $("#f-limpiar").addEventListener("click", () => cambiar({ desde: DEF.desde, hasta: DEF.hasta, suc: "", rubro: "", tipo: "", grupo: "", sku: "", rev: "" }));
+  const on = (id, k) => $(id).addEventListener("change", e => cambiar({ [k]: e.target.value, ...(k === "rubro" ? { tipo: "", sku: "" } : k === "causa" ? { grupo: "" } : {}) }));
+  on("#f-desde", "desde"); on("#f-hasta", "hasta"); on("#f-suc", "suc"); on("#f-rubro", "rubro"); on("#f-tipo", "tipo"); if (CAUSAS.length) on("#f-causa", "causa"); on("#f-grupo", "grupo"); on("#f-sku", "sku");
+  $("#f-limpiar").addEventListener("click", () => cambiar({ desde: DEF.desde, hasta: DEF.hasta, suc: "", rubro: "", tipo: "", causa: "", grupo: "", sku: "", rev: "" }));
 }
 
 // ---------------------------------------------------------------------------------------------- tablas, "ver los datos" y CSV
@@ -360,26 +368,91 @@ function vistaDecision(main) {
     .filter(v => v.productos);
   const sinPrecio = vias.filter(v => !/^Descuento/.test(v.via)).sort((a, b) => b.stock - a.stock);
   const filtrado = P.length < D.productos.length;
+  const porCausa = CAUSAS.map(c => { const ps = P.filter(p => p.causa === c.id);
+    return { ...c, ps, productos: ps.length, stock: suma(ps, p => p.stock), vencidas: suma(ps, p => p.u_vencidas), ya: ps.filter(p => p.nuestro === "ya").length,
+             cond: ps.filter(p => p.nuestro === "condicional").length }; }).filter(c => c.productos);
+  const enPrecio = porCausa.find(c => c.id === "precio");
 
   // 1 · La respuesta
   const s1 = document.createElement("section");
   s1.className = "sec";
-  s1.innerHTML = `<div class="sec-cab"><h2>${filtrado ? `La respuesta para ${P.length} productos filtrados` : "La respuesta"}</h2><span class="nota">Foto del ${D.foto}</span></div>
-    <div class="bloque respuesta">
-      <ol>
-        <li><b>El problema</b><p>${atrasados} de ${P.length} productos venden menos del ${pct(D.criterios.al_dia)} de lo esperado, y el ${pct(vencidas / (stockL || 1))} del stock (${fmt(vencidas)} u) ya pasó su fecha límite.</p></li>
-        <li><b>Qué proponemos</b><p>${ya.length ? `Descuento ahora en ${ya.length}, siempre a prueba y medido` : "Ningún descuento inmediato"}${cond.length ? `; en ${cond.length} más, si se cumple una condición` : ""}. Los otros ${sin} se resuelven sin tocar el precio: ${sinPrecio.slice(0, 3).map(v => v.via.split(":")[0].toLowerCase()).join(", ")}.${venc.length ? ` El stock vencido (${fmt(suma(venc, p => p.u_vencidas))} u) tiene fecha de salida: si la primera acción no cumple, se liquida con fechas y piso en el costo, la última salida el ${fechaAR(venc.reduce((m, p) => p.salida > m ? p.salida : m, ""))}.` : ""}</p></li>
-        <li><b>Qué esperamos</b><p>${E.length ? `Con los descuentos de ahora, ${fmt(uB)} → ${fmt(uE, 1)} u por mes. En 2 meses dejarían entre ${plataS(mPeor - mB)} y ${plataS(mMejor - mB)} de margen contra no tocar el precio, según cómo respondió antes el mismo descuento: el descuento mueve poco.` : "El precio no cambia en estos productos."} El stock quieto sale sobre todo por las otras vías: ${sinPrecio[0] ? `${sinPrecio[0].via.toLowerCase()} (${fmt(sinPrecio[0].stock)} u)` : "—"}${sinPrecio[1] ? ` y ${sinPrecio[1].via.toLowerCase()} (${fmt(sinPrecio[1].stock)} u)` : ""}.</p></li>
-      </ol>
-      <div class="cifras">
+  const cifras = `<div class="cifras">
         <div class="cifra"><b>${fmt(stock)} u</b><span>en stock · ${plata(capital)} a costo</span></div>
         <div class="cifra mala"><b>${pct(vencidas / (stockL || 1))}</b><span>del stock ya pasó su fecha límite</span></div>
         <div class="cifra buena"><b>${ya.length} + ${cond.length}</b><span>con descuento ya + condicionales</span></div>
         <div class="cifra"><b>${sin}</b><span>se resuelven sin tocar el precio</span></div>
         <div class="cifra"><b>${E.length ? sgn(uE / (uB || 1) - 1) : "—"}</b><span>unidades por mes en los que se descuentan</span></div>
         <div class="cifra mala"><b>${P.filter(p => p.consultora.startsWith("descontar")).length}</b><span>descuenta la consultora; coincide en ${P.filter(p => p.coincide === "sí").length}</span></div>
-      </div>
-    </div>`;
+      </div>`;
+  if (porCausa.length && porCausa[0].que_pasa) {
+    // El problema y la solución en un minuto: el stock repartido por causa y una tarjeta por causa con sus 4 pasos
+    const deCien = enPrecio ? Math.round(100 * enPrecio.stock / (stock || 1)) : 0;
+    s1.innerHTML = `<div class="sec-cab"><h2>${filtrado ? `El problema y la solución, para ${P.length} productos filtrados` : "El problema y la solución, en un minuto"}</h2><span class="nota">Foto del ${D.foto}</span></div>
+      <div class="bloque resumen">
+        <p class="titular">${atrasados} de ${P.length} productos venden menos de lo esperado y el ${pct(vencidas / (stockL || 1))} del stock ya pasó su fecha límite.
+          ${porCausa.length > 1 ? `<b>Pero no es un solo problema, y casi nunca es el precio:</b> de cada 100 unidades en stock, ${deCien ? `solo ${deCien} están` : "ninguna está"} en productos donde el precio puede ser la causa.` : ""}</p>
+        <div class="barra-causas" role="img" aria-label="Stock por causa: ${porCausa.map(c => `${c.nombre} ${pct(c.stock / (stock || 1))}`).join(", ")}">
+          ${porCausa.map(c => `<button type="button" class="seg${c.id === "precio" ? " es-precio" : ""}" data-k="${c.id}" style="flex:${c.stock}"
+            title="${esc(c.nombre)}: ${fmt(c.stock)} u (${pct(c.stock / (stock || 1))}) en ${c.productos} productos · tocá para verlos">${c.stock / (stock || 1) >= 0.08 ? pct(c.stock / (stock || 1)) : ""}</button>`).join("")}
+        </div>
+        <div class="barra-nombres" aria-hidden="true">${porCausa.map(c => `<span style="flex:${c.stock}"${c.id === "precio" ? ' class="es-precio"' : ""}>${esc(c.nombre)}</span>`).join("")}</div>
+        <ul class="barra-leyenda">${porCausa.map(c => `<li><i class="${c.id === "precio" ? "es-precio" : ""}"></i><b>${esc(c.nombre)}</b> ${fmt(c.stock)} u · ${pct(c.stock / (stock || 1))}</li>`).join("")}</ul>
+        ${cifras}
+      </div>`;
+    s1.querySelectorAll(".seg").forEach(b => b.addEventListener("click", () => cambiar({ tab: "productos", causa: b.dataset.k, grupo: "", sku: "" }, true)));
+    const tarjetas = [...porCausa.map((c, i) => ({ ...c, num: String(CAUSAS.findIndex(x => x.id === c.id) + 1) }))];
+    const vencP = P.filter(p => p.u_vencidas > 0);
+    if (D.vencido && vencP.length) tarjetas.push({ ...D.vencido, id: "vencido", num: "+", productos: vencP.length, stock: suma(vencP, p => p.u_vencidas), precio: "Si lo demás falla" });
+    const bK = bloque(`<h3>Cada causa en cuatro pasos: qué pasa, la prueba, qué hacemos y cómo lo medimos</h3>
+      <p class="nota" style="margin:4px 0 4px">${filtrado ? "Los conteos siguen los filtros; las pruebas son de los 48 productos. " : ""}Tocá "Ver productos" para ir a la lista; en la ficha de cada producto están sus propios indicadores, con valor y regla.</p>
+      <div class="causas-grid">${tarjetas.map(c => `<article class="causa-card${c.id === "precio" ? " es-precio" : ""}">
+        <header><span class="causa-num">${c.num}</span><div><h4>${esc(c.nombre)}</h4><span class="muted">${c.productos} ${c.productos === 1 ? "producto" : "productos"} · ${fmt(c.stock)} u${c.id === "vencido" ? " vencidas" : ` · ${pct(c.stock / (stock || 1))} del stock`}</span></div>
+          <span class="toca${c.precio === "No" ? "" : " si"}">¿Precio? ${esc(c.precio)}</span></header>
+        <dl class="pasos4">
+          <dt>Qué pasa</dt><dd>${md(c.que_pasa)}</dd>
+          <dt>La prueba</dt><dd><ul>${c.prueba.map(x => `<li>${md(x)}</li>`).join("")}</ul></dd>
+          <dt>Qué hacemos</dt><dd>${md(c.hacemos)}<span class="porque"><b>Por qué:</b> ${md(c.por_que)}</span></dd>
+          <dt>Cómo lo medimos</dt><dd>${md(c.medimos)}</dd>
+        </dl>
+        ${c.id === "vencido" ? "" : `<button class="btn" type="button" data-k="${c.id}">Ver los ${c.productos} productos →</button>`}</article>`).join("")}</div>`);
+    bK.querySelectorAll(".causa-card .btn").forEach(b => b.addEventListener("click", () => cambiar({ tab: "productos", causa: b.dataset.k, grupo: "", sku: "" }, true)));
+    bK.append(verDatos("Productos por causa", [
+      { k: "producto", t: "producto", cls: "t-prod" }, { k: "causa_nom", t: "causa" }, { k: "n", t: "grupo", r: true }, { k: "problema", t: "el problema", cls: "t-texto" },
+      { k: "accion", t: "acción" }, { k: "stock", t: "stock", r: true, f: v => fmt(v) }, { k: "u_vencidas", t: "ya vencido", r: true, f: v => fmt(v) }],
+      P.map(p => ({ ...p, causa_nom: CAUSA[p.causa]?.nombre })), "causas"));
+    s1.append(bK);
+  } else {
+    s1.innerHTML = `<div class="sec-cab"><h2>${filtrado ? `La respuesta para ${P.length} productos filtrados` : "La respuesta"}</h2><span class="nota">Foto del ${D.foto}</span></div>
+      <div class="bloque respuesta">
+        <ol>
+          <li><b>El problema</b><p>${atrasados} de ${P.length} productos venden menos del ${pct(D.criterios.al_dia)} de lo esperado, y el ${pct(vencidas / (stockL || 1))} del stock (${fmt(vencidas)} u) ya pasó su fecha límite.${porCausa.length > 1 && enPrecio ? ` Pero no es un solo problema: hay ${porCausa.length} causas distintas, y solo el ${pct(enPrecio.stock / (stock || 1))} del stock está en productos donde el precio puede ser la causa.` : ""}</p></li>
+          <li><b>Qué proponemos</b><p>${porCausa.length ? "Una solución por causa (la tabla de abajo). " : ""}${ya.length ? `Descuento ahora en ${ya.length}, siempre a prueba y medido` : "Ningún descuento inmediato"}${cond.length ? `; en ${cond.length} más, si se cumple una condición` : ""}. Los otros ${sin} se resuelven sin tocar el precio: ${sinPrecio.slice(0, 3).map(v => v.via.split(":")[0].toLowerCase()).join(", ")}.${venc.length ? ` El stock vencido (${fmt(suma(venc, p => p.u_vencidas))} u) tiene fecha de salida: si la primera acción no cumple, se liquida con fechas y piso en el costo, la última salida el ${fechaAR(venc.reduce((m, p) => p.salida > m ? p.salida : m, ""))}.` : ""}</p></li>
+          <li><b>Qué esperamos</b><p>${E.length ? `Con los descuentos de ahora, ${fmt(uB)} → ${fmt(uE, 1)} u por mes. En 2 meses dejarían entre ${plataS(mPeor - mB)} y ${plataS(mMejor - mB)} de margen contra no tocar el precio, según cómo respondió antes el mismo descuento: el descuento mueve poco.` : "El precio no cambia en estos productos."} El stock quieto sale sobre todo por las otras vías: ${sinPrecio[0] ? `${sinPrecio[0].via.toLowerCase()} (${fmt(sinPrecio[0].stock)} u)` : "—"}${sinPrecio[1] ? ` y ${sinPrecio[1].via.toLowerCase()} (${fmt(sinPrecio[1].stock)} u)` : ""}.</p></li>
+        </ol>
+        ${cifras}
+      </div>`;
+    if (porCausa.length) {
+      // Por qué no se vende: los 9 grupos contados en 5 causas, cada una con su solución
+      const mxs = Math.max(...porCausa.map(c => c.stock), 1);
+      const bC = bloque(`<h3>Por qué no se vende: ${porCausa.length === CAUSAS.length ? "5 causas" : `${porCausa.length} causas`}, una solución para cada una</h3>
+        <p class="nota" style="margin:4px 0 10px">Los 9 grupos de la regla, contados por su causa. Tocá una causa para ver sus productos; en la ficha de cada uno están los indicadores que lo ubican ahí.</p>
+        <div class="tabla-wrap"><table class="causas"><thead><tr><th>causa</th><th>el problema</th><th>la solución</th><th class="r">productos</th><th>stock</th><th>¿toca el precio?</th></tr></thead><tbody>
+        ${porCausa.map(c => `<tr class="clic" data-k="${c.id}"><td><b>${esc(c.nombre)}</b><br><span class="grupos">${c.grupos.filter(n => c.ps.some(p => p.n === n)).map(chip).join(" ")}</span></td>
+          <td>${esc(c.problema)}</td><td>${esc(c.solucion)}</td><td class="r num">${c.productos}</td>
+          <td><span class="pista" title="${fmt(c.stock)} u, ${fmt(c.vencidas)} ya vencidas"><i style="width:${100 * c.vencidas / mxs}%;background:var(--bad)"></i><i style="width:${100 * (c.stock - c.vencidas) / mxs}%;background:var(--ink-2);opacity:.35"></i></span>
+            <span class="num">${fmt(c.stock)} u</span> <span class="muted">· ${pct(c.stock / (stock || 1))}</span></td>
+          <td>${c.precio === "No" ? '<span class="muted">No</span>' : `<b>${esc(c.precio)}</b>`}${c.ya + c.cond ? `<br><span class="muted" style="font-size:.78rem">${[c.ya ? `${c.ya} ya` : "", c.cond ? `${c.cond} ${c.cond === 1 ? "condicional" : "condicionales"}` : ""].filter(Boolean).join(" · ")}</span>` : ""}</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="leyenda" style="margin-top:8px"><span><i style="background:var(--bad)"></i>stock ya vencido</span><span><i style="background:var(--ink-2);opacity:.35"></i>stock en fecha</span></div>
+        ${enPrecio ? `<p class="mensaje"><b>El mensaje central:</b> solo el ${pct(enPrecio.stock / (stock || 1))} del stock (${fmt(enPrecio.stock)} u) está en productos donde el precio puede ser la causa, y aun ahí el descuento pasa los criterios en ${enPrecio.ya + enPrecio.cond} de ${enPrecio.productos}. El resto tiene otra causa, que un descuento no arregla.</p>` : ""}`);
+      bC.querySelectorAll("tr.clic").forEach(tr => tr.addEventListener("click", () => cambiar({ tab: "productos", causa: tr.dataset.k, grupo: "", sku: "" }, true)));
+      bC.append(verDatos("Productos por causa", [
+        { k: "producto", t: "producto", cls: "t-prod" }, { k: "causa_nom", t: "causa" }, { k: "n", t: "grupo", r: true }, { k: "problema", t: "el problema", cls: "t-texto" },
+        { k: "accion", t: "acción" }, { k: "stock", t: "stock", r: true, f: v => fmt(v) }, { k: "u_vencidas", t: "ya vencido", r: true, f: v => fmt(v) }],
+        P.map(p => ({ ...p, causa_nom: CAUSA[p.causa]?.nombre })), "causas"));
+      s1.append(bC);
+    }
+  }
   main.append(s1);
 
   // 2 · El problema
@@ -512,10 +585,11 @@ function vistaDecision(main) {
 function vistaProductos(main) {
   if (S.sku && DEC[S.sku]) { vistaFicha(main, S.sku); return; }
   const P = prodsFiltrados().map(p => ({ ...p, via: viaDe(p) }));
-  const s = seccion(`Productos <span class="muted" style="font-weight:400;font-size:1rem">(${P.length})</span>`, "Tocá un producto para ver su ficha: qué le pasa en cada sucursal, por qué cayó en su grupo, cómo le fue con los criterios del descuento y su historial de precio. Tocá un encabezado para ordenar.");
+  const s = seccion(`Productos <span class="muted" style="font-weight:400;font-size:1rem">(${P.length})</span>`, "Tocá un producto para ver su ficha: qué le pasa y los indicadores que lo deciden, cómo vende en cada sucursal, por qué cayó en su grupo, cómo le fue con los criterios del descuento y su historial de precio. Tocá un encabezado para ordenar.");
   const cols = [
     { k: "producto", t: "producto", cls: "t-prod", f: (v, r) => `<b>${esc(v)}</b><br><span class="sku">${r.sku} · ${esc(r.sucursales)}</span>` },
     { k: "n", t: "grupo", cls: "t-grupo", f: (v, r) => `${chip(v)} <span class="muted">${esc(r.grupo_nombre)}</span>` },
+    ...(CAUSAS.length ? [{ k: "problema", t: "qué le pasa", cls: "t-texto", f: (v, r) => `<b>${esc(CAUSA[r.causa]?.nombre || "")}</b><br><span class="muted">${esc(v)}</span>` }] : []),
     { k: "accion", t: "acción", cls: "t-accion", f: v => pill(v) },
     { k: "stock", t: "stock", r: true, f: v => fmt(v) },
     { k: "pct_esperado", t: "% de lo esperado", r: true, f: v => pct(v), csv: v => v },
@@ -530,9 +604,11 @@ function vistaProductos(main) {
   conectarOrden(b);
   b.append(verDatos("Productos con su decisión", [
     { k: "sku", t: "sku" }, { k: "producto", t: "producto" }, { k: "rubro", t: "rubro" }, { k: "tipo", t: "tipo" }, { k: "proveedor", t: "proveedor" },
-    { k: "n", t: "grupo" }, { k: "accion", t: "acción" }, { k: "condicion", t: "condición" }, { k: "motivo", t: "motivo", cls: "t-texto" }, { k: "ademas", t: "además", cls: "t-texto" },
+    { k: "n", t: "grupo" }, { k: "causa_nom", t: "causa" }, { k: "problema", t: "el problema", cls: "t-texto" },
+    { k: "ind_txt", t: "indicadores que lo deciden", cls: "t-texto" }, { k: "accion", t: "acción" }, { k: "condicion", t: "condición" }, { k: "motivo", t: "motivo", cls: "t-texto" }, { k: "ademas", t: "además", cls: "t-texto" },
     { k: "indicador", t: "indicador" }, { k: "linea_base", t: "línea base" }, { k: "meta", t: "meta" }, { k: "revisar", t: "revisar el" },
-    { k: "si_no", t: "si no se cumple" }, { k: "consultora", t: "consultora" }, { k: "coincide", t: "¿coincide?" }], filas, "productos"));
+    { k: "si_no", t: "si no se cumple" }, { k: "consultora", t: "consultora" }, { k: "coincide", t: "¿coincide?" }], filas.map(p => ({ ...p, causa_nom: CAUSA[p.causa]?.nombre,
+      ind_txt: (p.indicadores || []).map(i => `${i.ok === true ? "✓" : i.ok === false ? "✗" : "·"} ${i.nombre}: ${i.valor}`).join(" · ") })), "productos"));
   s.append(b);
   main.append(s);
 }
@@ -550,16 +626,27 @@ function vistaFicha(main, sku) {
   cab.querySelector(".volver").addEventListener("click", () => cambiar({ sku: "" }, true));
   main.append(cab);
 
-  // La decisión
-  const s1 = seccion("La decisión");
-  s1.append(bloque(`<div class="decision"><dl>
+  // La decisión en 4 pasos, como en la primera pantalla: qué pasa, la prueba (sus indicadores), qué hacemos y por qué, y cómo lo medimos
+  const ca = CAUSA[p.causa];
+  const s1 = seccion("Qué le pasa, qué hacemos y cómo lo medimos");
+  const paso = (n, titulo, html) => `<li><span class="cuatro-n">${n}</span><div><h3>${titulo}</h3>${html}</div></li>`;
+  const b1 = bloque(`<ol class="cuatro">
+    ${p.problema ? paso(1, "Qué pasa", `<p class="problema">${ca ? `<span class="causa">${esc(ca.nombre)}</span>` : ""}${esc(p.problema)}</p>`) : ""}
+    ${p.indicadores?.length ? paso(2, "La prueba: los indicadores que lo deciden", `<p class="nota" style="margin:2px 0 8px">Cada regla está escrita como la condición del diagnóstico: ✓ se cumple, ✗ no se cumple, · dato de contexto. Son los mismos de la hoja Propuesta.</p>
+      <div class="tabla-wrap"><table class="indicadores"><thead><tr><th>indicador</th><th class="r">valor</th><th>regla</th><th>¿se cumple?</th></tr></thead><tbody>
+      ${p.indicadores.map(i => `<tr><td>${esc(i.nombre)}</td><td class="r num">${esc(i.valor)}</td><td class="muted">${esc(i.regla || "—")}</td><td>${MARCA(i.ok)}</td></tr>`).join("")}
+      </tbody></table></div>`) : ""}
+    ${paso(3, "Qué hacemos y por qué", `<dl class="pasos4">
       <dt>Acción</dt><dd>${pill(p.accion)}</dd>
       ${p.condicion ? `<dt>Condición</dt><dd>${esc(p.condicion)}</dd>` : ""}
       <dt>Por qué</dt><dd>${esc(p.motivo)}</dd>
-      ${p.ademas ? `<dt>Además</dt><dd>${esc(p.ademas)}</dd>` : ""}</dl>
-    <dl>${p.indicador ? `<dt>Indicador</dt><dd>${esc(p.indicador)}</dd><dt>Línea base → meta</dt><dd>${esc(p.linea_base)} → ${esc(p.meta)}</dd>
-      <dt>Revisar el</dt><dd class="num">${esc(p.revisar)}</dd>${p.si_no ? `<dt>Si no se cumple</dt><dd>${esc(p.si_no)}</dd>` : ""}` : ""}
-      <dt>Consultora</dt><dd>${esc(p.consultora)} · ${p.coincide === "sí" ? '<span class="ok">coincide</span>' : '<span class="mal">no coincide</span>'}</dd></dl></div>`));
+      ${p.ademas ? `<dt>Además</dt><dd>${esc(p.ademas)}</dd>` : ""}
+      ${ca ? `<dt>Para su causa</dt><dd>${esc(ca.solucion)}</dd>` : ""}</dl>`)}
+    ${paso(4, "Cómo lo medimos", `<dl class="pasos4">${p.indicador ? `<dt>Se mide con</dt><dd>${esc(p.indicador)}</dd><dt>Hoy → meta</dt><dd>${esc(p.linea_base)} → <b>${esc(p.meta)}</b></dd>
+      <dt>Se revisa el</dt><dd class="num">${esc(p.revisar)}</dd>${p.si_no ? `<dt>Si no se cumple</dt><dd>${esc(p.si_no)}</dd>` : ""}` : ""}
+      <dt>La consultora</dt><dd>${esc(p.consultora)} · ${p.coincide === "sí" ? '<span class="ok">coincide</span>' : '<span class="mal">no coincide</span>'}</dd></dl>`)}
+  </ol>`);
+  s1.append(b1);
   main.append(s1);
 
   // Seguimiento de su recomendación (si hay fotos anteriores en la base)
@@ -653,8 +740,8 @@ function vistaFicha(main, sku) {
     });
   }
 
-  // Qué le pasa
-  const s3 = seccion("Qué le pasa", `Ventas por semana y stock día a día en cada sucursal, del ${fechaAR(S.desde)} al ${fechaAR(S.hasta)}. El stock se reconstruye hacia atrás desde la foto: supone que no hubo reposiciones ni transferencias.`);
+  // Cómo vende en cada sucursal
+  const s3 = seccion("Cómo vende en cada sucursal", `Ventas por semana y stock día a día en cada sucursal, del ${fechaAR(S.desde)} al ${fechaAR(S.hasta)}. El stock se reconstruye hacia atrás desde la foto: supone que no hubo reposiciones ni transferencias.`);
   const b3 = bloque(`<div class="dos"><div><h3>Unidades por semana</h3><div class="graf"><canvas id="g-sem"></canvas></div></div>
     <div><h3>Stock día a día</h3><div class="graf"><canvas id="g-stock"></canvas></div></div></div>
     <h3>Indicadores en cada sucursal${fechasCambiadas() ? ` al ${fechaAR(S.hasta)}` : ""}</h3>
