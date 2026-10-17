@@ -252,3 +252,4 @@ tfoot td { background: var(--panel-2); border-top: 1px solid var(--line-2); posi
 ul.conclusiones { margin: 8px 0 0; padding-left: 1.1rem; display: grid; gap: 8px; max-width: 95ch; }
 ul.conclusiones li { line-height: 1.5; color: var(--ink-2); }
 .aviso { flex-basis: 100%; font-size: .8rem; color: var(--warn); background: var(--warn-soft); padding: 4px 8px; border-radius: 4px; }
+ul.ritmo-lotes { margin: 10px 0 0; padding-left: 1.1rem; display: grid; gap: 4px; font-size: .86rem; color: var(--ink-2); }

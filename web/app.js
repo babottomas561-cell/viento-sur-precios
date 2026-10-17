@@ -536,6 +536,59 @@ function vistaFicha(main, sku) {
         ${filaCrit("No se adelantan compras", cr.despues_ok, `después ${sgn(cr.despues)}`, "en su tipo")}</tbody></table>` : `<p class="nota">No hay evidencia de su tipo.</p>`}</div></div>`));
   main.append(s2);
 
+  // Ritmo del lote (la cuenta de la consigna): objetivo = unidades_objetivo ÷ días de ingreso a fecha límite;
+  // real = vendidas desde el ingreso (o desde el inicio de las ventas, si el lote es anterior) ÷ esos días
+  const INI = D.inicio.split("/").reverse().join("-");
+  const desdeLote = l => l.ingreso > INI ? l.ingreso : INI;
+  const alDia = l => l.pct_esperado >= D.criterios.al_dia;
+  const sR = seccion("¿Viene al día? Ritmo del lote",
+    `Ritmo objetivo = unidades que se esperaba vender ÷ días entre el ingreso y la fecha límite. Ritmo real = lo vendido desde el ingreso (o desde el ${fechaAR(INI)}, si el lote es anterior) ÷ esos días, hasta la foto del ${D.foto}. Al día = ${pct(D.criterios.al_dia)} o más de lo esperado. No depende del filtro de fechas.`);
+  if (!L.length) sR.append(bloque(`<div class="vacio">Este producto no tiene stock en ${esc(S.suc)}.</div>`));
+  else {
+    // Escribe el % de lo esperado cumplido en el punto que se le indique de cada lote (verde al día, rojo atrasado)
+    const pctCumplido = (id, punto) => ({ id, afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      L.forEach((l, i) => { const el = punto(chart, i); if (!el) return;
+        ctx.save(); ctx.font = `600 12px ${tok("--f-num") || "monospace"}`; ctx.fillStyle = tok(alDia(l) ? "--good" : "--bad"); ctx.textBaseline = "middle";
+        ctx.fillText(pct(l.pct_esperado), el.x + 6, el.y); ctx.restore(); }); } });
+    const bR = bloque(`<div class="dos"><div><h3>Unidades por día: objetivo contra real</h3><div class="graf bajo" style="height:${Math.max(180, 70 * L.length + 70)}px"><canvas id="g-ritmo"></canvas></div></div>
+      <div><h3>Vendido acumulado contra lo esperado</h3><div class="graf bajo" style="height:${Math.max(180, 70 * L.length + 70)}px"><canvas id="g-ritmo-acum"></canvas></div></div></div>
+      <p class="nota" style="margin-top:6px">El número al final de cada barra y de cada línea es el <b>% de lo esperado cumplido</b> (ritmo real ÷ ritmo objetivo).</p>
+      <ul class="ritmo-lotes">${L.map(l => {
+        const dias = difDias(desdeLote(l), D.foto_iso) + 1, esperadas = l.ritmo_objetivo * dias, vendio = l.ritmo_real * dias, quedan = difDias(D.foto_iso, l.limite);
+        return `<li><b>${l.suc}</b> <span class="muted">${esc(NOM_SUC[l.suc])}</span> · vendió ${fmt(vendio)} de ${fmt(esperadas)} esperadas en ${dias} días
+          (<span class="${alDia(l) ? "ok" : "mal"}">${pct(l.pct_esperado)} · ${alDia(l) ? "al día" : "atrasado"}</span>) ·
+          fecha límite ${fechaAR(l.limite)} ${quedan < 0 ? `<span class="mal">(vencida hace ${-quedan} días)</span>` : `(faltan ${quedan} días; quedan ${fmt(l.unidades)} u)`}</li>`; }).join("")}</ul>`);
+    sR.append(bR);
+    main.append(sR);
+    grafico($("#g-ritmo"), {
+      type: "bar",
+      data: { labels: L.map(l => `${l.suc} · ${NOM_SUC[l.suc]}`), datasets: [
+        { label: "ritmo objetivo", data: L.map(l => l.ritmo_objetivo), backgroundColor: tok("--line-2") },
+        { label: "ritmo real", data: L.map(l => l.ritmo_real), backgroundColor: L.map(l => tok(alDia(l) ? "--good" : "--bad")) }] },
+      plugins: [pctCumplido("pct-ritmo", (ch, i) => ch.getDatasetMeta(1).data[i])],
+      options: { indexAxis: "y", maintainAspectRatio: false, layout: { padding: { right: 44 } },
+        scales: { x: { beginAtZero: true, title: { display: true, text: "unidades por día" } }, y: { grid: { display: false } } },
+        plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.raw, 2)} u/día`,
+          afterBody: c => { const l = L[c[0].dataIndex]; return `${pct(l.pct_esperado)} de lo esperado · ${alDia(l) ? "al día" : "atrasado"}`; } } } } }
+    });
+    const diasA = []; for (let d = INI; d <= D.foto_iso; d = masDias(d, 1)) diasA.push(d);
+    grafico($("#g-ritmo-acum"), {
+      type: "line",
+      data: { labels: diasA.map(d => fechaAR(d).slice(0, 5)), datasets: L.flatMap((l, i) => {
+        const col = COL_SUC[i % COL_SUC.length], ini = desdeLote(l), vl = VENTAS.filter(v => v.sku === sku && v.suc === l.suc && v.fecha >= ini);
+        return [
+          { label: `${l.suc} vendido`, borderColor: col, backgroundColor: col, pointRadius: 0, borderWidth: 2, tension: 0,
+            data: diasA.map(d => d < ini ? null : suma(vl.filter(v => v.fecha <= d), v => v.u)) },
+          { label: `${l.suc} esperado`, borderColor: col, backgroundColor: col, borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5, tension: 0,
+            data: diasA.map(d => d < ini ? null : l.ritmo_objetivo * (difDias(ini, d) + 1)) }]; }) },
+      plugins: [pctCumplido("pct-acum", (ch, i) => ch.getDatasetMeta(2 * i).data.at(-1))],
+      options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, layout: { padding: { right: 44 } },
+        scales: { x: { ticks: { maxTicksLimit: 8 } }, y: { beginAtZero: true, title: { display: true, text: "unidades acumuladas" } } },
+        plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.raw, 1)} u` } } } }
+    });
+  }
+
   // Qué le pasa
   const s3 = seccion("Qué le pasa", `Ventas por semana y stock día a día en cada sucursal, del ${fechaAR(S.desde)} al ${fechaAR(S.hasta)}. El stock se reconstruye hacia atrás desde la foto: supone que no hubo reposiciones ni transferencias.`);
   const b3 = bloque(`<div class="dos"><div><h3>Unidades por semana</h3><div class="graf"><canvas id="g-sem"></canvas></div></div>
