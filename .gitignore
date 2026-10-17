@@ -9,5 +9,8 @@ PRODUCT.md
 # se generan al correr actualizar.py
 datos/viento_sur.db
 salidas/historia/
-web/.gitignore
 entrega_mail/
+.vercel
+.env*
+# recortes que arma recortar_foto.py
+datos/viento_sur_al_*.xlsx

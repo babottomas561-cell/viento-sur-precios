@@ -520,6 +520,28 @@ function vistaFicha(main, sku) {
       <dt>Consultora</dt><dd>${esc(p.consultora)} · ${p.coincide === "sí" ? '<span class="ok">coincide</span>' : '<span class="mal">no coincide</span>'}</dd></dl></div>`));
   main.append(s1);
 
+  // Seguimiento de su recomendación (si hay fotos anteriores en la base)
+  const SGp = (D.seguimiento || []).find(r => r.sku === sku);
+  if (SGp) {
+    const sS = seccion("¿Se está cumpliendo?", `Recomendación desde el ${fechaAR(SGp.desde)}: <b>${esc(SGp.accion)}</b>. Medida hasta la foto del ${D.foto} (${SGp.dias} días), sumando las sucursales.`);
+    const bS = bloque(`<div class="dos"><div><h3>Unidades por semana desde la recomendación</h3><div class="graf bajo"><canvas id="g-seg-prod"></canvas></div></div>
+      <div><dl class="seg-dl"><dt>Estado</dt><dd>${estadoHTML(SGp)}</dd>
+        <dt>Unidades por semana</dt><dd class="num">${fmt(SGp.u_sem_antes, 1)} antes → <b>${fmt(SGp.u_sem_despues, 1)}</b> desde la recomendación${SGp.meta_u_sem ? ` (meta ${fmt(SGp.meta_u_sem, 1)})` : ""}</dd>
+        <dt>Precio cobrado</dt><dd class="num">${SGp.precio_cobrado ? `${plata(SGp.precio_cobrado)} (lista ${plata(SGp.precio_lista)})${SGp.nuestro === "ya" ? ` · ${SGp.aplicado ? '<span class="ok">el descuento se ve en caja</span>' : '<span class="mal">el descuento no se ve en caja</span>'}` : ""}` : "sin ventas"}</dd>
+        <dt>Stock por foto</dt><dd class="num">${SGp.stock.map(x => `${fechaAR(x.fecha).slice(0, 5)}: ${fmt(x.u)}`).join(" → ")}</dd>
+        ${SGp.accion_nueva && SGp.accion_nueva !== SGp.accion ? `<dt>En esta foto</dt><dd>cambia a ${pill(SGp.accion_nueva)}</dd>` : ""}</dl></div></div>`);
+    sS.append(bS);
+    main.append(sS);
+    const sem = SGp.semanas, ref = [["antes", SGp.u_sem_antes, "--muted"], ...(SGp.meta_u_sem ? [["meta", SGp.meta_u_sem, "--good"]] : [])];
+    grafico($("#g-seg-prod", bS), {
+      data: { labels: sem.map(w => fechaAR(w.desde).slice(0, 5) + (w.dias < 7 ? ` (${w.dias} d)` : "")), datasets: [
+        { type: "bar", label: "unidades por semana", data: sem.map(w => w.u / w.dias * 7), backgroundColor: tok("--accent"), order: 2 },
+        ...ref.map(([t, v, c]) => ({ type: "line", label: t, data: sem.map(() => v), borderColor: tok(c), borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5, order: 1 }))] },
+      options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: "unidades por semana" } } },
+        plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.raw, 1)} u/semana` } } } }
+    });
+  }
+
   // Por qué cayó en su grupo y criterios
   const cr = p.criterios || {};
   const filaCrit = (nombre, ok, valor, regla) => `<tr><td><b>${nombre}</b><br><span class="muted" style="font-size:.8rem">${regla}</span></td><td>${ok == null ? '<span class="medio">~ débil</span>' : ok ? '<span class="ok">✓ sí</span>' : '<span class="mal">✗ no</span>'}</td><td>${valor}</td></tr>`;
@@ -637,9 +659,73 @@ function vistaFicha(main, sku) {
 }
 
 // ---------------------------------------------------------------------------------------------- vista: Seguimiento
+// Estado de cada recomendación: verde si se está cumpliendo, ámbar si no se movió, rojo si va mal
+const clsEstado = r => r.bien ? "ok" : /^Sin (movimiento|ventas)/.test(r.estado) ? "medio" : "mal";
+const catAccion = a => /^(Bajar|Probar|Aplicar)/.test(a) ? "Descuento" : a.split(" ·")[0];
+const estadoHTML = r => `<span class="${clsEstado(r)}">${esc(r.estado)}</span>${r.en_curso ? `<br><span class="muted" style="font-size:.78rem">en curso · se revisa el ${fechaAR(r.revisar)}</span>` : ""}`;
+
 function vistaSeguimiento(main) {
-  const P = prodsFiltrados();
-  const s1 = seccion("Cuándo revisar cada decisión", "Cada producto tiene un indicador con su línea base, una meta, una fecha de revisión y qué hacer si no se cumple. Tocá una fecha para ver solo esos productos.");
+  const P = prodsFiltrados(), set = new Set(P.map(p => p.sku));
+  const H = D.historia || [], SG = (D.seguimiento || []).filter(r => set.has(r.sku));
+  const online = window.BASE && window.BASE.online;
+
+  // 1 · La respuesta: ¿se está cumpliendo?
+  const s0 = seccion("¿Se está cumpliendo lo que recomendamos?",
+    "Cada recomendación se sigue desde la primera foto en que se propuso (mientras se haya seguido proponiendo lo mismo) hasta la foto que estás viendo. Se mide por producto, sumando sus sucursales.");
+  if (!SG.length) {
+    s0.append(bloque(`<div class="vacio">${H.length > 1 ? "Ninguno de los productos filtrados tiene una recomendación de una foto anterior." :
+      `Por ahora la base tiene una sola foto (${D.foto}): el seguimiento empieza cuando se carga la siguiente. ${online ? "Subí el Excel de una semana posterior con <b>Subir Excel</b>, arriba a la derecha." : "Cargá el Excel de una semana posterior con <code>actualizar.py</code>."}`}</div>`));
+    main.append(s0);
+  } else {
+    const bien = SG.filter(r => r.bien), curso = SG.filter(r => r.en_curso), desc = SG.filter(r => r.nuestro === "ya"), descAp = desc.filter(r => r.aplicado);
+    const descMeta = desc.filter(r => r.estado === "Cumple la meta"), cambiaron = SG.filter(r => r.accion_nueva && r.accion_nueva !== r.accion);
+    const h0 = H[0], hN = H[H.length - 1];
+    s0.append(bloque(`<div class="respuesta"><ol>
+      <li><b>En total</b><p>${bien.length} de ${SG.length} recomendaciones se están cumpliendo (${pct(bien.length / SG.length)}). ${curso.length ? `${curso.length} todavía no llegaron a su fecha de revisión: van en curso.` : "Todas ya pasaron su fecha de revisión."}</p></li>
+      <li><b>Descuentos</b><p>${desc.length ? `De ${desc.length} ${desc.length === 1 ? "descuento recomendado" : "descuentos recomendados"}, ${descAp.length} se ${descAp.length === 1 ? "ve" : "ven"} en el precio cobrado y ${descMeta.length} ${descMeta.length === 1 ? "cumple" : "cumplen"} su meta.${descAp.length < desc.length ? " Lo primero es que lo aprobado llegue a caja." : ""}` : "Ninguno de estos productos tenía un descuento recomendado."}</p></li>
+      <li><b>Stock quieto</b><p>Del ${fechaAR(h0.fecha)} al ${fechaAR(hN.fecha)}, en toda la cadena: stock ${fmt(h0.stock)} → ${fmt(hN.stock)} u y productos atrasados ${h0.atrasados} → ${hN.atrasados}. El stock que ya pasó su fecha límite fue de ${fmt(h0.vencidas)} a ${fmt(hN.vencidas)} u: crece solo a medida que pasan las fechas límite, por eso importa que lo vencido salga rápido.</p></li>
+      <li><b>Qué cambió</b><p>${cambiaron.length ? `En esta foto, ${cambiaron.length} ${cambiaron.length === 1 ? "producto tiene" : "productos tienen"} una recomendación nueva: ${cambiaron.slice(0, 4).map(r => `${esc(r.producto)} (${esc(r.accion_nueva.toLowerCase())})`).join(", ")}${cambiaron.length > 4 ? "…" : ""}.` : "Esta foto mantiene todas las recomendaciones."}</p></li>
+    </ol>
+    <div class="cifras">
+      <div class="cifra ${bien.length / SG.length >= .5 ? "buena" : "mala"}"><b>${bien.length} de ${SG.length}</b><span>recomendaciones que se están cumpliendo</span></div>
+      <div class="cifra${desc.length && descAp.length < desc.length ? " mala" : ""}"><b>${desc.length ? `${descAp.length} de ${desc.length}` : "—"}</b><span>descuentos que se ven en caja</span></div>
+      <div class="cifra ${hN.stock < h0.stock ? "buena" : "mala"}"><b>${hN.stock > h0.stock ? "+" : hN.stock < h0.stock ? "−" : ""}${fmt(Math.abs(hN.stock - h0.stock))} u</b><span>de stock desde el ${fechaAR(h0.fecha)}</span></div>
+      <div class="cifra"><b>${curso.length}</b><span>todavía en curso</span></div>
+    </div></div>`));
+    const cats = [...new Set(SG.map(r => catAccion(r.accion)))].sort((a, b) => SG.filter(r => catAccion(r.accion) === b).length - SG.filter(r => catAccion(r.accion) === a).length);
+    const bG = bloque(`<div class="dos"><div><h3>Cómo viene cada tipo de recomendación</h3><div class="graf" style="height:${Math.max(200, 34 * cats.length + 70)}px"><canvas id="g-seg-cat"></canvas></div></div>
+      <div><h3>La cadena, foto a foto</h3><div class="graf"><canvas id="g-seg-hist"></canvas></div></div></div>`);
+    s0.append(bG);
+    const colsSG = [{ k: "producto", t: "producto", cls: "t-prod", f: (v, r) => `<b>${esc(v)}</b><br><span class="sku">${r.sku}</span>`, csv: v => v },
+      { k: "accion", t: "recomendación", f: (v, r) => `${pill(v)}<br><span class="muted" style="font-size:.78rem">desde el ${fechaAR(r.desde)} (${r.dias} días)</span>`, csv: v => v },
+      { k: "estado", t: "¿se está cumpliendo?", f: (v, r) => estadoHTML(r), csv: v => v },
+      { k: "u_sem_despues", t: "u/semana antes → ahora", r: true, f: (v, r) => `${fmt(r.u_sem_antes, 1)} → <b>${fmt(v, 1)}</b>${r.meta_u_sem ? `<br><span class="muted">meta ${fmt(r.meta_u_sem, 1)}</span>` : ""}`, csv: v => v },
+      { k: "precio_cobrado", t: "precio cobrado", r: true, f: (v, r) => v ? `${plata(v)}<br><span class="muted">lista ${plata(r.precio_lista)}</span>` : "sin ventas", csv: v => v },
+      { k: "stock_ahora", t: "stock desde → ahora", r: true, f: (v, r) => `${fmt(r.stock_antes)} → <b>${fmt(v)}</b>`, csv: v => v },
+      { k: "accion_nueva", t: "recomendación en esta foto", f: (v, r) => !v ? "—" : v === r.accion ? '<span class="muted">la misma</span>' : pill(v), csv: v => v }];
+    s0.append(tablaAuditable(colsSG, SG, "seguimiento", { alto: 560, clic: sku => cambiar({ tab: "productos", sku }, true), claveClic: "sku" }));
+    main.append(s0);
+    grafico($("#g-seg-cat", bG), {
+      type: "bar",
+      data: { labels: cats, datasets: [["se está cumpliendo", "--good", r => r.bien], ["todavía no", "--bad", r => !r.bien]].map(([t, c, f]) => ({
+        label: t, data: cats.map(k => SG.filter(r => catAccion(r.accion) === k && f(r)).length), backgroundColor: tok(c) })) },
+      options: { indexAxis: "y", maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { precision: 0 }, title: { display: true, text: "productos" } }, y: { stacked: true, grid: { display: false } } },
+        plugins: { legend: { position: "bottom" } } }
+    });
+    grafico($("#g-seg-hist", bG), {
+      type: "line",
+      data: { labels: H.map(h => fechaAR(h.fecha).slice(0, 5)), datasets: [
+        { label: "stock (u)", data: H.map(h => h.stock), borderColor: tok("--accent"), backgroundColor: tok("--accent"), tension: 0, pointRadius: 3 },
+        { label: "ya vencido (u)", data: H.map(h => h.vencidas), borderColor: tok("--bad"), backgroundColor: tok("--bad"), tension: 0, pointRadius: 3 }] },
+      options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, scales: { y: { beginAtZero: true, ticks: { callback: v => fmt(v) } } }, plugins: { legend: { position: "bottom" } } }
+    });
+    s0.append(verDatos("Cada foto de la base", [{ k: "fecha", t: "foto", f: fechaAR, csv: v => v }, { k: "stock", t: "stock (u)", r: true, f: v => fmt(v) },
+      { k: "capital", t: "a costo", r: true, f: v => plata(v), csv: v => v }, { k: "vencidas", t: "ya vencido (u)", r: true, f: v => fmt(v) },
+      { k: "atrasados", t: "productos atrasados", r: true }, { k: "ya", t: "descuento ya", r: true }, { k: "cond", t: "condicionales", r: true }], H, "historia"));
+  }
+
+  // 2 · Cuándo revisar las recomendaciones de esta foto
+  const s1 = seccion("Cuándo revisar las recomendaciones de esta foto", "Cada producto tiene un indicador con su línea base, una meta, una fecha de revisión y qué hacer si no se cumple. Tocá una fecha para ver solo esos productos.");
   const porFecha = agrupar(P.filter(p => p.revisar), p => p.revisar);
   const clave = d => d.split("/").reverse().join("");
   const revs = document.createElement("div");
@@ -664,24 +750,6 @@ function vistaSeguimiento(main) {
   s1.append(b1);
   main.append(s1);
 
-  const H = D.historia || [], SG = (D.seguimiento || []).filter(r => P.some(p => p.sku === r.sku));
-  const s2 = seccion("¿Se cumplió lo que decidimos?", H.length > 1
-    ? `${H.length} fotos en la base. Lo que se decidió el ${fechaAR(D.foto_anterior)} contra lo que pasó hasta el ${D.foto}.`
-    : `Por ahora hay una sola foto en la base (${D.foto}). Con cada Excel nuevo que se cargue, acá se ve si cada decisión se aplicó y si cumplió su meta: unidades por semana antes y después, si el precio cobrado mostró el descuento y cuánto stock se movió.`);
-  const b2 = bloque(`<div class="tabla-wrap">${tablaHTML([
-    { k: "fecha", t: "foto", f: v => `<span class="num">${fechaAR(v)}</span>` }, { k: "stock", t: "stock", r: true, f: v => fmt(v) + " u" },
-    { k: "capital", t: "a costo", r: true, f: v => plata(v) }, { k: "vencidas", t: "ya vencido", r: true, f: v => fmt(v) + " u" },
-    { k: "atrasados", t: "productos atrasados", r: true }, { k: "ya", t: "descuento ya", r: true }, { k: "cond", t: "condicionales", r: true }], H)}</div>`);
-  if (SG.length) {
-    const cls = e => /Cumple|igual o más|Movió/.test(e) ? "ok" : /no se ve|Debajo|menos|Sin stock/.test(e) ? "mal" : "medio";
-    b2.insertAdjacentHTML("beforeend", `<div class="tabla-wrap">${tablaHTML([
-      { k: "producto", t: "producto", cls: "t-prod" }, { k: "accion", t: "decisión" },
-      { k: "u_sem_antes", t: "u/semana antes → después", r: true, f: (v, r) => `${fmt(v, 1)} → ${fmt(r.u_sem_despues, 1)}${r.meta_u_sem ? ` (meta ${fmt(r.meta_u_sem, 1)})` : ""}` },
-      { k: "precio_cobrado", t: "precio cobrado", r: true, f: (v, r) => v ? `${plata(v)} de ${plata(r.precio_lista)}` : "sin ventas" },
-      { k: "stock_antes", t: "stock", r: true, f: (v, r) => `${fmt(v)} → ${fmt(r.stock_ahora)}` }, { k: "estado", t: "estado", f: v => `<span class="${cls(v)}">${esc(v)}</span>` }], SG)}</div>`);
-  }
-  s2.append(b2);
-  main.append(s2);
 }
 
 // ---------------------------------------------------------------------------------------------- vista: Datos (auditar)
@@ -1220,12 +1288,81 @@ function render() {
   $("#tabs").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { cambiar({ tab: b.dataset.tab, orden: "", ...(b.dataset.tab !== "productos" ? {} : {}) }, true); }));
   renderFiltros();
   const main = $("#vista");
-  main.innerHTML = "";
+  main.innerHTML = avisoFoto();
+  main.querySelector("[data-ir]")?.addEventListener("click", e => irAFoto(e.target.dataset.ir));
   VISTAS[S.tab](main);
 }
+// ---------------------------------------------------------------------------------------------- la base: fotos y subida
+const BASE = window.BASE || { online: false };
+const ULTIMA = (BASE.fotos || [])[0]?.fecha;
+const irAFoto = fecha => { location.href = location.pathname + (fecha && fecha !== ULTIMA ? `?foto=${fecha}` : "") + location.hash; };
+function cabeceraFoto() {
+  const fotos = BASE.fotos || [];
+  const cual = BASE.online && fotos.length > 1
+    ? `<label class="campo-foto" for="f-foto">Foto <select id="f-foto">${fotos.map(f => `<option value="${f.fecha}"${f.fecha === D.foto_iso ? " selected" : ""}>${fechaAR(f.fecha)}${f.fecha === ULTIMA ? " · la más nueva" : ""}</option>`).join("")}</select></label>`
+    : `<span>Foto del <b>${D.foto}</b></span>`;
+  $("#foto").innerHTML = `${cual}<span>ventas del ${fechaAR(F_MIN)} al ${fechaAR(F_MAX)}</span>${BASE.online ? `<button class="btn prim" type="button" id="b-subir">Subir Excel</button>` : ""}`;
+  $("#f-foto")?.addEventListener("change", e => irAFoto(e.target.value));
+  $("#b-subir")?.addEventListener("click", abrirSubir);
+}
+function avisoFoto() {
+  if (BASE.motivo) return `<div class="aviso-foto" role="status">${esc(BASE.motivo)}</div>`;
+  if (BASE.online && ULTIMA && D.foto_iso !== ULTIMA)
+    return `<div class="aviso-foto" role="status">Estás viendo la foto del ${D.foto}. La más nueva de la base es la del ${fechaAR(ULTIMA)}. <button class="btn-link" type="button" data-ir="${ULTIMA}">Ver la más nueva</button></div>`;
+  return "";
+}
+function abrirSubir() {
+  const dlg = $("#subir");
+  dlg.innerHTML = `<form method="dialog" class="subir-in">
+    <h2 id="subir-tit">Subir un Excel a la base</h2>
+    <p>Corre el mismo proceso que armó este tablero: propuesta, indicadores y seguimiento contra las fotos anteriores.</p>
+    <ul class="subir-lista">
+      <li>Tiene que tener las hojas de la consigna (<code>productos</code>, <code>stock_sucursal</code>, <code>ventas</code>…). La foto es del último día con ventas.</li>
+      <li><b>Actualiza la base para todos.</b> Si es la foto más nueva, el tablero pasa a mostrarla; si ya había una de esa fecha, la reemplaza.</li>
+      <li>Tarda entre 15 y 40 segundos. Es una demo: lo que subas queda público.</li>
+    </ul>
+    <p class="nota">Para probar, las fotos de la base: ${(BASE.fotos || []).filter(f => f.original).map(f => `<a href="${esc(f.original)}" download>${fechaAR(f.fecha)}</a>`).join(" · ")} (la del 15/03 es la de la consigna; las anteriores son recortes armados con <code>recortar_foto.py</code>).</p>
+    <label class="campo">Archivo .xlsx<input type="file" id="s-archivo" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+    <div class="subir-estado" id="s-estado" role="status" aria-live="polite"></div>
+    <div class="subir-botones"><button class="btn" value="cerrar" id="s-cerrar">Cerrar</button><button class="btn prim" type="button" id="s-enviar">Subir y procesar</button></div>
+  </form>`;
+  const estado = $("#s-estado", dlg), enviar = $("#s-enviar", dlg);
+  let cargada = null;                                     // después de subir, el mismo botón lleva a la foto
+  enviar.addEventListener("click", async () => {
+    if (cargada) return irAFoto(cargada.es_la_mas_nueva ? "" : cargada.fecha);
+    const f = $("#s-archivo", dlg).files[0];
+    if (!f) { estado.innerHTML = '<p class="mal">Elegí un archivo .xlsx.</p>'; return; }
+    if (f.size > 4e6) { estado.innerHTML = '<p class="mal">El archivo pesa más de 4 MB.</p>'; return; }
+    enviar.disabled = true;
+    const t0 = Date.now();
+    const reloj = setInterval(() => { const sg = $("#s-seg", dlg); if (sg) sg.textContent = Math.round((Date.now() - t0) / 1000); }, 1000);
+    estado.innerHTML = `<p><span class="girando" aria-hidden="true"></span> Procesando ${esc(f.name)}… <span id="s-seg" class="num">0</span> s</p>`;
+    try {
+      const r = await fetch("/api/subir", { method: "POST", headers: { "content-type": "application/octet-stream", "x-nombre": encodeURIComponent(f.name) }, body: f });
+      const j = await r.json().catch(() => ({ error: `El servidor no respondió bien (${r.status}).` }));
+      if (!r.ok) {
+        estado.innerHTML = `<p class="mal">${esc(j.error)}</p>${j.problemas ? `<ul class="subir-lista">${j.problemas.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}`;
+        enviar.disabled = false;
+        return;
+      }
+      estado.innerHTML = `<p class="ok">Listo: la base tiene la foto del ${fechaAR(j.fecha)} (${j.fotos} ${j.fotos === 1 ? "foto" : "fotos"} en total).</p>
+        <p>${j.anterior ? `El seguimiento mide ${j.decisiones_seguidas} recomendaciones desde las fotos anteriores.` : "Es la foto más vieja de la base: no tiene seguimiento propio."}
+        ${j.es_la_mas_nueva ? "Es la más nueva: el tablero pasa a mostrarla." : `No es la más nueva, así que el tablero sigue mostrando la del ${fechaAR(ULTIMA)}; se recalculó el seguimiento de ${j.recalculadas.map(fechaAR).join(", ")}.`}</p>`;
+      cargada = j;
+      enviar.textContent = `Ver la foto del ${fechaAR(j.fecha)}`;
+      enviar.disabled = false;
+    } catch (e) {
+      estado.innerHTML = `<p class="mal">No se pudo conectar con el servidor. Probá de nuevo.</p>`;
+      enviar.disabled = false;
+    } finally { clearInterval(reloj); }
+  });
+  dlg.showModal();
+}
+
 function iniciar() {
-  $("#foto").innerHTML = `Foto del <b>${D.foto}</b> · ventas del ${fechaAR(F_MIN)} al ${fechaAR(F_MAX)}`;
-  $("#pie").innerHTML = `<span>Generado por <code>armar_excel.py</code> y <code>actualizar.py</code> desde <code>datos/viento_sur.xlsx</code>, con la base de datos <code>datos/viento_sur.db</code>. Todas las cifras salen de esos scripts.</span>
+  cabeceraFoto();
+  const fuente = BASE.online ? `la base del tablero (cada Excel que se sube la actualiza)` : `<code>datos/viento_sur.xlsx</code>, con la base de datos <code>datos/viento_sur.db</code>`;
+  $("#pie").innerHTML = `<span>Generado por <code>armar_excel.py</code> desde ${fuente}. Todas las cifras salen del mismo proceso.</span>
     <span>Fotos cargadas: ${(D.historia || []).map(h => fechaAR(h.fecha)).join(", ") || D.foto}.${D.archivo_excel ? ` <a href="${esc(D.archivo_excel)}" download>Descargar el Excel completo</a>.` : ""}</span>`;
   estiloGraficos();
   leerHash();

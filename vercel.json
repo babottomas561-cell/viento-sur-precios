@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "",
+  "outputDirectory": "web",
+  "regions": ["gru1"],
+  "functions": {
+    "api/*.py": { "maxDuration": 60, "memory": 2048 }
+  }
+}

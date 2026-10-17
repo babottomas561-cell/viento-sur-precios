@@ -2,7 +2,7 @@
 
 Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hacer con el precio de cada uno de los 48 productos y por qué, juzga el algoritmo de la consultora y arma un tablero para seguir la decisión.
 
-**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)** (el mismo que `web/index.html`).
+**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)**. Tiene una base detrás: con **Subir Excel** cualquiera carga una foto nueva, el proceso corre en el servidor y el tablero pasa a mostrar la más nueva, con el seguimiento de lo que se viene recomendando.
 
 ## Dónde está cada respuesta
 
@@ -44,7 +44,36 @@ Opciones: `python armar_excel.py --datos otro.xlsx --salidas otra_carpeta`. Ning
 python actualizar.py --datos datos/viento_sur.xlsx
 ```
 
-Corre el proceso, guarda la foto en una base SQLite (`datos/viento_sur.db`) con su historia, y arma el tablero en `web/`. Con la segunda foto, la pestaña *Seguimiento* compara cada decisión con lo que pasó: si se aplicó, si llegó a la meta y si se sostuvo.
+Corre el proceso, guarda la foto en una base SQLite (`datos/viento_sur.db`) con su historia, y arma el tablero en `web/`. Con la segunda foto, la pestaña *Seguimiento* muestra si se está cumpliendo lo recomendado.
+
+Para probarlo sin esperar una semana, `recortar_foto.py` arma cómo se veían los datos en una fecha anterior (las ventas hasta ese día y el stock de entonces):
+
+```bash
+python recortar_foto.py 2026-03-08          # → datos/viento_sur_al_2026-03-08.xlsx
+```
+
+## El tablero online y su base
+
+En [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), **Subir Excel** (arriba a la derecha) hace lo mismo que `actualizar.py`, pero en el servidor:
+
+1. Valida que el Excel tenga las hojas y columnas de la consigna.
+2. Corre `armar_excel.py`, el mismo proceso, sin cambios.
+3. Lo guarda en la base como la foto de esa fecha (el último día con ventas). Si ya había una de esa fecha, la reemplaza; si es de una fecha anterior, las fotos posteriores recalculan su seguimiento.
+4. El tablero abre siempre la foto más nueva. Las anteriores se eligen en el selector "Foto".
+
+**Seguimiento:** cada recomendación se sigue desde la primera foto en que se propuso, mientras se haya seguido proponiendo lo mismo. Muestra semana a semana si se aplicó (precio cobrado), si llega a su meta, cómo baja el stock y si ya pasó su fecha de revisión. La base arranca con tres fotos: la del 15/03 (la de la consigna) y dos recortes de los mismos datos, al 01/03 y al 08/03.
+
+Es una demo: no tiene login, y lo que se sube queda público.
+
+| Archivo | Qué hace |
+|---|---|
+| `foto.py` | La lógica compartida: validar el Excel, correr el proceso, medir el seguimiento y armar el paquete que lee el tablero |
+| `servidor.py` | La base online (Vercel Blob): una foto por fecha, versiones que nunca se pisan, recálculo de las posteriores |
+| `blob.py` | Cliente mínimo del almacenamiento de Vercel, sin dependencias |
+| `api/subir.py`, `api/fotos.py`, `api/abrir.py` | Las funciones del servidor: subir un Excel, listar las fotos, abrir una |
+| `vercel.json`, `.vercelignore` | Qué se publica y cómo corren las funciones (región San Pablo, hasta 60 s) |
+
+`foto.py` es el mismo para la base local y la online: probado, las dos dan el mismo seguimiento.
 
 ## El Excel
 
@@ -60,7 +89,7 @@ Corre el proceso, guarda la foto en una base SQLite (`datos/viento_sur.db`) con 
 
 ## El tablero
 
-`web/index.html` tiene 8 pestañas: Decisión, Ventas, Stock y rotación, Sucursales, Descuentos, Productos (con una ficha por producto), Seguimiento y Datos. Los filtros (fechas, sucursal, rubro, tipo, grupo, producto) aplican a todas y quedan en el link. Cada gráfico tiene "Ver y auditar los datos" con las filas exactas que lo arman.
+`web/index.html` tiene 8 pestañas: Decisión, Ventas, Stock y rotación, Sucursales, Descuentos, Productos (con una ficha por producto: ritmo del lote, seguimiento de su recomendación, historial de precio), Seguimiento y Datos. Abierto con doble clic muestra la foto con la que se armó; publicado, la más nueva de la base. Los filtros (fechas, sucursal, rubro, tipo, grupo, producto) aplican a todas y quedan en el link. Cada gráfico tiene "Ver y auditar los datos" con las filas exactas que lo arman.
 
 Los gráficos usan Chart.js desde un CDN, así que necesita conexión a internet.
 
@@ -70,7 +99,11 @@ Los gráficos usan Chart.js desde un CDN, así que necesita conexión a internet
 
 ```
 armar_excel.py        el proceso: datos → propuesta, nota, Excel y datos del tablero
-actualizar.py         base con historia + tablero (para correr con cada Excel nuevo)
+actualizar.py         base local (SQLite) con historia + tablero (para correr con cada Excel nuevo)
+foto.py               lo común a la base local y a la online: validar, correr, seguimiento, paquete
+servidor.py, blob.py  la base online (Vercel Blob)
+api/                  las funciones del servidor (subir, listar y abrir fotos)
+recortar_foto.py      arma una foto anterior recortando el Excel a una fecha
 proceso.md            pregunta 3
 datos/viento_sur.xlsx los datos de la consigna
 salidas/              lo que genera armar_excel.py

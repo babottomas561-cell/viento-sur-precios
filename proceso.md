@@ -6,7 +6,7 @@ El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueb
 
 | Qué | Cada cuánto | Cómo |
 |---|---|---|
-| Correr el modelo con la foto nueva | **Semanal** (lunes) | `python actualizar.py --datos <excel nuevo>`: regenera la propuesta, la guarda en la base con su fecha y actualiza el tablero |
+| Correr el modelo con la foto nueva | **Semanal** (lunes) | Se sube el Excel de la semana con **Subir Excel** en el tablero (o `python actualizar.py --datos <excel>`): regenera la propuesta, la guarda en la base con su fecha y el tablero pasa a mostrarla |
 | Revisar las decisiones vencidas | **Semanal** | Pestaña *Seguimiento*: cada decisión tiene indicador, línea base, meta y fecha de revisión |
 | Cerrar un descuento a prueba | **A las 4 semanas**, y de nuevo al mes siguiente | Se compara contra el control, igual que en la hoja *Descuentos* |
 | Revisar las reglas y los umbrales | **Trimestral** | Con los descuentos nuevos medidos, cada tipo suma evidencia: se recalcula qué tipos responden |
@@ -31,7 +31,7 @@ Si se rechaza una propuesta, se anota por qué. Ese motivo es información para 
 
 ## Cómo se sabe si funcionó
 
-**Por decisión** (en la pestaña *Seguimiento*, con cada foto): ¿se aplicó? (precio cobrado contra precio de lista); ¿llegó a la meta de unidades por semana?; ¿se sostuvo el mes siguiente?
+**Por decisión** (en la pestaña *Seguimiento*, con cada foto): cada recomendación se sigue desde que se hizo. ¿Se aplicó? (precio cobrado contra precio de lista); ¿llega a la meta de unidades por semana?; ¿se movió el stock?; ¿ya pasó su fecha de revisión o sigue en curso?
 
 **Para el negocio** (una vez por mes, contra el mes anterior):
 

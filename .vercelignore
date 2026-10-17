@@ -1,0 +1,11 @@
+# A Vercel solo va lo que usa el sitio: el tablero armado (web/), las funciones (api/) y los módulos que ellas importan
+/*
+!/web
+!/api
+!/armar_excel.py
+!/foto.py
+!/blob.py
+!/servidor.py
+!/requirements.txt
+!/vercel.json
+/web/.vercel

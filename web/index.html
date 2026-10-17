@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="app.css?v=669a43c58a">
+<link rel="stylesheet" href="app.css?v=26bd170177">
 </head>
 <body>
 <header class="top">
@@ -24,14 +24,30 @@
 
 <div class="filtros" id="filtros" role="region" aria-label="Filtros"></div>
 
-<main class="contenido" id="vista" tabindex="-1"></main>
+<main class="contenido" id="vista" tabindex="-1"><p class="cargando-pagina"><span class="girando" aria-hidden="true"></span> Cargando la foto más nueva de la base…</p></main>
 
 <footer class="pie">
   <div class="pie-in" id="pie"></div>
 </footer>
 
+<dialog class="subir" id="subir" aria-labelledby="subir-tit"></dialog>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="datos.js?v=fe017c4033"></script>
-<script src="app.js?v=26c27a2f6e"></script>
+<script>
+// Publicado, el tablero abre la foto más nueva de la base (o la que pida el link: ?foto=AAAA-MM-DD).
+// Abierto como archivo, en la computadora, o si la base no responde, usa datos.js: la foto con la que se armó la página.
+(function () {
+  var cargar = function (src, listo) { var s = document.createElement("script"); s.src = src; s.onload = listo; document.body.appendChild(s); };
+  var arrancar = function () { cargar("app.js?v=60391e7083"); };
+  var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=7ecf13a79f", arrancar); };
+  if (location.protocol === "file:") return local("");
+  var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
+  var pedida = new URLSearchParams(location.search).get("foto") || "";
+  var json = function (r) { return r.ok ? r.json() : Promise.reject(r.status); };
+  Promise.all([fetch("/api/fotos", { cache: "no-store" }).then(json), fetch("/api/abrir" + (pedida ? "?fecha=" + encodeURIComponent(pedida) : ""), { cache: "no-store" }).then(json)])
+    .then(function (r) { window.DATOS = r[1]; window.BASE = { online: true, fotos: r[0].fotos }; arrancar(); })
+    .catch(function () { local(enLaCompu ? "" : pedida ? "No se encontró la foto del " + pedida + " en la base." : "La base no respondió: se muestra la foto con la que se publicó la página."); });
+})();
+</script>
 </body>
 </html>
