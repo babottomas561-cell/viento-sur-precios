@@ -38,7 +38,7 @@
 // Abierto como archivo, en la computadora, o si la base no responde, usa datos.js: la foto con la que se armó la página.
 (function () {
   var cargar = function (src, listo) { var s = document.createElement("script"); s.src = src; s.onload = listo; document.body.appendChild(s); };
-  var arrancar = function () { cargar("app.js?v=a8021bcf39"); };
+  var arrancar = function () { cargar("app.js?v=cffad349e5"); };
   var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=ba3864474f", arrancar); };
   if (location.protocol === "file:") return local("");
   var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
