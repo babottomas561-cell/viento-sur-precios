@@ -1,10 +1,12 @@
 # Auditoría
 
 Todo se verifica contra un cálculo hecho **directo del Excel original** (`datos/viento_sur.xlsx`), sin usar el código del proceso.
+El proceso corre sobre los datos de la base (la base es la fuente única), así que lo primero es comprobar que la base sea fiel al Excel.
 
 | Qué | Cómo se corre | Último resultado (17/10/2026) |
 |---|---|---|
 | **Las decisiones**: las 9 reglas, los criterios del descuento, la escalera del stock vencido, el sobrante del grupo 2, la consultora, la causa de cada producto, los indicadores de su ficha (ventas con rebaja) y las cifras de la nota (tabla de causas, Cumbre, lotes vencidos, aceptadas que llegaron a caja, proyecciones de la consultora, reparto del stock vencido), reimplementados por otro camino | `python salidas/auditoria/auditar_decisiones.py` | Coinciden los 48 productos |
+| **La base de datos**: reconstruye las 8 hojas del Excel desde la base SQL (local o Supabase) y las compara celda por celda con el Excel original | `python salidas/auditoria/auditar_base.py` (y `--online` para Supabase) | 14.245 celdas, sin diferencias, en la base local y en Supabase (contra el Excel que mandó la empresa) |
 | **La planilla**: los 100 lotes indicador por indicador, cada sucursal del Resumen y los productos de la Propuesta | `python salidas/auditoria/auditar_excel.py` | 1.031 chequeos, sin diferencias |
 | **Descuentos**: los 16 casos (antes, durante, después, pesos y margen), el control, el índice semanal y los netos | `python salidas/auditoria/auditar_descuentos.py` | 318 chequeos, sin diferencias |
 | **El seguimiento**: cada recomendación medida otra vez desde el Excel (unidades por semana, precio cobrado, si se ve en caja y si cumple su regla, que es la misma meta de la ficha), y que "ya llegaron a su revisión" y "en curso" no se pisen | `python salidas/auditoria/auditar_seguimiento.py` (con más de un Excel cargado) | Con un solo Excel no hay nada que medir; probado con tres cortes del mismo Excel: 241 chequeos, sin diferencias |

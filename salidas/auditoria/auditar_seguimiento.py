@@ -18,7 +18,7 @@ fallas, chequeos = [], 0
 # los locales donde la ficha del grupo 6 pide las primeras ventas, de la recomendación de cada Excel anterior (base local)
 import re, sqlite3
 con = sqlite3.connect("datos/viento_sur.db")
-FICHA = {(f, s): re.findall(r"S\d\d", ind or "") for f, s, ind in con.execute("SELECT fecha_foto, sku, indicador FROM decisiones WHERE grupo = 6")}
+FICHA = {(f, s): re.findall(r"S\d\d", ind or "") for f, s, ind in con.execute("SELECT fecha_datos, sku, indicador FROM decisiones WHERE grupo = 6")}
 
 
 def chk(que, vio, esp):

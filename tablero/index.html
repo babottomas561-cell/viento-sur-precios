@@ -44,9 +44,17 @@
   var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
   var q = new URLSearchParams(location.search), pedida = q.get("datos") || q.get("foto") || "";   // ?foto= era el nombre anterior
   var json = function (r) { return r.ok ? r.json() : Promise.reject(r.status); };
-  Promise.all([fetch("/api/cargados", { cache: "no-store" }).then(json), fetch("/api/abrir" + (pedida ? "?fecha=" + encodeURIComponent(pedida) : ""), { cache: "no-store" }).then(json)])
-    .then(function (r) { window.DATOS = r[1]; window.BASE = { online: true, fotos: r[0].fotos }; arrancar(); })
-    .catch(function () { local(enLaCompu ? "" : pedida ? "No se encontraron datos al " + pedida + " en la base." : "La base no respondió: se muestran los datos con los que se publicó la página."); });
+  var abrir = function (f) { return fetch("/api/abrir" + (f ? "?fecha=" + encodeURIComponent(f) : ""), { cache: "no-store" }).then(json); };
+  var aviso = "";
+  // un link viejo puede pedir una fecha que ya no está en la base: se abren los datos más nuevos y se avisa
+  var datos = abrir(pedida).catch(function (e) {
+    if (!pedida) throw e;
+    aviso = "El link pedía los datos al " + pedida.split("-").reverse().join("/") + ", que no están en la base: se muestran los más nuevos.";
+    return abrir("");
+  });
+  Promise.all([fetch("/api/cargados", { cache: "no-store" }).then(json), datos])
+    .then(function (r) { window.DATOS = r[1]; window.BASE = { online: true, fotos: r[0].fotos, motivo: aviso }; arrancar(); })
+    .catch(function () { local(enLaCompu ? "" : "La base no respondió: se muestran los datos con los que se publicó la página."); });
 })();
 </script>
 </body>

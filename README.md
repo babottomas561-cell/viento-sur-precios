@@ -85,7 +85,7 @@ No hace falta instalar nada ni tocar el código: el mismo proceso que generó la
 |---|---|---|
 | **Valida** | Que estén las 8 hojas y sus columnas, que productos, stock y ventas no estén vacías, que las fechas y los números se entiendan y que todo el stock sea de productos del catálogo. Si algo falla, **no se guarda nada** y muestra la lista de problemas en palabras (por ejemplo, *"En la hoja «ventas» faltan las columnas: precio_unitario"*). | [`carga.py`](carga.py) → `validar()` |
 | **Corre el proceso** | [`armar_excel.py`](armar_excel.py), sin cambios: el Excel de análisis, la propuesta de los 48 productos, la nota y los datos del tablero. | `carga.py` → `correr_proceso()` |
-| **Guarda en la base** | En el almacenamiento de Vercel (Vercel Blob), con la fecha de los datos: el Excel original, el Excel de análisis y los datos del tablero. Si ya había un Excel de esa fecha, **lo reemplaza**; si es de una fecha anterior a otros ya cargados, los posteriores recalculan su seguimiento. Nada se pisa: cada cambio es una versión nueva. | [`servidor.py`](servidor.py) → `procesar_subida()` |
+| **Guarda en la base** | En una base SQL (Postgres en Supabase), con la fecha de los datos: las ventas, el stock lote por lote, el catálogo, la recomendación de cada producto, los datos del tablero y los dos Excel (el original y el de análisis). Si ya había un Excel de esa fecha, **lo reemplaza**; si es de una fecha anterior a otros ya cargados, los posteriores recalculan su seguimiento. | [`servidor.py`](servidor.py) → `procesar_subida()`, [`base_sql.py`](base_sql.py) |
 | **Mide el seguimiento** | Toma las recomendaciones de los Excel anteriores y las compara con las ventas nuevas (ver el paso 5). | `carga.py` → `seguimiento()` |
 
 ### 4. El tablero muestra los datos nuevos, para todos
@@ -140,26 +140,45 @@ Es una demo: no tiene login, y lo que se sube queda público.
 flowchart TB
     X["Excel .xlsx"] -->|"POST /api/subir"| S["api/subir.py"]
     S --> V["carga.py<br/>validar · fecha de los datos"]
-    V --> P["armar_excel.py<br/>el proceso, sin cambios"]
-    P --> B[("Vercel Blob<br/>un juego por fecha de datos:<br/>datos del tablero · Excel de análisis · Excel original")]
-    V -.->|"seguimiento contra<br/>los Excel anteriores"| B
+    V -->|"1 · guarda las 8 hojas"| B[("Postgres en Supabase<br/>las 8 hojas en tablas<br/>+ cargas · decisiones · tablero")]
+    B -->|"2 · el Excel, armado desde la base"| P["armar_excel.py<br/>el proceso, sin cambios"]
+    P -->|"3 · decisiones, tablero<br/>y Excel de análisis"| B
+    B -.->|"4 · seguimiento contra<br/>los Excel anteriores"| B
     B -->|"GET /api/cargados"| T["tablero (web/)"]
     B -->|"GET /api/abrir?fecha="| T
+    B -->|"GET /api/excel?fecha=&tipo="| T
 ```
 
-- **Una sola lógica para la computadora y el servidor.** [`carga.py`](carga.py) valida, corre el proceso, mide el seguimiento y arma el paquete que lee el tablero. Lo usan tanto [`servidor.py`](servidor.py) (la base online) como [`actualizar.py`](actualizar.py) (la base local, en SQLite): probado, las dos dan el mismo seguimiento.
+- **Una sola lógica para la computadora y el servidor.** [`carga.py`](carga.py) valida, corre el proceso, mide el seguimiento y arma el paquete que lee el tablero. Lo usan tanto [`servidor.py`](servidor.py) (la base online, Postgres) como [`actualizar.py`](actualizar.py) (la base local, SQLite), y las dos guardan y leen con [`base_sql.py`](base_sql.py): las mismas tablas y las mismas consultas. Probado con tres Excel: las dos dan el mismo seguimiento, la misma historia y las mismas ventas.
 - **Las recomendaciones de cada Excel dependen solo de ese Excel.** Lo que depende de los anteriores es el seguimiento y la historia; por eso, si se carga un Excel viejo, solo se recalculan esas dos cosas en los posteriores.
 - **Ninguna cifra está escrita a mano.** Si cambian los datos, cambian la propuesta, la nota, las causas y el tablero. El proceso da siempre el mismo resultado con el mismo Excel (los márgenes de error usan una semilla fija).
 - **Si la base no responde**, el tablero muestra los datos con los que se publicó (`web/datos.js`) y lo avisa.
-- **Por qué archivos y no una base de datos.** Con un Excel por semana alcanza con guardar un juego de archivos por fecha. Si esto escala (muchos meses para consultar con SQL, usuarios con permisos por local, o que los locales carguen lo que aplicaron), el paso siguiente es una base Postgres (por ejemplo, Supabase) con las mismas tablas que ya usa la base local en SQLite.
+- **La base es la fuente única.** Al subir un Excel, primero se guardan sus 8 hojas en la base; después se arma el Excel **desde la base** y el proceso corre sobre eso. Si se corrige un dato en Supabase, `python servidor.py recalcular AAAA-MM-DD` vuelve a calcular esa fecha (y las posteriores) y el tablero muestra lo corregido. Probado: calcular desde la base da exactamente la misma propuesta, nota y causas que calcular desde el archivo.
+- **Una base SQL que se puede consultar.** En Supabase (*SQL Editor*) se puede preguntar, por ejemplo, cuántas recomendaciones de cada tipo hubo por semana o cómo vendió un producto desde que se recomendó.
+
+Las 8 hojas del Excel son 8 tablas, con todas sus columnas (una fila por fila de la hoja, en cada Excel cargado):
+
+| Hoja del Excel | Tabla | Una fila por |
+|---|---|---|
+| productos | `productos` | Excel y producto |
+| sucursales | `sucursales` | Excel y sucursal |
+| stock_sucursal | `lotes` | Excel, producto y sucursal |
+| ventas | `ventas` | día, producto y sucursal (se acumulan entre Excel) |
+| historial_sugerencias | `sugerencias` | Excel y sugerencia |
+| cambios_precio | `cambios_precio` | Excel y cambio |
+| campanas_activas | `campanas` | Excel y campaña |
+| propuesta_consultora | `propuesta_consultora` | Excel y producto |
+
+Y tres más: `cargas` (cada Excel: fecha de los datos, desde cuándo trae ventas, nombre, cuándo se subió, el original y el de análisis), `decisiones` (la recomendación de cada producto en cada Excel, la que mide el seguimiento) y `tablero` (lo que lee el tablero, en JSON). Borrar un Excel borra sus filas en todas las tablas salvo `ventas` (`ON DELETE CASCADE`). Las tablas tienen RLS activado y sin políticas: la API pública de Supabase no las ve; el servidor entra con el usuario de la base.
 
 | Archivo | Qué hace |
 |---|---|
 | [`api/subir.py`](api/subir.py) | `POST /api/subir`: recibe el Excel (hasta 4 MB), lo procesa y lo carga |
 | [`api/cargados.py`](api/cargados.py) | `GET /api/cargados`: la lista de Excel cargados (fecha y link al original) |
 | [`api/abrir.py`](api/abrir.py) | `GET /api/abrir?fecha=AAAA-MM-DD`: los datos del tablero de esa fecha (sin fecha, los más nuevos) |
-| [`servidor.py`](servidor.py) | La base online: un Excel por fecha, versiones que nunca se pisan, recálculo de los posteriores |
-| [`blob.py`](blob.py) | Cliente mínimo del almacenamiento de Vercel, sin dependencias |
+| [`api/excel.py`](api/excel.py) | `GET /api/excel?fecha=AAAA-MM-DD&tipo=original\|analisis`: descarga el Excel guardado en la base |
+| [`servidor.py`](servidor.py) | La base online: un Excel por fecha, recálculo de los posteriores |
+| [`base_sql.py`](base_sql.py) | Las tablas y las consultas, iguales en SQLite (local) y Postgres (online) |
 | [`vercel.json`](vercel.json), [`.vercelignore`](.vercelignore) | Qué se publica (el tablero armado, las funciones y los módulos que importan) y cómo corren (región San Pablo, hasta 60 s) |
 
 ## Correrlo en la computadora
@@ -188,13 +207,13 @@ Opciones: `--datos otro.xlsx --salidas otra_carpeta`.
 python actualizar.py --datos datos/viento_sur.xlsx
 ```
 
-**La base online desde la computadora.** Necesita el token del almacenamiento (`BLOB_READ_WRITE_TOKEN`) en `.env.local`, que no se sube a GitHub:
+**La base online desde la computadora.** Necesita la dirección de la base (`POSTGRES_URL`) en `.env.local`, que no se sube a GitHub. La baja `vercel env pull .env.local` (Vercel la carga sola al conectar Supabase al proyecto):
 
 ```bash
 python servidor.py lista
 ```
 
-Las otras órdenes son `python servidor.py subir <excel>` (igual que el botón) y `python servidor.py borrar AAAA-MM-DD`.
+Las otras órdenes son `python servidor.py subir <excel>` (igual que el botón), `python servidor.py recalcular AAAA-MM-DD` (vuelve a calcular desde la base) y `python servidor.py borrar AAAA-MM-DD`.
 
 **Publicar el sitio** (después de cambiar el código del tablero o del servidor; para cargar datos no hace falta, se usa el botón):
 
@@ -247,6 +266,7 @@ Los filtros (fechas, sucursal, rubro, tipo, causa, grupo, producto) aplican a to
 
 [`salidas/auditoria/`](salidas/auditoria/) verifica todo con un cálculo independiente, hecho directo desde el Excel original (sin pasar por `armar_excel.py`):
 
+- **La base de datos:** las 8 hojas reconstruidas desde la base (local y Supabase) contra el Excel original, celda por celda (14.245 celdas).
 - **La planilla:** 1.031 chequeos (los 100 lotes indicador por indicador, cada sucursal y los productos de la Propuesta).
 - **Las decisiones, los descuentos y el seguimiento:** cada causa, cada regla, cada cifra de los descuentos y cada regla de seguimiento recalculada.
 - **El tablero:** 17 combinaciones de filtros en todas las pestañas (763 chequeos, en la computadora y en el sitio publicado) y los puntos de cada gráfico de ventas.
@@ -258,8 +278,9 @@ Todas dan sin diferencias. Cómo correrlas: [`salidas/auditoria/LEEME.md`](salid
 ```
 armar_excel.py            el proceso: Excel → propuesta, nota, causas, Excel de análisis y datos del tablero
 carga.py                  lo común a la base local y a la online: validar, correr el proceso, seguimiento, paquete
-servidor.py, blob.py      la base online (Vercel Blob)
-api/                      las funciones del servidor: subir, listar y abrir los Excel cargados
+servidor.py               la base online (Postgres en Supabase)
+base_sql.py               las tablas y consultas, iguales en la base local y en la online
+api/                      las funciones del servidor: subir, listar, abrir y descargar los Excel cargados
 actualizar.py             la base local (SQLite) y el tablero en web/, desde la computadora
 herramientas/             recortar_excel.py: recorta el Excel a una fecha anterior (solo para probar)
 proceso.md                pregunta 3: el proceso alrededor del modelo

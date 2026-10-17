@@ -15,5 +15,5 @@ class handler(BaseHTTPRequestHandler):
         try:
             lista = servidor.cargados()
         except Exception as e:
-            return responder(self, 503, {"error": f"No se pudo leer el almacenamiento: {e}"})
+            return responder(self, 503, {"error": f"No se pudo leer la base: {e}"})
         return responder(self, 200, {"fotos": lista})

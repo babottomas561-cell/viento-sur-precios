@@ -4,7 +4,7 @@
 !/api
 !/armar_excel.py
 !/carga.py
-!/blob.py
+!/base_sql.py
 !/servidor.py
 !/requirements.txt
 !/vercel.json
