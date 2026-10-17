@@ -1,5 +1,5 @@
 """POST /api/subir · cuerpo: el Excel (.xlsx) · encabezado x-nombre: el nombre del archivo.
-Valida el Excel, corre el proceso y lo carga en la base (si ya había una foto de esa fecha, la reemplaza)."""
+Valida el Excel, corre el proceso y lo carga en la base (si ya había un Excel con esa fecha, lo reemplaza)."""
 import traceback
 import urllib.parse
 import sys

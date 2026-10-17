@@ -1,4 +1,4 @@
-"""La base del tablero online: cada Excel que se sube actualiza la base, y el tablero muestra siempre la foto más nueva.
+"""La base del tablero online: cada Excel que se sube actualiza la base, y el tablero muestra siempre los datos más nuevos.
 
 Igual que actualizar.py con la base SQLite, pero en el almacenamiento de Vercel (Vercel Blob):
   base/<fecha>__<versión>.json            el paquete que lee el tablero (propuesta, ventas, historia y seguimiento)
@@ -6,10 +6,11 @@ Igual que actualizar.py con la base SQLite, pero en el almacenamiento de Vercel 
   base/<fecha>__<versión>_original.xlsx   el Excel tal como se subió
 Los archivos nunca se pisan: cada cambio es una versión nueva (el almacenamiento guarda en caché 60 s, y así nadie lee
 una versión vieja); la base usa la más nueva de cada fecha y borra las anteriores.
-Una foto por fecha: si se sube otra vez la misma fecha, la reemplaza. Si se sube una fecha vieja, las fotos posteriores
-recalculan su historia y su seguimiento (las recomendaciones de cada foto no cambian: dependen solo de su Excel).
+Un Excel por fecha de datos (el último día con ventas): si se sube otra vez la misma fecha, lo reemplaza. Si se sube una fecha
+vieja, los posteriores recalculan su historia y su seguimiento (las recomendaciones de cada uno no cambian: dependen solo de su Excel).
 
-Uso en la computadora:  python servidor.py subir datos/viento_sur.xlsx  ·  python servidor.py borrar 2026-02-22  ·  python servidor.py fotos
+Uso en la computadora (con BLOB_READ_WRITE_TOKEN en .env.local):
+  python servidor.py subir datos/viento_sur.xlsx  ·  python servidor.py borrar 2026-02-22  ·  python servidor.py lista
 """
 import json
 import re
@@ -21,7 +22,7 @@ from pathlib import Path
 import pandas as pd
 
 import blob
-import foto
+import carga
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 FECHA = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -31,8 +32,8 @@ def _version():
     return f"{datetime.now(timezone.utc):%Y%m%d%H%M%S%f}"
 
 
-def fotos():
-    """Las fotos de la base (la versión más nueva de cada fecha), de la más nueva a la más vieja: [{fecha, subida, url, original}]."""
+def cargados():
+    """Los Excel cargados en la base (la versión más nueva de cada fecha), de la más nueva a la más vieja: [{fecha, subida, url, original}]."""
     todos = blob.listar("base/")
     ultima, original = {}, {}
     for b in todos:
@@ -49,8 +50,8 @@ def _guardar(paq):
 
 
 def _limpiar(todas):
-    """Borra lo que ya no usa ninguna foto vigente: versiones viejas de los paquetes y sus Excel."""
-    usados = {f["url"] for f in fotos()}
+    """Borra lo que ya no usa ningún Excel vigente: versiones viejas de los paquetes y sus Excel."""
+    usados = {f["url"] for f in cargados()}
     for paq in todas.values():
         if paq.get("archivo_excel"):
             usados |= {paq["archivo_excel"], paq["archivo_excel"].replace("_analisis.xlsx", "_original.xlsx")}
@@ -60,16 +61,16 @@ def _limpiar(todas):
 
 
 def _completar(paq, todas):
-    """Le pone a un paquete su historia y su seguimiento según las fotos de la base anteriores a él.
-    todas: {fecha: paquete} con al menos las fotos anteriores."""
+    """Le pone a un paquete su historia y su seguimiento según los Excel de la base anteriores a él.
+    todas: {fecha: paquete} con al menos los Excel anteriores."""
     fecha = paq["foto_iso"]
     previas = sorted(f for f in todas if f < fecha)
     v = pd.DataFrame(paq["ventas"], columns=["fecha", "sku", "sucursal_id", "unidades", "precio_unitario"])
     stock = pd.DataFrame(paq["lotes"]).groupby("sku").unidades.sum().to_dict()
     nuevas = {p["sku"]: p["accion"] for p in paq["productos"]}
-    paq["seguimiento"] = foto.seguimiento([(f, todas[f]["productos"]) for f in previas], v, stock, fecha, nuevas)
+    paq["seguimiento"] = carga.seguimiento([(f, todas[f]["productos"]) for f in previas], v, stock, fecha, nuevas)
     paq["foto_anterior"] = previas[-1] if previas else None
-    paq["historia"] = [foto.resumen(todas[f], f) for f in previas] + [foto.resumen(paq, fecha)]
+    paq["historia"] = [carga.resumen(todas[f], f) for f in previas] + [carga.resumen(paq, fecha)]
     return paq
 
 
@@ -78,38 +79,38 @@ def procesar_subida(contenido, nombre):
     with tempfile.TemporaryDirectory() as tmp:
         xlsx = Path(tmp) / "subido.xlsx"
         xlsx.write_bytes(contenido)
-        problemas = foto.validar(xlsx)
+        problemas = carga.validar(xlsx)
         if problemas:
             return None, problemas
-        fecha = foto.fecha_foto(xlsx)
-        tablero = foto.correr_proceso(xlsx, Path(tmp) / "salidas")
+        fecha = carga.fecha_datos(xlsx)
+        tablero = carga.correr_proceso(xlsx, Path(tmp) / "salidas")
         v = _version()
         url_excel = blob.subir(f"base/{fecha}__{v}_analisis.xlsx", (Path(tmp) / "salidas" / "ventas_y_stock.xlsx").read_bytes(), XLSX)
         blob.subir(f"base/{fecha}__{v}_original.xlsx", contenido, XLSX)
         meta = dict(nombre=nombre, subida=datetime.now(timezone.utc).isoformat(timespec="seconds"))
-        paq = foto.paquete(tablero, foto.ventas_de(xlsx, fecha), [], archivo_excel=url_excel, meta=meta)
+        paq = carga.paquete(tablero, carga.ventas_de(xlsx, fecha), [], archivo_excel=url_excel, meta=meta)
 
-    existentes = {f["fecha"]: f["url"] for f in fotos() if f["fecha"] != fecha}
+    existentes = {f["fecha"]: f["url"] for f in cargados() if f["fecha"] != fecha}
     todas = {f: blob.leer_url(u) for f, u in existentes.items()}
     todas[fecha] = _completar(paq, todas)
     _guardar(todas[fecha])
     posteriores = sorted(f for f in existentes if f > fecha)
-    for f in posteriores:                                     # se cargó una foto vieja: las de después se recalculan
+    for f in posteriores:                                     # se cargó un Excel viejo: los de después se recalculan
         _guardar(_completar(todas[f], todas))
     _limpiar(todas)
     return dict(fecha=fecha, anterior=paq["foto_anterior"], decisiones_seguidas=len(paq["seguimiento"]),
                 es_la_mas_nueva=not posteriores, recalculadas=posteriores, fotos=len(todas)), []
 
 
-def borrar_foto(fecha):
-    """Saca una foto de la base (sus versiones y sus Excel) y recalcula las posteriores. Solo desde la computadora."""
+def borrar(fecha):
+    """Saca un Excel de la base (sus versiones y sus archivos) y recalcula las posteriores. Solo desde la computadora."""
     if not FECHA.match(fecha):
         raise ValueError(f"Fecha inválida: {fecha}")
     archivos = [b["url"] for b in blob.listar(f"base/{fecha}__")]
     if not archivos:
         return dict(fecha=fecha, borrada=False)
     blob.borrar(archivos)
-    todas = {f["fecha"]: blob.leer_url(f["url"]) for f in fotos()}
+    todas = {f["fecha"]: blob.leer_url(f["url"]) for f in cargados()}
     posteriores = sorted(f for f in todas if f > fecha)
     for f in posteriores:
         _guardar(_completar(todas[f], todas))
@@ -124,9 +125,9 @@ if __name__ == "__main__":
             print(x, "→", r or prob)
     elif len(sys.argv) >= 3 and sys.argv[1] == "borrar":
         for f in sys.argv[2:]:
-            print(f, "→", borrar_foto(f))
-    elif len(sys.argv) == 2 and sys.argv[1] == "fotos":
-        for f in fotos():
+            print(f, "→", borrar(f))
+    elif len(sys.argv) == 2 and sys.argv[1] in ("lista", "fotos"):
+        for f in cargados():
             print(f["fecha"], "· subida", f["subida"])
     else:
         print(__doc__)

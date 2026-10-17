@@ -1,13 +1,13 @@
-"""Arma una foto anterior recortando el Excel a una fecha: cómo se veían los datos ese día.
+"""Herramienta de prueba: recorta el Excel a una fecha anterior, para ver cómo se veían los datos ese día.
 
-Sirve para probar el seguimiento (cargar la foto anterior y después la actual) sin inventar datos:
+Sirve para probar el seguimiento (cargar el recorte y después el Excel completo) sin inventar datos. No es parte de la entrega:
   - ventas: solo hasta la fecha;
-  - stock: el de la foto más lo que se vendió después de la fecha (supone que no hubo reposiciones ni transferencias);
+  - stock: el del Excel más lo que se vendió después de la fecha (supone que no hubo reposiciones ni transferencias);
     los lotes que entraron después de la fecha se sacan;
   - sugerencias, campañas y cambios de precio: solo los que ya existían ese día.
 
-Uso:  python recortar_foto.py 2026-03-08                 -> datos/viento_sur_al_2026-03-08.xlsx
-      python recortar_foto.py 2026-03-08 --datos X.xlsx --salida Y.xlsx
+Uso:  python herramientas/recortar_excel.py 2026-03-08                 -> datos/viento_sur_al_2026-03-08.xlsx
+      python herramientas/recortar_excel.py 2026-03-08 --datos X.xlsx --salida Y.xlsx
 """
 import argparse
 from pathlib import Path
@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 
 ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-ap.add_argument("fecha", help="fecha de la foto (AAAA-MM-DD)")
+ap.add_argument("fecha", help="fecha del recorte (AAAA-MM-DD)")
 ap.add_argument("--datos", default="datos/viento_sur.xlsx")
 ap.add_argument("--salida", default=None)
 args = ap.parse_args()
@@ -41,4 +41,4 @@ for hoja, col in [("historial_sugerencias", "fecha_sugerencia"), ("cambios_preci
 with pd.ExcelWriter(salida) as w:
     for hoja, df in h.items():
         df.to_excel(w, sheet_name=hoja, index=False)
-print(f"Foto al {corte:%d/%m/%Y}: {salida} ({len(h['ventas'])} ventas, {int(st.unidades.sum())} u en stock)")
+print(f"Datos al {corte:%d/%m/%Y}: {salida} ({len(h['ventas'])} ventas, {int(st.unidades.sum())} u en stock)")

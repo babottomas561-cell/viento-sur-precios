@@ -1,7 +1,7 @@
 """Auditoría de la pestaña y la hoja Descuentos: cada caso, el control, el índice semanal y los netos, recalculados directo del
 Excel original y comparados con lo que exporta el proceso (salidas/tablero_datos.json → descuentos).
 
-El rango por azar (bootstrap) no se puede reproducir por otro camino número por número; se contrasta su conclusión
+El margen de error (bootstrap) no se puede reproducir por otro camino número por número; se contrasta su conclusión
 ("firme" o no) con un intervalo exacto de Poisson.
 Uso: python salidas/auditoria/auditar_descuentos.py
 """
@@ -124,7 +124,7 @@ print(f"Descuentos: {chequeos} chequeos · {len(fallas) or 'sin'} diferencias")
 for f in fallas[:30]:
     print("  ✗", f)
 dif = [x for x in firme_igual if x[1] != x[2]]
-print(f"Rango por azar: el bootstrap y el intervalo exacto de Poisson coinciden en {len(firme_igual) - len(dif)} de {len(firme_igual)} casos sobre si la suba es firme"
+print(f"Margen de error: el bootstrap y el intervalo exacto de Poisson coinciden en {len(firme_igual) - len(dif)} de {len(firme_igual)} casos sobre si la suba es firme"
       + ("" if not dif else "; difieren en " + ", ".join(f"{n} (bootstrap {'firme' if b else 'no'}, Poisson {'firme' if p else 'no'})" for n, b, p in dif)))
 total_m = sum(netos[s]["m_dur"] + netos[s]["m_desp"] for s in netos)
 print(f"Margen neto de los 8 descuentos: $ {total_m:,.0f}")

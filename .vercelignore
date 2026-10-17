@@ -3,7 +3,7 @@
 !/web
 !/api
 !/armar_excel.py
-!/foto.py
+!/carga.py
 !/blob.py
 !/servidor.py
 !/requirements.txt

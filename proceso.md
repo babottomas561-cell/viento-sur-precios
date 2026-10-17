@@ -6,8 +6,8 @@ El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueb
 
 | Qué | Cada cuánto | Cómo |
 |---|---|---|
-| Correr el modelo con el Excel nuevo | **Semanal** (lunes) | Se sube el Excel de la semana con **Subir Excel** en el tablero (o `python actualizar.py --datos <excel>`): regenera la propuesta, la guarda en la base con su fecha y el tablero pasa a mostrarla |
-| Revisar las decisiones vencidas | **Semanal** | Pestaña *Seguimiento*: cada decisión tiene indicador, línea base, meta y fecha de revisión |
+| Correr el modelo con el Excel nuevo | **Semanal** (lunes) | El analista sube el Excel de la semana con **Subir Excel** en el tablero: el servidor lo valida, corre el proceso, lo guarda en la base con su fecha y el tablero pasa a mostrarlo para todos. Paso a paso en el [README](README.md#cómo-es-el-proceso-paso-a-paso) |
+| Revisar las decisiones vencidas | **Semanal** | Pestaña *Seguimiento*: cada decisión tiene una regla que se comprueba con las ventas, su línea base, su meta y su fecha de revisión. Se deciden las que ya llegaron a esa fecha |
 | Cerrar un descuento a prueba | **A las 4 semanas**, y de nuevo al mes siguiente | Se compara contra el control, igual que en la hoja *Descuentos* |
 | Revisar las reglas y los umbrales | **Trimestral** | Con los descuentos nuevos medidos, cada tipo suma evidencia: se recalcula qué tipos responden |
 
@@ -15,6 +15,7 @@ Semanal y no diario porque con 1 a 3 unidades por día un producto no muestra na
 
 ## Quién aprueba
 
+- **Analista de precios**: sube el Excel el lunes. Si la validación falla, el tablero dice qué hoja o columna corregir y no guarda nada; si se subió uno equivocado, uno de la misma fecha lo reemplaza.
 - **Gerente comercial**: aprueba la propuesta semanal completa. El tablero muestra para cada producto la acción, el motivo y las reglas que la decidieron, para aprobar o rechazar en minutos.
 - **Gerencia general**: cualquier descuento que deje menos del 15 % de margen o que supere el 20 %. El modelo no los propone, pero si comercial quiere hacerlo a mano, tiene que pasar por acá.
 - **Compras**: devoluciones, bonificaciones y renegociación con proveedores (hoy, sobre todo Cumbre).
@@ -31,7 +32,19 @@ Si se rechaza una propuesta, se anota por qué. Ese motivo es información para 
 
 ## Cómo se sabe si funcionó
 
-**Por decisión** (en la pestaña *Seguimiento*, con cada Excel nuevo): cada recomendación se sigue desde que se hizo. ¿Se aplicó? (precio cobrado contra precio de lista); ¿llega a la meta de unidades por semana?; ¿se movió el stock?; ¿ya pasó su fecha de revisión o sigue en curso?
+**Por decisión** (en la pestaña *Seguimiento*, con cada Excel nuevo): cada recomendación se sigue desde el Excel en que se hizo, con una regla según lo que se propuso:
+
+| Se recomendó | Se cumple si |
+|---|---|
+| Un descuento | Se cobra en caja (precio cobrado por debajo del de lista) y vende al menos su meta por semana |
+| Cobrar una rebaja ya aprobada o confirmar una campaña | La rebaja se ve en el precio cobrado |
+| Dejar el precio | Sigue vendiendo al menos el 90 % de antes, sin quedarse sin stock |
+| Esperar (recién llegó o hay una suba en curso) | No vende menos del 90 % de antes |
+| Exhibir un producto que nunca vendió | Tiene al menos una venta |
+| Investigar un corte o mover de local | Vende al menos 10 % más por semana que antes |
+| Devolución, outlet, negociar con el proveedor | Lo confirma quien lo gestiona: no se ve en las ventas |
+
+Las que ya pasaron su fecha de revisión se deciden (seguir, ajustar o pasar al paso siguiente de su causa); las demás siguen en curso, porque juzgarlas antes sería apurarse.
 
 **Para el negocio** (una vez por mes, contra el mes anterior):
 

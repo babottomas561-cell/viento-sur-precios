@@ -157,7 +157,7 @@ def veredicto(f):
     if f.tipo not in EV.index:
         return "no"
     e = EV.loc[f.tipo]
-    firme = EVt.firme[f.tipo]                         # el rango por azar del proceso (se contrasta abajo con otro método)
+    firme = EVt.firme[f.tipo]                         # el margen de error del proceso (se contrasta abajo con otro método)
     d = e.descuento
     m_desp = (f.precio_lista * (1 - d) - f.costo_unitario) / (f.precio_lista * (1 - d))
     vencido = f.share_vencido > R["vencido_mayoria"]

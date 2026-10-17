@@ -12,5 +12,5 @@ salidas/historia/
 entrega_mail/
 .vercel
 .env*
-# recortes que arma recortar_foto.py
+# recortes que arma herramientas/recortar_excel.py
 datos/viento_sur_al_*.xlsx

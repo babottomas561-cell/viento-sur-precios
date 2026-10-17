@@ -1,10 +1,10 @@
-"""Una "foto" es un Excel con los datos de la semana. Este módulo la convierte en el paquete que lee el tablero.
+"""Cargar un Excel: convierte el Excel con los datos de la semana en el paquete que lee el tablero.
 
 Lo usan los dos caminos, con la misma cuenta:
   - actualizar.py, en la computadora, con la base SQLite (datos/viento_sur.db);
   - api/subir.py, en el servidor, cuando alguien sube un Excel desde la página.
 
-Pasos: validar el Excel → correr armar_excel.py → medir el seguimiento contra la foto anterior → armar el paquete.
+Pasos: validar el Excel → correr armar_excel.py → medir el seguimiento contra el Excel anterior → armar el paquete.
 """
 import json
 import subprocess
@@ -64,8 +64,8 @@ def validar(xlsx):
     return problemas
 
 
-def fecha_foto(xlsx):
-    """La foto es del último día con ventas."""
+def fecha_datos(xlsx):
+    """La fecha de los datos de un Excel: el último día con ventas."""
     return pd.to_datetime(pd.read_excel(xlsx, sheet_name="ventas").fecha).max().strftime("%Y-%m-%d")
 
 
@@ -81,7 +81,7 @@ def correr_proceso(xlsx, carpeta):
 
 
 def ventas_de(xlsx, hasta):
-    """Las ventas del Excel hasta la fecha de la foto, como las lee el tablero: [fecha, sku, sucursal, unidades, precio]."""
+    """Las ventas del Excel hasta la fecha de sus datos, como las lee el tablero: [fecha, sku, sucursal, unidades, precio]."""
     v = pd.read_excel(xlsx, sheet_name="ventas")
     v["fecha"] = pd.to_datetime(v.fecha).dt.strftime("%Y-%m-%d")
     v = v[v.fecha <= hasta].sort_values(["fecha", "sku", "sucursal_id"])
@@ -131,24 +131,24 @@ def _iso(ddmmaaaa):
 
 
 def seguimiento(previas, ventas, stock_ahora, fecha, nuevas=None):
-    """Lo que va pasando con cada recomendación, desde que se hizo hasta esta foto.
+    """Lo que va pasando con cada recomendación, desde que se hizo hasta el Excel actual.
 
-    previas: [(fecha, productos)] de las fotos anteriores, de la más vieja a la más nueva (productos: sku, producto, n, accion,
+    previas: [(fecha, productos)] de los Excel anteriores, de la más vieja a la más nueva (productos: sku, producto, n, accion,
              revisar, nuestro, u_sem_base, meta_u_sem, stock, precio).
-    Cada recomendación se sigue desde la primera foto en que se propuso, mientras se haya seguido proponiendo lo mismo;
-    si la acción cambió, el seguimiento arranca de nuevo en la foto del cambio.
-    ventas: DataFrame con fecha (texto), sku, unidades, precio_unitario · stock_ahora: {sku: unidades} · nuevas: {sku: acción en esta foto}
+    Cada recomendación se sigue desde el primer Excel en que se propuso, mientras se haya seguido proponiendo lo mismo;
+    si la acción cambió, el seguimiento arranca de nuevo en el Excel del cambio.
+    ventas: DataFrame con fecha (texto), sku, unidades, precio_unitario · stock_ahora: {sku: unidades} · nuevas: {sku: acción con el Excel actual}
     """
     if not previas:
         return []
-    por_foto = [(f, {d["sku"]: d for d in prods}) for f, prods in previas]
-    ultima = por_foto[-1][1]
+    por_excel = [(f, {d["sku"]: d for d in prods}) for f, prods in previas]
+    ultima = por_excel[-1][1]
     filas = []
     for sku, d in ultima.items():
-        i = len(por_foto) - 1                                   # hasta dónde para atrás se viene recomendando lo mismo
-        while i > 0 and sku in por_foto[i - 1][1] and por_foto[i - 1][1][sku]["accion"] == d["accion"]:
+        i = len(por_excel) - 1                                   # hasta dónde para atrás se viene recomendando lo mismo
+        while i > 0 and sku in por_excel[i - 1][1] and por_excel[i - 1][1][sku]["accion"] == d["accion"]:
             i -= 1
-        desde, d0 = por_foto[i][0], por_foto[i][1][sku]
+        desde, d0 = por_excel[i][0], por_excel[i][1][sku]
         dias = max((pd.Timestamp(fecha) - pd.Timestamp(desde)).days, 1)
         v = ventas[(ventas.sku == sku) & (ventas.fecha > desde) & (ventas.fecha <= fecha)]
         u = int(v.unidades.sum())
@@ -162,7 +162,7 @@ def seguimiento(previas, ventas, stock_ahora, fecha, nuevas=None):
             vs = v[(v.fecha >= f"{ini:%Y-%m-%d}") & (v.fecha <= f"{fin:%Y-%m-%d}")]
             semanas.append(dict(desde=f"{ini:%Y-%m-%d}", dias=(fin - ini).days + 1, u=int(vs.unidades.sum())))
             ini = fin + pd.Timedelta(days=1)
-        stock = [dict(fecha=f, u=int(prods[sku]["stock"])) for f, prods in por_foto[i:] if sku in prods] + [dict(fecha=fecha, u=int(stock_ahora.get(sku, 0)))]
+        stock = [dict(fecha=f, u=int(prods[sku]["stock"])) for f, prods in por_excel[i:] if sku in prods] + [dict(fecha=fecha, u=int(stock_ahora.get(sku, 0)))]
         meta = d0.get("meta_u_sem")
         meta = None if meta is None or pd.isna(meta) else float(meta)
         regla, cumple, estado = regla_seguimiento(d0, u, u_sem, aplicado, meta, stock_ahora.get(sku, 0) == 0)
@@ -176,7 +176,7 @@ def seguimiento(previas, ventas, stock_ahora, fecha, nuevas=None):
 
 
 def resumen(tablero, fecha):
-    """Una línea de la historia: lo principal de cada foto."""
+    """Una línea de la historia: lo principal de cada Excel cargado."""
     k = tablero["k"]
     return dict(fecha=fecha, stock=k["stock"], capital=k["capital"], vencidas=k["vencidas"], atrasados=k["atrasados"], ya=k["ya"], cond=k["cond"])
 

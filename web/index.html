@@ -34,17 +34,17 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// Publicado, el tablero abre la foto más nueva de la base (o la que pida el link: ?foto=AAAA-MM-DD).
-// Abierto como archivo, en la computadora, o si la base no responde, usa datos.js: la foto con la que se armó la página.
+// Publicado, el tablero abre los datos más nuevos de la base (o los que pida el link: ?datos=AAAA-MM-DD).
+// Abierto como archivo, en la computadora, o si la base no responde, usa datos.js: los datos con los que se armó la página.
 (function () {
   var cargar = function (src, listo) { var s = document.createElement("script"); s.src = src; s.onload = listo; document.body.appendChild(s); };
-  var arrancar = function () { cargar("app.js?v=b60727ba29"); };
+  var arrancar = function () { cargar("app.js?v=fb824908d4"); };
   var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=db80fb37c4", arrancar); };
   if (location.protocol === "file:") return local("");
   var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
-  var pedida = new URLSearchParams(location.search).get("foto") || "";
+  var q = new URLSearchParams(location.search), pedida = q.get("datos") || q.get("foto") || "";   // ?foto= era el nombre anterior
   var json = function (r) { return r.ok ? r.json() : Promise.reject(r.status); };
-  Promise.all([fetch("/api/fotos", { cache: "no-store" }).then(json), fetch("/api/abrir" + (pedida ? "?fecha=" + encodeURIComponent(pedida) : ""), { cache: "no-store" }).then(json)])
+  Promise.all([fetch("/api/cargados", { cache: "no-store" }).then(json), fetch("/api/abrir" + (pedida ? "?fecha=" + encodeURIComponent(pedida) : ""), { cache: "no-store" }).then(json)])
     .then(function (r) { window.DATOS = r[1]; window.BASE = { online: true, fotos: r[0].fotos }; arrancar(); })
     .catch(function () { local(enLaCompu ? "" : pedida ? "No se encontraron datos al " + pedida + " en la base." : "La base no respondió: se muestran los datos con los que se publicó la página."); });
 })();

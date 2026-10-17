@@ -1715,7 +1715,7 @@ function render() {
 // ---------------------------------------------------------------------------------------------- la base: fotos y subida
 const BASE = window.BASE || { online: false };
 const ULTIMA = (BASE.fotos || [])[0]?.fecha;
-const irAFoto = fecha => { location.href = location.pathname + (fecha && fecha !== ULTIMA ? `?foto=${fecha}` : "") + location.hash; };
+const irAFoto = fecha => { location.href = location.pathname + (fecha && fecha !== ULTIMA ? `?datos=${fecha}` : "") + location.hash; };
 function cabeceraFoto() {
   const fotos = BASE.fotos || [];
   const cual = BASE.online && fotos.length > 1
@@ -1741,13 +1741,13 @@ function abrirSubir() {
       <li><b>Actualiza la base para todos.</b> Si son los datos más nuevos, el tablero pasa a mostrarlos; si ya había un Excel con esa fecha, lo reemplaza.</li>
       <li>Tarda entre 15 y 40 segundos. Es una demo: lo que subas queda público.</li>
     </ul>
-    <p class="nota">Para probar, los Excel de la base: ${(BASE.fotos || []).filter(f => f.original).map(f => `<a href="${esc(f.original)}" download>${fechaAR(f.fecha)}</a>`).join(" · ")} (la del 15/03 es la de la consigna; las anteriores son recortes armados con <code>recortar_foto.py</code>).</p>
+    <p class="nota">El Excel original de cada fecha cargada se puede descargar: ${(BASE.fotos || []).filter(f => f.original).map(f => `<a href="${esc(f.original)}" download>${fechaAR(f.fecha)}</a>`).join(" · ")}.</p>
     <label class="campo">Archivo .xlsx<input type="file" id="s-archivo" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
     <div class="subir-estado" id="s-estado" role="status" aria-live="polite"></div>
     <div class="subir-botones"><button class="btn" value="cerrar" id="s-cerrar">Cerrar</button><button class="btn prim" type="button" id="s-enviar">Subir y procesar</button></div>
   </form>`;
   const estado = $("#s-estado", dlg), enviar = $("#s-enviar", dlg);
-  let cargada = null;                                     // después de subir, el mismo botón lleva a la foto
+  let cargada = null;                                     // después de subir, el mismo botón lleva a esos datos
   enviar.addEventListener("click", async () => {
     if (cargada) return irAFoto(cargada.es_la_mas_nueva ? "" : cargada.fecha);
     const f = $("#s-archivo", dlg).files[0];
@@ -1765,7 +1765,7 @@ function abrirSubir() {
         enviar.disabled = false;
         return;
       }
-      estado.innerHTML = `<p class="ok">Listo: la base tiene los datos al ${fechaAR(j.fecha)} (${j.fotos} ${j.fotos === 1 ? "Excel" : "Excel"} en total).</p>
+      estado.innerHTML = `<p class="ok">Listo: la base tiene los datos al ${fechaAR(j.fecha)} (${j.fotos} Excel en total).</p>
         <p>${j.anterior ? `El seguimiento mide ${j.decisiones_seguidas} recomendaciones desde los Excel anteriores.` : "Es el Excel más viejo de la base: no tiene seguimiento propio."}
         ${j.es_la_mas_nueva ? "Es la más nueva: el tablero pasa a mostrarla." : `No es la más nueva, así que el tablero sigue mostrando la del ${fechaAR(ULTIMA)}; se recalculó el seguimiento de ${j.recalculadas.map(fechaAR).join(", ")}.`}</p>`;
       cargada = j;

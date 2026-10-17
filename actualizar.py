@@ -1,9 +1,9 @@
-"""Carga una foto de datos (el Excel de la semana) a la base con historia y arma el tablero.
+"""Carga el Excel de la semana a la base local (con su historia) y arma el tablero. Hace en la computadora lo mismo que «Subir Excel» en el sitio.
 
 Qué hace:
-  1. Corre armar_excel.py sobre el Excel: análisis, propuesta y nota de esa foto (se guardan en salidas/historia/<fecha>/).
-  2. Guarda la foto en la base SQLite (datos/viento_sur.db) sin pisar las anteriores: ventas, lotes, productos y decisiones.
-  3. Si hay una foto anterior, mide qué pasó con cada decisión desde entonces (seguimiento).
+  1. Corre armar_excel.py sobre el Excel: análisis, propuesta y nota de ese Excel (se guardan en salidas/historia/<fecha>/).
+  2. Guarda los datos en la base SQLite (datos/viento_sur.db), con su fecha, sin pisar los anteriores: ventas, lotes, productos y decisiones.
+  3. Si hay un Excel anterior, mide qué pasó con cada decisión desde entonces (seguimiento).
   4. Arma el tablero en web/ (index.html, app.css, app.js, datos.js y el Excel), listo para abrir o publicar.
 
 Uso:  .venv/bin/python actualizar.py                                  -> carga datos/viento_sur.xlsx
@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import foto
+import carga
 
 BASE = Path("datos/viento_sur.db")
 WEB = Path("web")
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS tablero    (fecha_foto TEXT PRIMARY KEY, datos TEXT);
 
 
 def cargar_foto(con, datos_xlsx, fecha, tablero):
-    """Guarda la foto en la base. Si esa fecha ya estaba cargada, la reemplaza (se puede volver a correr sin duplicar)."""
+    """Guarda los datos de ese Excel en la base. Si esa fecha ya estaba cargada, la reemplaza (se puede volver a correr sin duplicar)."""
     h = pd.read_excel(datos_xlsx, sheet_name=None)
     for t in ["productos", "lotes", "decisiones", "tablero", "fotos"]:
         con.execute(f"DELETE FROM {t} WHERE fecha_foto = ?", (fecha,))
@@ -68,7 +68,7 @@ def cargar_foto(con, datos_xlsx, fecha, tablero):
 
 
 def seguimiento(con, actual):
-    """Lo que va pasando con cada recomendación de las fotos anteriores hasta la actual (la cuenta está en foto.py)."""
+    """Lo que va pasando con cada recomendación de los Excel anteriores hasta el actual (la cuenta está en carga.py)."""
     previas = [r[0] for r in con.execute("SELECT fecha_foto FROM fotos WHERE fecha_foto < ? ORDER BY fecha_foto", (actual,))]
     if not previas:
         return None, []
@@ -77,18 +77,18 @@ def seguimiento(con, actual):
     v = pd.read_sql("SELECT fecha, sku, unidades, precio_unitario FROM ventas WHERE fecha <= ?", con, params=(actual,))
     stock = dict(con.execute("SELECT sku, SUM(unidades) FROM lotes WHERE fecha_foto = ? GROUP BY sku", (actual,)).fetchall())
     nuevas = dict(con.execute("SELECT sku, accion FROM decisiones WHERE fecha_foto = ?", (actual,)).fetchall())
-    return previas[-1], foto.seguimiento(fotos_prev, v, stock, actual, nuevas)
+    return previas[-1], carga.seguimiento(fotos_prev, v, stock, actual, nuevas)
 
 def armar_web(con, actual, anterior, seg, web=WEB, salidas=Path("salidas")):
-    """Copia la app del tablero a web/ y le escribe los datos: la foto actual, todas las ventas de la base, la historia y el seguimiento."""
+    """Copia la app del tablero a web/ y le escribe los datos: los del Excel actual, todas las ventas de la base, la historia y el seguimiento."""
     tablero = json.loads(con.execute("SELECT datos FROM tablero WHERE fecha_foto = ?", (actual,)).fetchone()[0])
-    historia = [foto.resumen(json.loads(txt), fecha) for fecha, txt in con.execute("SELECT fecha_foto, datos FROM tablero ORDER BY fecha_foto")]
+    historia = [carga.resumen(json.loads(txt), fecha) for fecha, txt in con.execute("SELECT fecha_foto, datos FROM tablero ORDER BY fecha_foto")]
     ventas = [list(r) for r in con.execute("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha <= ? ORDER BY fecha, sku, sucursal_id", (actual,))]
     web.mkdir(parents=True, exist_ok=True)
     excel = salidas / "historia" / actual / "ventas_y_stock.xlsx"
     if excel.exists():
         shutil.copy(excel, web / "viento_sur_analisis.xlsx")
-    datos = foto.paquete(tablero, ventas, historia, anterior, seg, "viento_sur_analisis.xlsx" if excel.exists() else None, dict(id="oficial"))
+    datos = carga.paquete(tablero, ventas, historia, anterior, seg, "viento_sur_analisis.xlsx" if excel.exists() else None, dict(id="oficial"))
     for f in ["app.css", "app.js"]:
         shutil.copy(APP / f, web / f)
     # la auditoría del tablero también se publica, para poder correrla en el sitio (ver salidas/auditoria/LEEME.md)
@@ -105,7 +105,7 @@ def armar_web(con, actual, anterior, seg, web=WEB, salidas=Path("salidas")):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Carga una foto de datos a la base con historia y arma el tablero.")
+    ap = argparse.ArgumentParser(description="Carga un Excel a la base con historia y arma el tablero.")
     ap.add_argument("--datos", default="datos/viento_sur.xlsx", help="Excel de la semana (mismas hojas que viento_sur.xlsx)")
     ap.add_argument("--publicar", action="store_true", help="publicar el tablero y el servidor en Vercel al terminar")
     ap.add_argument("--base", default=str(BASE), help="archivo de la base SQLite")
@@ -114,13 +114,13 @@ def main():
     args = ap.parse_args()
     web = Path(args.web)
 
-    problemas = foto.validar(args.datos)
+    problemas = carga.validar(args.datos)
     if problemas:
         sys.exit(f"{args.datos} no tiene la forma esperada:\n- " + "\n- ".join(problemas))
-    fecha = foto.fecha_foto(args.datos)
+    fecha = carga.fecha_datos(args.datos)
     carpeta = Path(args.salidas) / "historia" / fecha
     try:
-        tablero = foto.correr_proceso(args.datos, carpeta)
+        tablero = carga.correr_proceso(args.datos, carpeta)
     except RuntimeError as e:
         sys.exit(str(e))
 
@@ -128,7 +128,7 @@ def main():
     con.executescript(ESQUEMA)
     cargar_foto(con, args.datos, fecha, tablero)
     ultima = con.execute("SELECT MAX(fecha_foto) FROM fotos").fetchone()[0]
-    if fecha == ultima:                                       # la foto más nueva también queda en salidas/
+    if fecha == ultima:                                       # el Excel más nuevo también queda en salidas/
         for f in ["ventas_y_stock.xlsx", "nota.md", "causas.md", "tablero_datos.json"]:
             shutil.copy(carpeta / f, Path(args.salidas) / f)
     anterior, seg = seguimiento(con, ultima)
