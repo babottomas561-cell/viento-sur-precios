@@ -2,6 +2,8 @@
 
 Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hacer con el precio de cada uno de los 48 productos y por qué, juzga el algoritmo de la consultora y arma un tablero para seguir la decisión.
 
+**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)** (el mismo que `web/index.html`).
+
 ## Dónde está cada respuesta
 
 | La consigna pide | Está en |
@@ -10,7 +12,7 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 | **El archivo con la propuesta** | [`salidas/ventas_y_stock.xlsx`](salidas/ventas_y_stock.xlsx), hoja **Propuesta**: acción, motivo, meta y fecha de revisión de los 48 productos |
 | **La nota** (qué miré, qué dejé afuera, efecto a 30 días) | [`salidas/nota.md`](salidas/nota.md) (también como hoja **Nota** del Excel) |
 | **El juicio sobre la consultora** | En la nota, sección "Juicio sobre la consultora" |
-| **El tablero** (pregunta 2) | [`web/index.html`](web/index.html): se abre con doble clic, no necesita servidor |
+| **El tablero** (pregunta 2) | [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), o [`web/index.html`](web/index.html) con doble clic |
 | **El proceso alrededor del modelo** (pregunta 3) | [`proceso.md`](proceso.md) |
 | **Herramientas de IA** | En la nota, sección "Herramientas de IA" |
 
