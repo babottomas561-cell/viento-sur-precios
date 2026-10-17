@@ -9,7 +9,7 @@ una versión vieja); la base usa la más nueva de cada fecha y borra las anterio
 Una foto por fecha: si se sube otra vez la misma fecha, la reemplaza. Si se sube una fecha vieja, las fotos posteriores
 recalculan su historia y su seguimiento (las recomendaciones de cada foto no cambian: dependen solo de su Excel).
 
-Uso en la computadora:  python servidor.py subir datos/viento_sur.xlsx   ·   python servidor.py fotos
+Uso en la computadora:  python servidor.py subir datos/viento_sur.xlsx  ·  python servidor.py borrar 2026-02-22  ·  python servidor.py fotos
 """
 import json
 import re
@@ -101,11 +101,30 @@ def procesar_subida(contenido, nombre):
                 es_la_mas_nueva=not posteriores, recalculadas=posteriores, fotos=len(todas)), []
 
 
+def borrar_foto(fecha):
+    """Saca una foto de la base (sus versiones y sus Excel) y recalcula las posteriores. Solo desde la computadora."""
+    if not FECHA.match(fecha):
+        raise ValueError(f"Fecha inválida: {fecha}")
+    archivos = [b["url"] for b in blob.listar(f"base/{fecha}__")]
+    if not archivos:
+        return dict(fecha=fecha, borrada=False)
+    blob.borrar(archivos)
+    todas = {f["fecha"]: blob.leer_url(f["url"]) for f in fotos()}
+    posteriores = sorted(f for f in todas if f > fecha)
+    for f in posteriores:
+        _guardar(_completar(todas[f], todas))
+    _limpiar(todas)
+    return dict(fecha=fecha, borrada=True, recalculadas=posteriores, fotos=len(todas))
+
+
 if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "subir":
         for x in sys.argv[2:]:
             r, prob = procesar_subida(Path(x).read_bytes(), Path(x).name)
             print(x, "→", r or prob)
+    elif len(sys.argv) >= 3 and sys.argv[1] == "borrar":
+        for f in sys.argv[2:]:
+            print(f, "→", borrar_foto(f))
     elif len(sys.argv) == 2 and sys.argv[1] == "fotos":
         for f in fotos():
             print(f["fecha"], "· subida", f["subida"])

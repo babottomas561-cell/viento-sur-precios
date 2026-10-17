@@ -45,6 +45,18 @@ def validar(xlsx):
     for hoja in ["productos", "stock_sucursal", "ventas"]:
         if hoja in h and h[hoja].empty:
             problemas.append(f"La hoja «{hoja}» está vacía.")
+    if not problemas:                                      # que las fechas y los números se entiendan
+        for hoja, cols, tipo in [("ventas", ["fecha"], "fecha"), ("stock_sucursal", ["fecha_ingreso", "fecha_limite"], "fecha"),
+                                 ("ventas", ["unidades", "precio_unitario"], "número"), ("stock_sucursal", ["unidades", "unidades_objetivo"], "número"),
+                                 ("productos", ["precio_lista", "costo_unitario"], "número")]:
+            for col in cols:
+                serie = h[hoja][col]
+                conv = pd.to_datetime(serie, errors="coerce", format="mixed") if tipo == "fecha" else pd.to_numeric(serie, errors="coerce")
+                malas = serie[conv.isna() & serie.notna() | serie.isna()]
+                if len(malas):
+                    ej = next((str(v) for v in malas if str(v) != "nan"), "vacío")
+                    problemas.append(f"En «{hoja}», la columna {col} tiene {len(malas)} {'filas' if len(malas) > 1 else 'fila'} que no se "
+                                     f"{'entienden como fecha' if tipo == 'fecha' else 'entienden como número'} (por ejemplo: «{ej}»).")
     if not problemas:
         sin_catalogo = set(h["stock_sucursal"].sku) - set(h["productos"].sku)
         if sin_catalogo:
@@ -142,6 +154,8 @@ def resumen(tablero, fecha):
 
 
 def paquete(tablero, ventas, historia, anterior=None, seg=None, archivo_excel=None, meta=None):
-    """Todo lo que lee el tablero (window.DATOS)."""
+    """Todo lo que lee el tablero (window.DATOS). Las ventas, solo de productos del análisis (los que tienen stock)."""
+    catalogo = {p["sku"] for p in tablero["catalogo"]}
+    ventas = [v for v in ventas if v[1] in catalogo]
     return {**tablero, "historia": historia, "seguimiento": seg or [], "foto_anterior": anterior, "ventas": ventas,
             "archivo_excel": archivo_excel, "foto_meta": meta}

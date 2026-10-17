@@ -108,6 +108,41 @@ const prodsFiltrados = (ignorarSuc = false, ignorarSku = false) => D.productos.f
 const ventasDe = skus => { const set = new Set(skus); return VENTAS.filter(v => v.fecha >= S.desde && v.fecha <= S.hasta && (!S.suc || v.suc === S.suc) && set.has(v.sku)); };
 const lotesDe = skus => { const set = new Set(skus); return D.lotes.filter(l => set.has(l.sku) && (!S.suc || l.suc === S.suc)); };
 
+// Indicadores de cada lote al corte de la fecha "hasta" y en el período "desde–hasta", con las mismas definiciones del Excel.
+// Con las fechas por defecto dan exactamente los valores del Excel (la foto). El stock al corte = el de la foto + lo vendido después.
+const VENTAS_LOTE = agrupar(VENTAS, v => v.sku + "|" + v.suc);
+const VENTAS_SKU = agrupar(VENTAS, v => v.sku);
+let CORTE = { clave: "", lotes: new Map() };
+function alCorte(l) {
+  const clave = S.desde + "|" + S.hasta;
+  if (CORTE.clave !== clave) CORTE = { clave, lotes: new Map() };
+  const k = l.sku + "|" + l.suc;
+  if (CORTE.lotes.has(k)) return CORTE.lotes.get(k);
+  const H = S.hasta, Dd = S.desde, INI = D.inicio.split("/").reverse().join("-");
+  const vs = VENTAS_LOTE[k] || [];
+  const cuenta = l.ingreso > INI ? l.ingreso : INI, desdeP = l.ingreso > Dd ? l.ingreso : Dd, h30 = masDias(H, -29);
+  const sumU = f => suma(vs.filter(f), v => v.u);
+  const vendidas = sumU(v => v.fecha >= desdeP && v.fecha <= H);                  // en el período, desde que el lote está
+  const stock = l.unidades + sumU(v => v.fecha > H);
+  const v30 = sumU(v => v.fecha >= h30 && v.fecha <= H);
+  const enPeriodo = vs.filter(v => v.fecha >= Dd && v.fecha <= H);
+  const diasObs = difDias(cuenta, H) + 1;
+  const ritmoReal = diasObs > 0 ? sumU(v => v.fecha >= cuenta && v.fecha <= H) / diasObs : null;
+  const ultima = enPeriodo.reduce((m, v) => v.fecha > m ? v.fecha : m, "");
+  const r = { ...l, existe: l.ingreso <= H, stock_foto: l.unidades, unidades: stock, vendidas, stock_inicial: stock + vendidas, pct_vendido: vendidas / ((stock + vendidas) || 1),
+    v30, dias_de_stock: v30 ? stock / (v30 / 30) : null, ritmo_real: ritmoReal, dias_observados: diasObs,
+    pct_esperado: ritmoReal == null ? null : ritmoReal / l.ritmo_objetivo, vencido: l.limite < H ? "sí" : "no",
+    venta_pesos: suma(enPeriodo, v => v.u * v.precio), ultima_venta: ultima || null, dias_sin_vender: ultima ? difDias(ultima, H) : null,
+    vendidas_otras: suma((VENTAS_SKU[l.sku] || []).filter(v => v.suc !== l.suc && v.fecha >= Dd && v.fecha <= H), v => v.u),
+    rotacion: !enPeriodo.some(v => v.u) ? "Sin ventas" : v30 ? "Vendió en los últimos 30 días" : "Vendió, pero no en los últimos 30 días" };
+  CORTE.lotes.set(k, r);
+  return r;
+}
+// Los lotes que ya estaban en el local a la fecha "hasta", con sus indicadores a esa fecha
+const lotesAlCorte = skus => lotesDe(skus).map(alCorte).filter(l => l.existe);
+const fechasCambiadas = () => S.desde !== DEF.desde || S.hasta !== DEF.hasta;
+const notaCorte = () => fechasCambiadas() ? ` <b>Al ${fechaAR(S.hasta)}</b>, con lo vendido del ${fechaAR(S.desde)} al ${fechaAR(S.hasta)}.` : "";
+
 function renderFiltros() {
   const opciones = (vals, sel, todos) => `<option value="">${todos}</option>` + vals.map(([v, t]) => `<option value="${esc(v)}"${v === sel ? " selected" : ""}>${esc(t)}</option>`).join("");
   const rubros = [...new Set(D.catalogo.map(p => p.rubro))].sort().map(r => [r, r]);
@@ -198,7 +233,7 @@ const COLS_INDICADORES = [
   { k: "pct_esperado", t: "% de lo esperado", r: true, f: v => `<span class="${v >= D.criterios.al_dia ? "ok" : "mal"}">${pct(v)}</span>`, csv: v => v },
   { k: "stock_inicial", t: "stock al inicio", r: true, sum: true, f: v => fmt(v) },
   { k: "vendidas", t: "vendidas", r: true, sum: true, f: v => fmt(v) },
-  { k: "unidades", t: "stock hoy", r: true, sum: true, f: v => fmt(v) },
+  { k: "unidades", t: "stock", r: true, sum: true, f: v => fmt(v) },
   { k: "pct_vendido", t: "% vendido", r: true, f: v => pct(v), csv: v => v },
   { k: "v30", t: "vendidas últimos 30 días", r: true, sum: true, f: v => fmt(v) },
   { k: "dias_de_stock", t: "días de stock", r: true, f: v => v == null ? "sin venta" : fmt(v), csv: v => v },
@@ -304,10 +339,11 @@ function svgEvidencia() {
 // ---------------------------------------------------------------------------------------------- vista: Decisión
 function vistaDecision(main) {
   const P = prodsFiltrados();
-  if (!P.length) { main.innerHTML = `<div class="vacio">Ningún producto cumple estos filtros. Probá con "Limpiar filtros".</div>`; return; }
+  if (!P.length) { main.insertAdjacentHTML("beforeend", `<div class="vacio">Ningún producto cumple estos filtros. Probá con "Limpiar filtros".</div>`); return; }
   const skus = P.map(p => p.sku);
   const L = lotesDe(skus);
   const stock = suma(P, p => p.stock), capital = suma(P, p => p.stock * p.costo);
+  if (fechasCambiadas()) main.insertAdjacentHTML("beforeend", `<div class="aviso-foto" role="status">La propuesta es a la foto del ${D.foto}: las fechas del filtro no la cambian. Sí cambian Ventas, Stock y rotación, Sucursales y la ficha de cada producto.</div>`);
   const vencidas = suma(L.filter(l => l.vencido === "sí"), l => l.unidades), stockL = suma(L, l => l.unidades);
   const atrasados = P.filter(p => p.pct_esperado < D.criterios.al_dia).length;
   const ya = P.filter(p => p.nuestro === "ya"), cond = P.filter(p => p.nuestro === "condicional"), sin = P.length - ya.length - cond.length;
@@ -615,8 +651,8 @@ function vistaFicha(main, sku) {
   const s3 = seccion("Qué le pasa", `Ventas por semana y stock día a día en cada sucursal, del ${fechaAR(S.desde)} al ${fechaAR(S.hasta)}. El stock se reconstruye hacia atrás desde la foto: supone que no hubo reposiciones ni transferencias.`);
   const b3 = bloque(`<div class="dos"><div><h3>Unidades por semana</h3><div class="graf"><canvas id="g-sem"></canvas></div></div>
     <div><h3>Stock día a día</h3><div class="graf"><canvas id="g-stock"></canvas></div></div></div>
-    <h3>Indicadores en cada sucursal</h3>
-    <div class="tabla-wrap densa">${tablaHTML(COLS_INDICADORES.filter(c => !["producto", "n"].includes(c.k)).map(c => c.k === "suc" ? { ...c, f: v => `<b>${v}</b> <span class="muted">${esc(NOM_SUC[v])}</span>` } : c), L)}</div>`);
+    <h3>Indicadores en cada sucursal${fechasCambiadas() ? ` al ${fechaAR(S.hasta)}` : ""}</h3>
+    <div class="tabla-wrap densa">${tablaHTML(COLS_INDICADORES.filter(c => !["producto", "n"].includes(c.k)).map(c => c.k === "suc" ? { ...c, f: v => `<b>${v}</b> <span class="muted">${esc(NOM_SUC[v])}</span>` } : c), L.map(alCorte).filter(l => l.existe))}</div>`);
   s3.append(b3);
   main.append(s3);
   const sem = semanas(S.desde, S.hasta);
@@ -759,7 +795,7 @@ const TABLAS = {
      { k: "precio", t: "precio cobrado", r: true, f: v => plata(v), csv: v => v }, { k: "lista", t: "precio de lista ese día", r: true, f: v => plata(v), csv: v => v },
      { k: "desc", t: "descuento", r: true, f: v => v > 0.005 ? pct(v) : "—", csv: v => v },
      { k: "monto", t: "venta $", r: true, f: v => plata(v), csv: v => v }]],
-  lotes: ["Indicadores por producto y sucursal", () => lotesDe(prodsFiltrados().map(p => p.sku)).map(l => ({ ...l, producto: CAT[l.sku].nombre, n: DEC[l.sku].n })),
+  lotes: ["Indicadores por producto y sucursal", () => lotesAlCorte(prodsFiltrados().map(p => p.sku)).map(l => ({ ...l, producto: CAT[l.sku].nombre, n: DEC[l.sku].n })),
     [{ k: "sku", t: "sku" }, ...COLS_INDICADORES.map(c => c.k === "producto" ? { k: "producto", t: "producto", cls: "t-prod" } : c)]],
   decisiones: ["Propuesta por producto", () => prodsFiltrados(),
     [{ k: "sku", t: "sku" }, { k: "producto", t: "producto" }, { k: "n", t: "grupo", r: true }, { k: "accion", t: "acción" }, { k: "condicion", t: "condición" },
@@ -784,7 +820,7 @@ const TABLAS = {
 function vistaDatos(main) {
   const [titulo, fuente, cols] = TABLAS[S.tabla] || TABLAS.lotes;
   const filas = fuente();
-  const s = seccion("Los datos, para auditar", "Las tablas que usa el análisis, con los filtros de arriba aplicados. Buscá, ordená tocando un encabezado y revisá los totales: cualquier número del tablero se puede rastrear hasta acá.");
+  const s = seccion("Los datos, para auditar", "Las tablas que usa el análisis, con los filtros de arriba aplicados (los indicadores por producto y sucursal, al corte de la fecha «hasta»). Buscá, ordená tocando un encabezado y revisá los totales: cualquier número del tablero se puede rastrear hasta acá.");
   const b = bloque(`<div class="barra-acciones">
       <label class="campo" for="d-tabla">Tabla<select id="d-tabla">${Object.entries(TABLAS).map(([k, [t]]) => `<option value="${k}"${k === S.tabla ? " selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
       ${D.archivo_excel ? `<a class="btn" href="${esc(D.archivo_excel)}" download>Descargar el Excel completo</a>` : ""}
@@ -951,21 +987,23 @@ function stockDiario(lotes, ejes, claveF) {
     let acum = 0, i = 0;
     for (let j = ejes.length - 1; j >= 0; j--) {
       while (i < vs.length && vs[i].fecha > ejes[j]) { acum += vs[i].u; i++; }
-      if (ejes[j] >= l.ingreso) res[k][j] += l.unidades + acum;
+      if (ejes[j] >= l.ingreso) res[k][j] += (l.stock_foto ?? l.unidades) + acum;
     }
   });
   return res;
 }
 function vistaStock(main) {
   const P = prodsFiltrados(), skus = P.map(p => p.sku);
-  const L = lotesDe(skus);
+  const L = lotesAlCorte(skus);                         // al corte de la fecha "hasta"
   const [nomPor, claveF, etiqF] = APERTURAS[S.por] || APERTURAS.suc;
   const stock = suma(L, l => l.unidades), vend = suma(L, l => l.vendidas), venc = suma(L.filter(l => l.vencido === "sí"), l => l.unidades);
-  const s = seccion("Stock y rotación", `Qué se movió y qué quedó quieto. El stock día a día se reconstruye hacia atrás desde la foto del ${D.foto} (supone que no hubo reposiciones ni transferencias).`);
+  const s = seccion("Stock y rotación", `Qué se movió y qué quedó quieto.${notaCorte()} El stock de cada día se reconstruye hacia atrás desde la foto del ${D.foto} (supone que no hubo reposiciones ni transferencias).`);
   s.append(controles([["por", "Abrir por", OPC_POR], ["mapa", "Mapa: mostrar", Object.entries(MAPAS).map(([k, [t]]) => [k, t])]]));
-  s.append(bloque(cifrasHTML([[fmt(stock) + " u", `en stock · ${plata(suma(L, l => l.unidades * CAT[l.sku].costo))} a costo`], [pct(vend / (vend + stock || 1)), "vendido de lo que había (desde el inicio de la ventana)"],
-    [pct(venc / (stock || 1)), `del stock ya pasó su fecha límite (${fmt(venc)} u)`, "mala"], [pct(suma(L, ritmoReal) / (suma(L, ritmoObj) || 1)), "de lo esperado (ritmo real ÷ objetivo, sumando lotes)"],
-    [String(L.filter(l => l.rotacion === "Sin ventas").length), `lotes sin ninguna venta (de ${L.length})`, "mala"], [String(L.filter(l => l.rotacion.startsWith("Vendió, pero")).length), "lotes que se frenaron"]])));
+  const corte = fechaAR(S.hasta), periodo = fechasCambiadas() ? "en el período" : "desde el inicio de la ventana";
+  s.append(bloque(cifrasHTML([[fmt(stock) + " u", `en stock al ${corte} · ${plata(suma(L, l => l.unidades * CAT[l.sku].costo))} a costo`], [pct(vend / (vend + stock || 1)), `vendido de lo que había (${periodo})`],
+    [pct(venc / (stock || 1)), `del stock ya pasó su fecha límite al ${corte} (${fmt(venc)} u)`, "mala"], [pct(suma(L, ritmoReal) / (suma(L, ritmoObj) || 1)), `de lo esperado al ${corte} (ritmo real ÷ objetivo, sumando lotes)`],
+    [String(L.filter(l => l.rotacion === "Sin ventas").length), `lotes sin ninguna venta ${periodo} (de ${L.length})`, "mala"], [String(L.filter(l => l.rotacion.startsWith("Vendió, pero")).length), "lotes que se frenaron (sin ventas en los últimos 30 días)"]])));
+  if (!L.length) { s.append(bloque(`<div class="vacio">Ningún lote con estos filtros${fechasCambiadas() ? ` estaba en el local al ${corte}` : ""}.</div>`)); main.append(s); return; }
   main.append(s);
   if (!L.length) return;
 
@@ -991,18 +1029,18 @@ function vistaStock(main) {
   const filasR = Object.entries(porK).map(([k, ls]) => ({ k, nombre: etiqF(k), stock: suma(ls, l => l.unidades), ...Object.fromEntries(ROT.map((r, i) => ["r" + i, suma(ls.filter(l => l.rotacion === r), l => l.unidades)])),
     pv: suma(ls, l => l.vendidas) / (suma(ls, l => l.vendidas + l.unidades) || 1), pe: suma(ls, ritmoReal) / (suma(ls, ritmoObj) || 1) })).sort((a, b) => b.stock - a.stock);
   const mx = Math.max(...filasR.map(r => r.stock), 1);
-  const b2 = bloque(`<h3>¿Rotó? Stock de hoy según cómo vendió cada lote, por ${nomPor.toLowerCase()}</h3>
+  const b2 = bloque(`<h3>¿Rotó? Stock al ${corte} según cómo vendió cada lote ${periodo}, por ${nomPor.toLowerCase()}</h3>
     <div class="leyenda">${ROT.map((r, i) => `<span><i style="background:${COLR[i]}"></i>${r}</span>`).join("")}</div>
     <div class="hbars">${filasR.slice(0, 20).map(r => `<div class="hbar"><span>${esc(r.nombre)}<br><span class="muted" style="font-size:.76rem">${pct(r.pv)} vendido · ${pct(r.pe)} de lo esperado</span></span>
       <span class="pista" title="${ROT.map((x, i) => `${x}: ${fmt(r["r" + i])} u`).join(" · ")}">${ROT.map((_, i) => `<i style="width:${100 * r["r" + i] / mx}%;background:${COLR[i]}"></i>`).join("")}</span>
       <span class="num r">${fmt(r.stock)} u</span></div>`).join("")}</div>`);
   s.append(b2);
-  b2.append(verDatos(`Rotación por ${nomPor.toLowerCase()}`, [{ k: "nombre", t: nomPor }, { k: "stock", t: "stock hoy", r: true, f: v => fmt(v) },
+  b2.append(verDatos(`Rotación por ${nomPor.toLowerCase()}`, [{ k: "nombre", t: nomPor }, { k: "stock", t: `stock al ${corte}`, r: true, f: v => fmt(v) },
     ...ROT.map((r, i) => ({ k: "r" + i, t: r, r: true, f: v => fmt(v) })), { k: "pv", t: "% vendido", r: true, f: v => pct(v), csv: v => v },
     { k: "pe", t: "% de lo esperado", r: true, f: v => pct(v), csv: v => v }], filasR, "rotacion"));
 
   // Indicadores por producto y sucursal (los mismos del Excel)
-  const b25 = bloque(`<h3>Indicadores por producto y sucursal</h3><p class="nota">Los mismos que calcula el Excel en cada hoja de sucursal: objetivo y ritmo del lote, ventas, stock y rotación. Buscá, ordená tocando un encabezado y tocá una fila para ir a la ficha.</p>`);
+  const b25 = bloque(`<h3>Indicadores por producto y sucursal</h3><p class="nota">Los mismos que calcula el Excel en cada hoja de sucursal: objetivo y ritmo del lote, ventas, stock y rotación${fechasCambiadas() ? `, al ${corte}` : ""}. Buscá, ordená tocando un encabezado y tocá una fila para ir a la ficha.</p>`);
   b25.append(tablaAuditable(COLS_INDICADORES, L.map(l => ({ ...l, producto: CAT[l.sku].nombre, n: DEC[l.sku].n })), "indicadores_producto_sucursal", { mostrar: 60, clic: k => cambiar({ tab: "productos", sku: k }, true), claveClic: "sku" }));
   s.append(b25);
 
@@ -1011,7 +1049,7 @@ function vistaStock(main) {
   const sucsV = SUCS.filter(sc => L.some(l => l.suc === sc.id));
   const lotesSku = agrupar(L, l => l.sku);
   const prods = P.filter(p => lotesSku[p.sku]).sort((a, b) => a.n - b.n || b.stock - a.stock);
-  const b3 = bloque(`<h3>Mapa producto × sucursal: ${nomM}</h3>
+  const b3 = bloque(`<h3>Mapa producto × sucursal: ${nomM} al ${corte}</h3>
     <p class="nota">Vacío: el producto no está en esa sucursal. ${["pv", "pe", "ds"].includes(S.mapa) ? "Verde: mejor; rojo: peor." : ""} Tocá una fila para ver la ficha.</p>
     <div class="tabla-wrap densa" style="max-height:640px;overflow:auto"><table><thead><tr><th>producto</th><th>grupo</th>${sucsV.map(sc => `<th class="r">${sc.id}</th>`).join("")}</tr></thead><tbody>
     ${prods.map(p => `<tr class="clic" data-k="${p.sku}"><td>${esc(p.producto)}</td><td>${chip(p.n)}</td>${sucsV.map(sc => {
@@ -1028,7 +1066,7 @@ function vistaStock(main) {
 // ---------------------------------------------------------------------------------------------- vista: Sucursales
 function vistaSucursales(main) {
   const P = prodsFiltrados(true), skus = P.map(p => p.sku);   // la comparación muestra todas las sucursales aunque haya una elegida
-  const Ltodos = D.lotes.filter(l => skus.includes(l.sku));
+  const Ltodos = D.lotes.filter(l => skus.includes(l.sku)).map(alCorte).filter(l => l.existe);   // al corte de la fecha "hasta"
   const Vtodas = VENTAS.filter(v => v.fecha >= S.desde && v.fecha <= S.hasta && skus.includes(v.sku));
   const totStock = suma(Ltodos, l => l.unidades), totU = suma(Vtodas, v => v.u), totP = suma(Vtodas, v => v.u * v.precio);
   const filas = SUCS.map(sc => {
@@ -1078,7 +1116,7 @@ function vistaSucursales(main) {
   const L = Ltodos.filter(l => l.suc === sid), V = Vtodas.filter(v => v.suc === sid);
   const s2 = seccion(`${sid} · ${esc(NOM_SUC[sid])}`, `${L.length} productos, ${fmt(suma(L, l => l.unidades))} u en stock, ${fmt(suma(V, v => v.u))} vendidas en el período.`);
   const ROT = ["Sin ventas", "Vendió, pero no en los últimos 30 días", "Vendió en los últimos 30 días"];
-  const otras = l => suma(D.lotes.filter(x => x.sku === l.sku && x.suc !== sid), x => x.vendidas);
+  const otras = l => l.vendidas_otras;
   const filasL = L.map(l => ({ ...l, producto: CAT[l.sku].nombre, n: DEC[l.sku].n, accion: DEC[l.sku].accion, otras: otras(l) })).sort((a, b) => ROT.indexOf(a.rotacion) - ROT.indexOf(b.rotacion) || b.unidades - a.unidades);
   const noAca = filasL.filter(l => l.rotacion === "Sin ventas" && l.otras > 0);
   const b2 = bloque(`<div class="dos"><div><h3>¿Qué rotó en ${sid}?</h3><table><tbody>${ROT.map((r, i) => {

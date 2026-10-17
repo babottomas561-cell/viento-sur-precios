@@ -33,6 +33,12 @@ SALIDA = SALIDAS / "ventas_y_stock.xlsx"
 
 # ---------------------------------------------------------------------------------------------- datos
 h = pd.read_excel(DATOS, sheet_name=None)
+# Productos del catálogo sin stock en ninguna sucursal: no hay mercadería para mover, así que quedan fuera del análisis
+# (la nota los nombra). Con los datos de la consigna no hay ninguno.
+_con_stock = set(h["stock_sucursal"].sku)
+SIN_STOCK = h["productos"][~h["productos"].sku.isin(_con_stock)].nombre.tolist()
+for _hoja in ["productos", "ventas", "historial_sugerencias", "cambios_precio", "campanas_activas", "propuesta_consultora"]:
+    h[_hoja] = h[_hoja][h[_hoja].sku.isin(_con_stock)]
 prod = h["productos"].set_index("sku")
 suc = h["sucursales"].set_index("sucursal_id")
 lotes = h["stock_sucursal"].copy()
@@ -1857,6 +1863,9 @@ def texto_nota(D, ev):
     L.append("## Qué dejé afuera")
     L.append(f"- Las {len(acept) - acept_aplicadas} sugerencias aceptadas sin fechas (de {len(acept)}): no sirven para medir el efecto.")
     L.append("- Diferencias por sucursal en la respuesta al precio: con 2 locales por producto y pocas ventas por día no se distinguen del azar.")
+    if SIN_STOCK:
+        L.append(f"- {len(SIN_STOCK)} {'producto' if len(SIN_STOCK) == 1 else 'productos'} del catálogo sin stock en ninguna sucursal: no hay mercadería para mover "
+                 f"({', '.join(SIN_STOCK)}).")
     L.append("- Temporada y talles: no hay años anteriores ni talles. El costo de tener el stock quieto y el valor de reponer, mover u outlet: no hay datos para medirlos.\n")
     L.append("## Cómo estimo el efecto en 30 días")
     L.append("Con lo que pasó antes con el mismo descuento (mismo tipo y mismo %), corregido por temporada con el control, en tres escenarios: "

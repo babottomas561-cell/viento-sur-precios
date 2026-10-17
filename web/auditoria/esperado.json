@@ -1,0 +1,1064 @@
+{
+ "sin filtros": {
+  "filtros": {},
+  "productos": 48,
+  "ventas": {
+   "u": 4356,
+   "pesos": 192928260,
+   "filas": 2506,
+   "productos_con_venta": 45,
+   "u_dia": 48.4,
+   "pct_descuento": 0.2291
+  },
+  "stock": {
+   "lotes": 100,
+   "stock": 5006,
+   "costo": 113822476,
+   "pct_vendido": 0.4653,
+   "pct_vencido": 0.5695,
+   "pct_esperado": 0.7441,
+   "sin_ventas": 25,
+   "frenados": 21
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 50,
+    "u": 27,
+    "pesos": 1357800
+   },
+   "S01": {
+    "stock": 1533,
+    "u": 965,
+    "pesos": 42854770
+   },
+   "S02": {
+    "stock": 1135,
+    "u": 1254,
+    "pesos": 59573010
+   },
+   "S03": {
+    "stock": 1332,
+    "u": 1445,
+    "pesos": 51467880
+   },
+   "S04": {
+    "stock": 956,
+    "u": 665,
+    "pesos": 37674800
+   }
+  },
+  "descuentos": {
+   "casos": 16,
+   "productos": 8,
+   "aceptadas": 30
+  },
+  "datos": {
+   "lotes": 100,
+   "ventas": 2506,
+   "historial": 33,
+   "campanas": 4,
+   "cambios": 4,
+   "catalogo": 48,
+   "consultora": 48,
+   "sucursales": 6
+  }
+ },
+ "S04": {
+  "filtros": {
+   "suc": "S04"
+  },
+  "productos": 17,
+  "ventas": {
+   "u": 665,
+   "pesos": 37674800,
+   "filas": 363,
+   "productos_con_venta": 13,
+   "u_dia": 7.4,
+   "pct_descuento": 0.2707
+  },
+  "stock": {
+   "lotes": 17,
+   "stock": 956,
+   "costo": 19260782,
+   "pct_vendido": 0.4102,
+   "pct_vencido": 0.7667,
+   "pct_esperado": 0.7317,
+   "sin_ventas": 4,
+   "frenados": 4
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 50,
+    "u": 27,
+    "pesos": 1357800
+   },
+   "S01": {
+    "stock": 1533,
+    "u": 965,
+    "pesos": 42854770
+   },
+   "S02": {
+    "stock": 1135,
+    "u": 1254,
+    "pesos": 59573010
+   },
+   "S03": {
+    "stock": 1332,
+    "u": 1445,
+    "pesos": 51467880
+   },
+   "S04": {
+    "stock": 956,
+    "u": 665,
+    "pesos": 37674800
+   }
+  },
+  "descuentos": {
+   "casos": 3,
+   "productos": 3,
+   "aceptadas": 11
+  },
+  "datos": {
+   "lotes": 17,
+   "ventas": 363,
+   "historial": 12,
+   "campanas": 0,
+   "cambios": 3,
+   "catalogo": 17,
+   "consultora": 17,
+   "sucursales": 6
+  }
+ },
+ "F01": {
+  "filtros": {
+   "suc": "F01"
+  },
+  "productos": 2,
+  "ventas": {
+   "u": 27,
+   "pesos": 1357800,
+   "filas": 23,
+   "productos_con_venta": 2,
+   "u_dia": 0.3,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 2,
+   "stock": 50,
+   "costo": 1339320,
+   "pct_vendido": 0.3506,
+   "pct_vencido": 1.0,
+   "pct_esperado": 0.4,
+   "sin_ventas": 0,
+   "frenados": 0
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 50,
+    "u": 27,
+    "pesos": 1357800
+   },
+   "S01": {
+    "stock": 1533,
+    "u": 965,
+    "pesos": 42854770
+   },
+   "S02": {
+    "stock": 1135,
+    "u": 1254,
+    "pesos": 59573010
+   },
+   "S03": {
+    "stock": 1332,
+    "u": 1445,
+    "pesos": 51467880
+   },
+   "S04": {
+    "stock": 956,
+    "u": 665,
+    "pesos": 37674800
+   }
+  },
+  "descuentos": {
+   "casos": 0,
+   "productos": 0,
+   "aceptadas": 0
+  },
+  "datos": {
+   "lotes": 2,
+   "ventas": 23,
+   "historial": 0,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 2,
+   "consultora": 2,
+   "sucursales": 6
+  }
+ },
+ "calzado": {
+  "filtros": {
+   "rubro": "calzado"
+  },
+  "productos": 11,
+  "ventas": {
+   "u": 1465,
+   "pesos": 92291100,
+   "filas": 754,
+   "productos_con_venta": 11,
+   "u_dia": 16.3,
+   "pct_descuento": 0.2014
+  },
+  "stock": {
+   "lotes": 22,
+   "stock": 1132,
+   "costo": 40239614,
+   "pct_vendido": 0.5641,
+   "pct_vencido": 0.4302,
+   "pct_esperado": 1.0304,
+   "sin_ventas": 3,
+   "frenados": 4
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 331,
+    "u": 245,
+    "pesos": 18762840
+   },
+   "S02": {
+    "stock": 350,
+    "u": 539,
+    "pesos": 34423060
+   },
+   "S03": {
+    "stock": 278,
+    "u": 503,
+    "pesos": 28406600
+   },
+   "S04": {
+    "stock": 173,
+    "u": 178,
+    "pesos": 10698600
+   }
+  },
+  "descuentos": {
+   "casos": 4,
+   "productos": 2,
+   "aceptadas": 12
+  },
+  "datos": {
+   "lotes": 22,
+   "ventas": 754,
+   "historial": 13,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 11,
+   "consultora": 11,
+   "sucursales": 6
+  }
+ },
+ "calzado + botas": {
+  "filtros": {
+   "rubro": "calzado",
+   "tipo": "botas"
+  },
+  "productos": 5,
+  "ventas": {
+   "u": 736,
+   "pesos": 41649800,
+   "filas": 380,
+   "productos_con_venta": 5,
+   "u_dia": 8.2,
+   "pct_descuento": 0.197
+  },
+  "stock": {
+   "lotes": 10,
+   "stock": 507,
+   "costo": 16835915,
+   "pct_vendido": 0.5921,
+   "pct_vencido": 0.6726,
+   "pct_esperado": 1.0936,
+   "sin_ventas": 2,
+   "frenados": 1
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 109,
+    "u": 1,
+    "pesos": 72700
+   },
+   "S02": {
+    "stock": 173,
+    "u": 214,
+    "pesos": 11677300
+   },
+   "S03": {
+    "stock": 217,
+    "u": 354,
+    "pesos": 19809300
+   },
+   "S04": {
+    "stock": 8,
+    "u": 167,
+    "pesos": 10090500
+   }
+  },
+  "descuentos": {
+   "casos": 2,
+   "productos": 1,
+   "aceptadas": 6
+  },
+  "datos": {
+   "lotes": 10,
+   "ventas": 380,
+   "historial": 6,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 5,
+   "consultora": 5,
+   "sucursales": 6
+  }
+ },
+ "grupo 9": {
+  "filtros": {
+   "grupo": "9"
+  },
+  "productos": 8,
+  "ventas": {
+   "u": 107,
+   "pesos": 5348200,
+   "filas": 107,
+   "productos_con_venta": 8,
+   "u_dia": 1.2,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 16,
+   "stock": 1068,
+   "costo": 26884644,
+   "pct_vendido": 0.0911,
+   "pct_vencido": 0.6742,
+   "pct_esperado": 0.2261,
+   "sin_ventas": 4,
+   "frenados": 3
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 330,
+    "u": 51,
+    "pesos": 2833600
+   },
+   "S02": {
+    "stock": 137,
+    "u": 1,
+    "pesos": 86100
+   },
+   "S03": {
+    "stock": 357,
+    "u": 32,
+    "pesos": 1261200
+   },
+   "S04": {
+    "stock": 244,
+    "u": 23,
+    "pesos": 1167300
+   }
+  },
+  "descuentos": {
+   "casos": 0,
+   "productos": 0,
+   "aceptadas": 7
+  },
+  "datos": {
+   "lotes": 16,
+   "ventas": 107,
+   "historial": 8,
+   "campanas": 1,
+   "cambios": 1,
+   "catalogo": 8,
+   "consultora": 8,
+   "sucursales": 6
+  }
+ },
+ "un producto": {
+  "filtros": {
+   "sku": "VS-1012"
+  },
+  "productos": 1,
+  "ventas": {
+   "u": 17,
+   "pesos": 1463700,
+   "filas": 17,
+   "productos_con_venta": 1,
+   "u_dia": 0.2,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 2,
+   "stock": 92,
+   "costo": 4301644,
+   "pct_vendido": 0.156,
+   "pct_vencido": 0.2283,
+   "pct_esperado": 0.2537,
+   "sin_ventas": 0,
+   "frenados": 1
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 71,
+    "u": 16,
+    "pesos": 1377600
+   },
+   "S02": {
+    "stock": 21,
+    "u": 1,
+    "pesos": 86100
+   }
+  },
+  "descuentos": {
+   "casos": 0,
+   "productos": 0,
+   "aceptadas": 1
+  },
+  "datos": {
+   "lotes": 2,
+   "ventas": 17,
+   "historial": 1,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 1,
+   "consultora": 1,
+   "sucursales": 6
+  }
+ },
+ "un producto en S02": {
+  "filtros": {
+   "sku": "VS-1012",
+   "suc": "S02"
+  },
+  "productos": 1,
+  "ventas": {
+   "u": 1,
+   "pesos": 86100,
+   "filas": 1,
+   "productos_con_venta": 1,
+   "u_dia": 0.0,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 1,
+   "stock": 21,
+   "costo": 981897,
+   "pct_vendido": 0.0455,
+   "pct_vencido": 1.0,
+   "pct_esperado": 0.0368,
+   "sin_ventas": 0,
+   "frenados": 1
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 71,
+    "u": 16,
+    "pesos": 1377600
+   },
+   "S02": {
+    "stock": 21,
+    "u": 1,
+    "pesos": 86100
+   }
+  },
+  "descuentos": {
+   "casos": 0,
+   "productos": 0,
+   "aceptadas": 1
+  },
+  "datos": {
+   "lotes": 1,
+   "ventas": 1,
+   "historial": 1,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 1,
+   "consultora": 1,
+   "sucursales": 6
+  }
+ },
+ "vigencia del descuento": {
+  "filtros": {
+   "desde": "2026-01-16",
+   "hasta": "2026-02-12"
+  },
+  "productos": 48,
+  "ventas": {
+   "u": 1449,
+   "pesos": 59313160,
+   "filas": 783,
+   "productos_con_venta": 44,
+   "u_dia": 51.8,
+   "pct_descuento": 0.6888
+  },
+  "stock": {
+   "lotes": 100,
+   "stock": 6273,
+   "costo": 148198823,
+   "pct_vendido": 0.1876,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.8055,
+   "sin_ventas": 36,
+   "frenados": 0
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 58,
+    "u": 13,
+    "pesos": 544600
+   },
+   "S01": {
+    "stock": 1832,
+    "u": 292,
+    "pesos": 12250870
+   },
+   "S02": {
+    "stock": 1506,
+    "u": 445,
+    "pesos": 20350310
+   },
+   "S03": {
+    "stock": 1708,
+    "u": 493,
+    "pesos": 16643480
+   },
+   "S04": {
+    "stock": 1169,
+    "u": 206,
+    "pesos": 9523900
+   }
+  },
+  "descuentos": {
+   "casos": 16,
+   "productos": 8,
+   "aceptadas": 30
+  },
+  "datos": {
+   "lotes": 100,
+   "ventas": 783,
+   "historial": 33,
+   "campanas": 4,
+   "cambios": 4,
+   "catalogo": 48,
+   "consultora": 48,
+   "sucursales": 6
+  }
+ },
+ "S02 + deportes + desde feb": {
+  "filtros": {
+   "suc": "S02",
+   "rubro": "deportes",
+   "desde": "2026-02-01"
+  },
+  "productos": 4,
+  "ventas": {
+   "u": 173,
+   "pesos": 5420060,
+   "filas": 101,
+   "productos_con_venta": 4,
+   "u_dia": 4.0,
+   "pct_descuento": 0.3642
+  },
+  "stock": {
+   "lotes": 4,
+   "stock": 276,
+   "costo": 5363317,
+   "pct_vendido": 0.3853,
+   "pct_vencido": 0.4348,
+   "pct_esperado": 1.072,
+   "sin_ventas": 0,
+   "frenados": 0
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 391,
+    "u": 39,
+    "pesos": 798000
+   },
+   "S02": {
+    "stock": 276,
+    "u": 173,
+    "pesos": 5420060
+   },
+   "S03": {
+    "stock": 293,
+    "u": 173,
+    "pesos": 5501890
+   },
+   "S04": {
+    "stock": 150,
+    "u": 5,
+    "pesos": 248500
+   }
+  },
+  "descuentos": {
+   "casos": 2,
+   "productos": 2,
+   "aceptadas": 2
+  },
+  "datos": {
+   "lotes": 4,
+   "ventas": 101,
+   "historial": 3,
+   "campanas": 1,
+   "cambios": 0,
+   "catalogo": 4,
+   "consultora": 4,
+   "sucursales": 6
+  }
+ },
+ "hasta fin de enero": {
+  "filtros": {
+   "hasta": "2026-01-31"
+  },
+  "productos": 48,
+  "ventas": {
+   "u": 2505,
+   "pesos": 107626250,
+   "filas": 1466,
+   "productos_con_venta": 44,
+   "u_dia": 53.3,
+   "pct_descuento": 0.2403
+  },
+  "stock": {
+   "lotes": 98,
+   "stock": 6788,
+   "costo": 160992236,
+   "pct_vendido": 0.2696,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.8233,
+   "sin_ventas": 24,
+   "frenados": 3
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 62,
+    "u": 15,
+    "pesos": 713400
+   },
+   "S01": {
+    "stock": 1936,
+    "u": 559,
+    "pesos": 23883335
+   },
+   "S02": {
+    "stock": 1614,
+    "u": 709,
+    "pesos": 32715030
+   },
+   "S03": {
+    "stock": 1927,
+    "u": 850,
+    "pesos": 29567745
+   },
+   "S04": {
+    "stock": 1249,
+    "u": 372,
+    "pesos": 20746740
+   }
+  },
+  "descuentos": {
+   "casos": 16,
+   "productos": 8,
+   "aceptadas": 30
+  },
+  "datos": {
+   "lotes": 98,
+   "ventas": 1466,
+   "historial": 33,
+   "campanas": 4,
+   "cambios": 4,
+   "catalogo": 48,
+   "consultora": 48,
+   "sucursales": 6
+  }
+ },
+ "S03 hasta el 15/02": {
+  "filtros": {
+   "suc": "S03",
+   "hasta": "2026-02-15"
+  },
+  "productos": 24,
+  "ventas": {
+   "u": 1108,
+   "pesos": 38321180,
+   "filas": 606,
+   "productos_con_venta": 21,
+   "u_dia": 17.9,
+   "pct_descuento": 0.2879
+  },
+  "stock": {
+   "lotes": 24,
+   "stock": 1669,
+   "costo": 34009306,
+   "pct_vendido": 0.399,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.9436,
+   "sin_ventas": 3,
+   "frenados": 1
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 57,
+    "u": 20,
+    "pesos": 951200
+   },
+   "S01": {
+    "stock": 1799,
+    "u": 699,
+    "pesos": 29856670
+   },
+   "S02": {
+    "stock": 1475,
+    "u": 914,
+    "pesos": 42437410
+   },
+   "S03": {
+    "stock": 1669,
+    "u": 1108,
+    "pesos": 38321180
+   },
+   "S04": {
+    "stock": 1150,
+    "u": 471,
+    "pesos": 25508300
+   }
+  },
+  "descuentos": {
+   "casos": 5,
+   "productos": 5,
+   "aceptadas": 15
+  },
+  "datos": {
+   "lotes": 24,
+   "ventas": 606,
+   "historial": 15,
+   "campanas": 2,
+   "cambios": 0,
+   "catalogo": 24,
+   "consultora": 24,
+   "sucursales": 6
+  }
+ },
+ "hogar en febrero": {
+  "filtros": {
+   "rubro": "hogar",
+   "desde": "2026-02-01",
+   "hasta": "2026-02-28"
+  },
+  "productos": 16,
+  "ventas": {
+   "u": 255,
+   "pesos": 5517300,
+   "filas": 153,
+   "productos_con_venta": 11,
+   "u_dia": 9.1,
+   "pct_descuento": 0.3412
+  },
+  "stock": {
+   "lotes": 34,
+   "stock": 1729,
+   "costo": 27020267,
+   "pct_vendido": 0.1285,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.5761,
+   "sin_ventas": 18,
+   "frenados": 0
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 499,
+    "u": 63,
+    "pesos": 691700
+   },
+   "S02": {
+    "stock": 235,
+    "u": 51,
+    "pesos": 1536760
+   },
+   "S03": {
+    "stock": 364,
+    "u": 76,
+    "pesos": 1229200
+   },
+   "S04": {
+    "stock": 631,
+    "u": 65,
+    "pesos": 2059640
+   }
+  },
+  "descuentos": {
+   "casos": 4,
+   "productos": 2,
+   "aceptadas": 6
+  },
+  "datos": {
+   "lotes": 34,
+   "ventas": 153,
+   "historial": 7,
+   "campanas": 1,
+   "cambios": 2,
+   "catalogo": 16,
+   "consultora": 16,
+   "sucursales": 6
+  }
+ },
+ "grupo 1 desde marzo": {
+  "filtros": {
+   "grupo": "1",
+   "desde": "2026-03-01"
+  },
+  "productos": 10,
+  "ventas": {
+   "u": 558,
+   "pesos": 27553800,
+   "filas": 283,
+   "productos_con_venta": 10,
+   "u_dia": 37.2,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 20,
+   "stock": 601,
+   "costo": 16267028,
+   "pct_vendido": 0.4814,
+   "pct_vencido": 0.0,
+   "pct_esperado": 1.3338,
+   "sin_ventas": 0,
+   "frenados": 0
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 137,
+    "u": 119,
+    "pesos": 6075400
+   },
+   "S02": {
+    "stock": 170,
+    "u": 160,
+    "pesos": 7820600
+   },
+   "S03": {
+    "stock": 213,
+    "u": 185,
+    "pesos": 7177100
+   },
+   "S04": {
+    "stock": 81,
+    "u": 94,
+    "pesos": 6480700
+   }
+  },
+  "descuentos": {
+   "casos": 16,
+   "productos": 8,
+   "aceptadas": 8
+  },
+  "datos": {
+   "lotes": 20,
+   "ventas": 283,
+   "historial": 8,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 10,
+   "consultora": 10,
+   "sucursales": 6
+  }
+ },
+ "rubro y tipo incompatibles": {
+  "filtros": {
+   "rubro": "hogar",
+   "tipo": "botas"
+  },
+  "productos": 16,
+  "ventas": {
+   "u": 994,
+   "pesos": 22533700,
+   "filas": 631,
+   "productos_con_venta": 14,
+   "u_dia": 11.0,
+   "pct_descuento": 0.2233
+  },
+  "stock": {
+   "lotes": 34,
+   "stock": 1597,
+   "costo": 25141628,
+   "pct_vendido": 0.3836,
+   "pct_vencido": 0.7408,
+   "pct_esperado": 0.5536,
+   "sin_ventas": 10,
+   "frenados": 9
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 467,
+    "u": 256,
+    "pesos": 3617100
+   },
+   "S02": {
+    "stock": 199,
+    "u": 225,
+    "pesos": 6209300
+   },
+   "S03": {
+    "stock": 339,
+    "u": 257,
+    "pesos": 4662500
+   },
+   "S04": {
+    "stock": 592,
+    "u": 256,
+    "pesos": 8044800
+   }
+  },
+  "descuentos": {
+   "casos": 4,
+   "productos": 2,
+   "aceptadas": 6
+  },
+  "datos": {
+   "lotes": 34,
+   "ventas": 631,
+   "historial": 7,
+   "campanas": 1,
+   "cambios": 2,
+   "catalogo": 16,
+   "consultora": 16,
+   "sucursales": 6
+  }
+ },
+ "desde > hasta": {
+  "filtros": {
+   "desde": "2026-03-01",
+   "hasta": "2026-02-01"
+  },
+  "productos": 48,
+  "ventas": {
+   "u": 1253,
+   "pesos": 56403910,
+   "filas": 712,
+   "productos_con_venta": 42,
+   "u_dia": 43.2,
+   "pct_descuento": 0.316
+  },
+  "stock": {
+   "lotes": 100,
+   "stock": 5604,
+   "costo": 129888209,
+   "pct_vendido": 0.1827,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.7622,
+   "sin_ventas": 42,
+   "frenados": 0
+  },
+  "sucursales": {
+   "F01": {
+    "stock": 55,
+    "u": 7,
+    "pesos": 345200
+   },
+   "S01": {
+    "stock": 1667,
+    "u": 272,
+    "pesos": 12320935
+   },
+   "S02": {
+    "stock": 1299,
+    "u": 381,
+    "pesos": 18861180
+   },
+   "S03": {
+    "stock": 1519,
+    "u": 408,
+    "pesos": 14699335
+   },
+   "S04": {
+    "stock": 1064,
+    "u": 185,
+    "pesos": 10177260
+   }
+  },
+  "descuentos": {
+   "casos": 16,
+   "productos": 8,
+   "aceptadas": 30
+  },
+  "datos": {
+   "lotes": 100,
+   "ventas": 712,
+   "historial": 33,
+   "campanas": 4,
+   "cambios": 4,
+   "catalogo": 48,
+   "consultora": 48,
+   "sucursales": 6
+  }
+ },
+ "grupo 1 en F01": {
+  "filtros": {
+   "grupo": "1",
+   "suc": "F01"
+  },
+  "productos": 0,
+  "ventas": {
+   "u": 0,
+   "pesos": 0,
+   "filas": 0,
+   "productos_con_venta": 0,
+   "u_dia": 0.0,
+   "pct_descuento": 0.0
+  },
+  "stock": {
+   "lotes": 0,
+   "stock": 0,
+   "costo": 0,
+   "pct_vendido": 0.0,
+   "pct_vencido": 0.0,
+   "pct_esperado": 0.0,
+   "sin_ventas": 0,
+   "frenados": 0
+  },
+  "sucursales": {
+   "S01": {
+    "stock": 137,
+    "u": 689,
+    "pesos": 34127670
+   },
+   "S02": {
+    "stock": 170,
+    "u": 1006,
+    "pesos": 47890510
+   },
+   "S03": {
+    "stock": 213,
+    "u": 1174,
+    "pesos": 43578380
+   },
+   "S04": {
+    "stock": 81,
+    "u": 544,
+    "pesos": 31947100
+   }
+  },
+  "descuentos": {
+   "casos": 0,
+   "productos": 0,
+   "aceptadas": 0
+  },
+  "datos": {
+   "lotes": 0,
+   "ventas": 0,
+   "historial": 0,
+   "campanas": 0,
+   "cambios": 0,
+   "catalogo": 0,
+   "consultora": 0,
+   "sucursales": 6
+  }
+ }
+}

@@ -91,6 +91,11 @@ def armar_web(con, actual, anterior, seg, web=WEB, salidas=Path("salidas")):
     datos = foto.paquete(tablero, ventas, historia, anterior, seg, "viento_sur_analisis.xlsx" if excel.exists() else None, dict(id="oficial"))
     for f in ["app.css", "app.js"]:
         shutil.copy(APP / f, web / f)
+    # la auditoría del tablero también se publica, para poder correrla en el sitio (ver salidas/auditoria/LEEME.md)
+    (web / "auditoria").mkdir(exist_ok=True)
+    for f in ["auditar_filtros.js", "esperado.json"]:
+        if (salidas / "auditoria" / f).exists():
+            shutil.copy(salidas / "auditoria" / f, web / "auditoria" / f)
     (web / "datos.js").write_text("window.DATOS = " + json.dumps(datos, ensure_ascii=False).replace("</", "<\\/") + ";\n", encoding="utf-8")
     # cada archivo con una versión según su contenido: el navegador no se queda con uno viejo después de actualizar
     html = (APP / "index.html").read_text(encoding="utf-8")
