@@ -9,3 +9,4 @@ PRODUCT.md
 # se generan al correr actualizar.py
 datos/viento_sur.db
 salidas/historia/
+web/.gitignore
