@@ -39,7 +39,7 @@ const VIAS = [
   ["Descuento ahora (a prueba)", p => p.nuestro === "ya"],
   ["Descuento si se cumple una condición", p => p.nuestro === "condicional"],
   ["Reponer: se vende solo", p => p.n === 1],
-  ["Esperar la temporada y mover stock", p => p.n === 2],
+  ["Mover stock y medir el sobrante", p => p.n === 2],
   ["Resolver lo que está en curso", p => p.n === 3 || p.n === 7],
   ["Contar stock y exhibir", p => p.n === 4],
   ["Investigar en el local", p => p.n === 5],
@@ -95,11 +95,16 @@ function escribirHash() {
   history.replaceState(null, "", "#" + p.toString());
 }
 function cambiar(cambios, irArriba = false) {
+  const y = window.scrollY;
+  const main = $("#vista");
+  main.style.minHeight = main.offsetHeight + "px";       // mientras se redibuja, la página no se achica (y no salta para arriba)
   Object.assign(S, cambios);
   AVISOS = normalizar();
   escribirHash();
   render();
   if (irArriba) window.scrollTo({ top: 0 });
+  else window.scrollTo(0, y);                             // se queda donde estaba quien tocó el selector
+  requestAnimationFrame(() => { main.style.minHeight = ""; if (!irArriba) window.scrollTo(0, y); });
 }
 
 // ---------------------------------------------------------------------------------------------- filtros
@@ -887,7 +892,7 @@ const OPC_POR = Object.entries(APERTURAS).map(([k, [t]]) => [k, t]);
 function topN(filas, claveF, medidaF, n) {
   const tot = {};
   filas.forEach(r => { const k = claveF(r); tot[k] = (tot[k] || 0) + medidaF(r); });
-  const orden = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
+  const orden = Object.keys(tot).sort((a, b) => tot[b] - tot[a] || (a < b ? -1 : a > b ? 1 : 0));   // a igual venta, por clave: no depende del orden de los datos
   return { claves: orden.slice(0, n), resto: orden.length > n, total: tot };
 }
 const cifrasHTML = items => `<div class="cifras cifras-linea">${items.map(([v, t, c]) => `<div class="cifra${c ? " " + c : ""}"><b>${v}</b><span>${t}</span></div>`).join("")}</div>`;
@@ -970,7 +975,7 @@ function vistaVentas(main) {
 
 // ---------------------------------------------------------------------------------------------- vista: Stock y rotación
 const MAPAS = { pv: ["% vendido", l => l.vendidas / (l.vendidas + l.unidades || 1), v => pct(v)], pe: ["% de lo esperado", l => l.pct_esperado, v => pct(v)],
-  st: ["stock hoy", l => l.unidades, v => fmt(v)], ve: ["vendidas", l => l.vendidas, v => fmt(v)], ds: ["días de stock", l => l.dias_de_stock, v => v == null ? "sin venta" : fmt(v)] };
+  st: ["stock", l => l.unidades, v => fmt(v)], ve: ["vendidas", l => l.vendidas, v => fmt(v)], ds: ["días de stock", l => l.dias_de_stock, v => v == null ? "sin venta" : fmt(v)] };
 function colorMapa(m, v) {
   if (v == null) return "transparent";
   const t = m === "pe" ? Math.min(v / 1.3, 1) : m === "pv" ? v : m === "ds" ? 1 - Math.min(v / 365, 1) : null;
@@ -999,7 +1004,7 @@ function vistaStock(main) {
   const [nomPor, claveF, etiqF] = APERTURAS[S.por] || APERTURAS.suc;
   const stock = suma(L, l => l.unidades), vend = suma(L, l => l.vendidas), venc = suma(L.filter(l => l.vencido === "sí"), l => l.unidades);
   const s = seccion("Stock y rotación", `Qué se movió y qué quedó quieto.${notaCorte()} El stock de cada día se reconstruye hacia atrás desde la foto del ${D.foto} (supone que no hubo reposiciones ni transferencias).`);
-  s.append(controles([["por", "Abrir por", OPC_POR], ["mapa", "Mapa: mostrar", Object.entries(MAPAS).map(([k, [t]]) => [k, t])]]));
+  s.append(controles([["por", "Abrir por (gráfico de stock y rotación)", OPC_POR]]));
   const corte = fechaAR(S.hasta), periodo = fechasCambiadas() ? "en el período" : "desde el inicio de la ventana";
   s.append(bloque(cifrasHTML([[fmt(stock) + " u", `en stock al ${corte} · ${plata(suma(L, l => l.unidades * CAT[l.sku].costo))} a costo`], [pct(vend / (vend + stock || 1)), `vendido de lo que había (${periodo})`],
     [pct(venc / (stock || 1)), `del stock ya pasó su fecha límite al ${corte} (${fmt(venc)} u)`, "mala"], [pct(suma(L, ritmoReal) / (suma(L, ritmoObj) || 1)), `de lo esperado al ${corte} (ritmo real ÷ objetivo, sumando lotes)`],
@@ -1060,6 +1065,7 @@ function vistaStock(main) {
       return `<td class="r num" style="background:${colorMapa(S.mapa, v)}" title="${esc(p.producto)} en ${sc.id}: ${fmt(l.unidades)} u en stock, ${fmt(l.vendidas)} vendidas, ${l.rotacion.toLowerCase()}">${fmtM(v)}</td>`;
     }).join("")}</tr>`).join("")}</tbody></table></div>`);
   b3.querySelectorAll("tr.clic").forEach(tr => tr.addEventListener("click", () => cambiar({ tab: "productos", sku: tr.dataset.k }, true)));
+  b3.querySelector("h3").after(controles([["mapa", "Mostrar en el mapa", Object.entries(MAPAS).map(([k, [t]]) => [k, t])]]));   // el selector, junto a lo que cambia
   s.append(b3);
 
 }
