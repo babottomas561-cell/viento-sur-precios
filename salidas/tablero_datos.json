@@ -183,6 +183,9 @@
    ],
    "hacemos": "Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
    "por_que": "Se venden solos: bajarles el precio es regalar margen. La consultora descuenta 4 de estos y cedería unos **$ 1,6 M en 30 días** por ventas que iban a ocurrir igual.",
+   "dato": "venden 133 % o más de lo esperado; stock para 13 a 25 días",
+   "hacer": "Dejar el precio, reponer y mover stock",
+   "mide": "días de stock (mínimo 15); sobrante proyectado",
    "medimos": "Que no se queden sin stock (meta: nunca menos de 15 días en ningún local) y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **125 u**). Se revisa entre el 22/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
   },
   {
@@ -202,6 +205,9 @@
    ],
    "hacemos": "Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.",
    "por_que": "Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
+   "dato": "8 de 21 descuentos aprobados se cobraron; campañas: 0 u con rebaja",
+   "hacer": "Cobrar lo aprobado, con fechas",
+   "mide": "precio cobrado contra lista; después, unidades por semana",
    "medimos": "Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, las unidades por semana contra las de antes. Se revisa entre el 22/03 y el 12/04, producto por producto (cada ficha tiene su fecha)."
   },
   {
@@ -223,6 +229,9 @@
    ],
    "hacemos": "Contar el stock físico y exhibirlo, mover unidades a donde se venden e investigar en el local qué cambió.",
    "por_que": "El mismo producto, al mismo precio, se vende en otro momento o en otro local: lo que falla no es el precio. Un descuento a algo que nadie ve no lo vende.",
+   "dato": "3 nunca vendieron; 5 se cortaron sin cambiar el precio; 4 venden solo en otro local",
+   "hacer": "Contar, exhibir, mover o investigar",
+   "mide": "primera venta en 15 días",
    "medimos": "La primera venta en cada local en 15 días; en los que se cortaron, volver a vender lo de antes. Si no, devolución u outlet. Se revisa entre el 30/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
   },
   {
@@ -242,6 +251,9 @@
    ],
    "hacemos": "Negociar con Cumbre la devolución o una bonificación del excedente; si no hay acuerdo, outlet al costo. Renegociar el costo para la próxima compra.",
    "por_que": "Bajar el precio sería vender casi al costo o por debajo. Y hay con qué negociar: Cumbre vendió **114 u**, contra 796 a 906 de cada uno de los otros proveedores.",
+   "dato": "margen 17 % a 20 % contra 41 % a 42 % de sus pares",
+   "hacer": "Negociar con Cumbre",
+   "mide": "unidades devueltas o bonificadas (meta 503)",
    "medimos": "Unidades devueltas o bonificadas contra el excedente (**503 u**). Se revisa el 15/04, producto por producto (cada ficha tiene su fecha)."
   },
   {
@@ -261,6 +273,9 @@
    ],
    "hacemos": "Probar un descuento por 4 semanas solo en los **3 de 8** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
    "por_que": "Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
+   "dato": "botas +50 % y mochilas +42 % con descuento; el resto casi no respondió",
+   "hacer": "Probar descuento 4 semanas en 3",
+   "mide": "unidades por semana (3,7 → 5,7) contra una sucursal sin descuento",
    "medimos": "Unidades por semana durante el descuento: hoy **3,7**, meta **5,7** entre los 3. Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. Se revisa entre el 12/04 y el 15/04, producto por producto (cada ficha tiene su fecha)."
   }
  ],

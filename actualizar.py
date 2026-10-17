@@ -129,7 +129,7 @@ def main():
     cargar_foto(con, args.datos, fecha, tablero)
     ultima = con.execute("SELECT MAX(fecha_foto) FROM fotos").fetchone()[0]
     if fecha == ultima:                                       # la foto más nueva también queda en salidas/
-        for f in ["ventas_y_stock.xlsx", "nota.md", "tablero_datos.json"]:
+        for f in ["ventas_y_stock.xlsx", "nota.md", "causas.md", "tablero_datos.json"]:
             shutil.copy(carpeta / f, Path(args.salidas) / f)
     anterior, seg = seguimiento(con, ultima)
     armar_web(con, ultima, anterior, seg, web, Path(args.salidas))

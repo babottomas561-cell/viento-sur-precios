@@ -206,6 +206,7 @@ verif = len(acept_all) - int((acept_all.fecha_vigencia_desde.isna() & (acept_all
 chk("nota · dice cuántas aceptadas se pueden verificar", f"de las {verif} sugerencias aceptadas que se pueden verificar" in nota_txt, True)
 
 # ---------------------------------------------------------------- 5b · las 5 causas, los indicadores de la ficha y lo que dice la nota de cada causa
+causas_txt = open("salidas/causas.md").read()          # las 5 causas en cuatro pasos (la nota las resume en una tabla)
 mil_ = lambda v: f"{v:,.0f}".replace(",", ".")
 pct_ = lambda v: f"{v * 100:,.0f} %".replace(",", ".")
 CAUSA_G = {1: "ok", 2: "ok", 3: "ejecucion", 7: "ejecucion", 4: "producto", 5: "producto", 6: "producto", 8: "compra", 9: "precio"}
@@ -224,7 +225,7 @@ for s, f in P[P.grupo.isin([5, 7])].iterrows():
     chk(f"ficha · {f.nombre} unidades con rebaja", ind_val(s, "Unidades vendidas con rebaja"), f"{mil_(u_r)} de {mil_(u_t)}")
 camp_hasta = camp[camp.fecha_desde <= FOTO]
 camp_con_rebaja = sum(reb(c.sku, c.fecha_desde, min(c.fecha_hasta, FOTO))[0] for c in camp_hasta.itertuples())
-chk("nota · unidades con rebaja en las campañas", f"Las {len(camp_hasta)} campañas cargadas: **{mil_(camp_con_rebaja)} unidades** vendidas con rebaja" in nota_txt, True)
+chk("causas · unidades con rebaja en las campañas", f"Las {len(camp_hasta)} campañas cargadas: **{mil_(camp_con_rebaja)} unidades** vendidas con rebaja" in causas_txt, True)
 # Compra: margen contra el de su tipo con otros proveedores, cuánto debería costar y lo vendido por proveedor
 G8 = P[P.grupo == 8]
 par = G8.apply(lambda f: P[(P.tipo == f.tipo) & (P.proveedor != f.proveedor)].margen.median(), axis=1)
@@ -232,27 +233,27 @@ costo_par = G8.precio_lista * (1 - par)
 dif = 1 - costo_par / G8.costo_unitario
 vend_prov = P.groupby("proveedor").vendidas.sum()
 otros = vend_prov.drop(G8.proveedor.unique())
-chk("nota · compra: cuánto menos debería costar", f"tendrían que costar **{pct_(dif.min())} a {pct_(dif.max())} menos**" in nota_txt, True)
-chk("nota · compra: $ sobre el stock", f"$ {(((G8.costo_unitario - costo_par) * G8.stock).sum() / 1e6):.1f} M".replace(".", ",") in nota_txt, True)
-chk("nota · compra: vendido por proveedor", f"vendió **{mil_(vend_prov[G8.proveedor.unique()].sum())} u**, contra {mil_(otros.min())} a {mil_(otros.max())}" in nota_txt, True)
+chk("causas · compra: cuánto menos debería costar", f"tendrían que costar **{pct_(dif.min())} a {pct_(dif.max())} menos**" in causas_txt, True)
+chk("causas · compra: $ sobre el stock", f"$ {(((G8.costo_unitario - costo_par) * G8.stock).sum() / 1e6):.1f} M".replace(".", ",") in causas_txt, True)
+chk("causas · compra: vendido por proveedor", f"vendió **{mil_(vend_prov[G8.proveedor.unique()].sum())} u**, contra {mil_(otros.min())} a {mil_(otros.max())}" in causas_txt, True)
 # Stock vencido: lotes, misma fecha y cuántos no se venderían en un año al ritmo del último mes
 LV = L[L.vencido]
 anio = int((LV.unidades > LV.v30 / 30 * 365).sum())
-chk("nota · lotes vencidos", f"Los {len(LV)} lotes vencidos vencieron {f'el mismo día ({LV.limite.min():%d/%m})' if LV.limite.nunique() == 1 else 'en fechas distintas'} y **{anio} no se venderían ni en un año**" in nota_txt, True)
+chk("causas · lotes vencidos", f"Los {len(LV)} lotes vencidos vencieron {f'el mismo día ({LV.limite.min():%d/%m})' if LV.limite.nunique() == 1 else 'en fechas distintas'} y **{anio} no se venderían ni en un año**" in causas_txt, True)
 # Lo que prueba cada tarjeta, por otro camino
 G1, G4, G5, G6 = (P[P.grupo == n] for n in (1, 4, 5, 6))
-chk("nota · venden bien: % de lo esperado y días de stock", f"venden el **{pct_(G1.pct_esperado.min())} o más** de lo esperado y el stock les alcanza para "
-    f"**{mil_(G1.meses.min() * 30)} a {mil_(G1.meses.max() * 30)} días**" in nota_txt, True)
-chk("nota · se cortaron", f"vendían {mil_(G5.v_antes_mes.min())} a {mil_(G5.v_antes_mes.max())} u por mes y el último mes {mil_(G5.v30.min())} a {mil_(G5.v30.max())}" in nota_txt, True)
-chk("nota · mal ubicados", f"el {pct_(G6.share_sin_venta.min())} a {pct_(G6.share_sin_venta.max())} de su stock está en locales donde nunca vendieron" in nota_txt, True)
-chk("nota · cumbre: margen con 10 %", f"quedarían en {pct_(((G8.margen - .1) / .9).min())} a {pct_(((G8.margen - .1) / .9).max())}" in nota_txt, True)
+chk("causas · venden bien: % de lo esperado y días de stock", f"venden el **{pct_(G1.pct_esperado.min())} o más** de lo esperado y el stock les alcanza para "
+    f"**{mil_(G1.meses.min() * 30)} a {mil_(G1.meses.max() * 30)} días**" in causas_txt, True)
+chk("causas · se cortaron", f"vendían {mil_(G5.v_antes_mes.min())} a {mil_(G5.v_antes_mes.max())} u por mes y el último mes {mil_(G5.v30.min())} a {mil_(G5.v30.max())}" in causas_txt, True)
+chk("causas · mal ubicados", f"el {pct_(G6.share_sin_venta.min())} a {pct_(G6.share_sin_venta.max())} de su stock está en locales donde nunca vendieron" in causas_txt, True)
+chk("causas · cumbre: margen con 10 %", f"quedarían en {pct_(((G8.margen - .1) / .9).min())} a {pct_(((G8.margen - .1) / .9).max())}" in causas_txt, True)
 # El mensaje central: stock donde el precio puede ser la causa y cuántos pasan los criterios
 P9 = P[P.grupo == 9]
 chk("nota · mensaje central", f"solo el {pct_(P9.stock.sum() / P.stock.sum())} del stock ({mil_(P9.stock.sum())} u)" in nota_txt
     and f"pasa los criterios en {int((P9.nuestro != 'no').sum())} de {len(P9)}" in nota_txt, True)
 for k in ["ok", "ejecucion", "producto", "compra", "precio"]:
     d = P[P.grupo.map(CAUSA_G) == k]
-    chk(f"nota · tabla de causas, {k}", f"| {len(d)} | {mil_(d.stock.sum())} u ({pct_(d.stock.sum() / P.stock.sum())}) | {mil_(d.u_vencidas.sum())} u |" in nota_txt, True)
+    chk(f"nota · tabla de causas, {k}", f"| {len(d)} | {mil_(d.stock.sum())} u ({pct_(d.stock.sum() / P.stock.sum())}) |" in nota_txt, True)
 
 # ---------------------------------------------------------------- 6 · sensibilidad y supuestos (para el juicio crítico)
 print("== Coinciden reglas, descuentos y consultora:", "sí" if not fallas else f"no, {len(fallas)} diferencias")

@@ -11,6 +11,7 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 | **El proceso** (pregunta 1) | [`armar_excel.py`](armar_excel.py): lee `datos/viento_sur.xlsx` y genera todo lo de `salidas/` |
 | **El archivo con la propuesta** | [`salidas/ventas_y_stock.xlsx`](salidas/ventas_y_stock.xlsx), hoja **Propuesta**: acción, motivo, meta y fecha de revisión de los 48 productos |
 | **La nota** (qué miré, qué dejé afuera, efecto a 30 días) | [`salidas/nota.md`](salidas/nota.md) (también como hoja **Nota** del Excel) |
+| **Las 5 causas, en cuatro pasos** (qué pasa, la prueba, qué hacemos, cómo lo medimos) | [`salidas/causas.md`](salidas/causas.md) y la primera pantalla del tablero |
 | **El juicio sobre la consultora** | En la nota, sección "Juicio sobre la consultora" |
 | **El tablero** (pregunta 2) | [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), o [`web/index.html`](web/index.html) con doble clic |
 | **El proceso alrededor del modelo** (pregunta 3) | [`proceso.md`](proceso.md) |
@@ -28,7 +29,7 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 | **Compra**: tan caro que no hay margen para descontar (Cumbre) | 4 | 581 u | Negociar devolución o bonificación con el proveedor | No |
 | **Puede ser precio**: vende poco pero parejo, sin otra explicación | 8 | 1.068 u | Descuento a prueba solo si su tipo respondió y queda margen | Sí, a prueba |
 
-Cada causa está contada en cuatro pasos, con sus datos (**qué pasa, la prueba, qué hacemos y por qué, y cómo lo medimos**) en la [nota](salidas/nota.md) y en la primera pantalla del tablero. La ficha de cada producto repite los mismos cuatro pasos con sus propios indicadores.
+Cada causa está contada en cuatro pasos, con sus datos (**qué pasa, la prueba, qué hacemos y por qué, y cómo lo medimos**) en [`salidas/causas.md`](salidas/causas.md) y en la primera pantalla del tablero; la nota lo resume en una tabla. La ficha de cada producto repite los mismos cuatro pasos con sus propios indicadores.
 
 - **El mensaje central:** solo el 21 % del stock está en productos donde el precio puede ser la causa, y aun ahí el descuento pasa los criterios en 3 de 8. En total: 4 descuentos ahora (a prueba, con fechas y medidos) y 6 si se cumple una condición; los otros 38 se resuelven sin tocar el precio.
 - **Cada decisión se puede revisar**: la ficha de cada producto (y la hoja Propuesta) muestra su causa, el problema en una frase y los indicadores que lo deciden, con su valor, su regla y si se cumple.
@@ -47,7 +48,7 @@ pip install -r requirements.txt
 python armar_excel.py
 ```
 
-Genera en `salidas/`: `ventas_y_stock.xlsx` (la propuesta y todo el análisis), `nota.md` y `tablero_datos.json`. Corre en pocos segundos y da siempre el mismo resultado: los rangos por azar usan una semilla fija.
+Genera en `salidas/`: `ventas_y_stock.xlsx` (la propuesta y todo el análisis), `nota.md`, `causas.md` y `tablero_datos.json`. Corre en pocos segundos y da siempre el mismo resultado: los rangos por azar usan una semilla fija.
 
 Opciones: `python armar_excel.py --datos otro.xlsx --salidas otra_carpeta`. Ninguna cifra está escrita a mano: si cambian los datos, cambian la propuesta, la nota y el tablero.
 
@@ -102,7 +103,7 @@ Es una demo: no tiene login, y lo que se sube queda público.
 
 ## El tablero
 
-`web/index.html` tiene 8 pestañas: Decisión, Ventas, Stock y rotación, Sucursales, Descuentos, Productos (con una ficha por producto: ritmo del lote, seguimiento de su recomendación, historial de precio), Seguimiento y Datos. Abierto con doble clic muestra la foto con la que se armó; publicado, la más nueva de la base. Los filtros (fechas, sucursal, rubro, tipo, grupo, producto) aplican a todas y quedan en el link. Cada gráfico tiene "Ver y auditar los datos" con las filas exactas que lo arman.
+`web/index.html` tiene 8 pestañas: Decisión (abre con el problema y la solución en un minuto: el stock repartido por causa y una tarjeta por causa), Ventas, Stock y rotación, Sucursales, Descuentos, Productos (con una ficha por producto: qué le pasa, los indicadores que lo deciden, qué hacemos y cómo lo medimos, más el ritmo del lote, el seguimiento de su recomendación y el historial de precio), Seguimiento y Datos. Abierto con doble clic muestra la foto con la que se armó; publicado, la más nueva de la base. Los filtros (fechas, sucursal, rubro, tipo, causa, grupo, producto) aplican a todas y quedan en el link. Cada gráfico tiene "Ver y auditar los datos" con las filas exactas que lo arman.
 
 Los gráficos usan Chart.js desde un CDN, así que necesita conexión a internet.
 
