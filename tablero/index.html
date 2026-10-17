@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tablero Viento Sur</title>
+<meta name="description" content="Precios para stock que no rota: qué proponemos para cada producto, por qué, y los datos para auditarlo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="marca">
+      <b>Viento Sur</b>
+      <span>Precios para stock que no rota</span>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Secciones"></nav>
+    <div class="foto" id="foto"></div>
+  </div>
+</header>
+
+<div class="filtros" id="filtros" role="region" aria-label="Filtros"></div>
+
+<main class="contenido" id="vista" tabindex="-1"></main>
+
+<footer class="pie">
+  <div class="pie-in" id="pie"></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="datos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# entorno y herramientas locales
+.venv/
+__pycache__/
+.DS_Store
+.claude/
+.impeccable/
+.vercel/
+PRODUCT.md
+# se generan al correr actualizar.py
+datos/viento_sur.db
+salidas/historia/

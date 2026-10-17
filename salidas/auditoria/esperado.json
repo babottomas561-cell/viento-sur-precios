@@ -1,0 +1,164 @@
+{
+ "sin filtros": {
+  "filtros": {},
+  "productos": 48,
+  "lotes": 100,
+  "stock": 5006,
+  "ventas_u": 4356,
+  "ventas_p": 192928260,
+  "filas_ventas": 2506,
+  "productos_con_venta": 45
+ },
+ "S04": {
+  "filtros": {
+   "suc": "S04"
+  },
+  "productos": 17,
+  "lotes": 17,
+  "stock": 956,
+  "ventas_u": 665,
+  "ventas_p": 37674800,
+  "filas_ventas": 363,
+  "productos_con_venta": 13
+ },
+ "F01": {
+  "filtros": {
+   "suc": "F01"
+  },
+  "productos": 2,
+  "lotes": 2,
+  "stock": 50,
+  "ventas_u": 27,
+  "ventas_p": 1357800,
+  "filas_ventas": 23,
+  "productos_con_venta": 2
+ },
+ "calzado": {
+  "filtros": {
+   "rubro": "calzado"
+  },
+  "productos": 11,
+  "lotes": 22,
+  "stock": 1132,
+  "ventas_u": 1465,
+  "ventas_p": 92291100,
+  "filas_ventas": 754,
+  "productos_con_venta": 11
+ },
+ "calzado + botas": {
+  "filtros": {
+   "rubro": "calzado",
+   "tipo": "botas"
+  },
+  "productos": 5,
+  "lotes": 10,
+  "stock": 507,
+  "ventas_u": 736,
+  "ventas_p": 41649800,
+  "filas_ventas": 380,
+  "productos_con_venta": 5
+ },
+ "grupo 9": {
+  "filtros": {
+   "grupo": "9"
+  },
+  "productos": 8,
+  "lotes": 16,
+  "stock": 1068,
+  "ventas_u": 107,
+  "ventas_p": 5348200,
+  "filas_ventas": 107,
+  "productos_con_venta": 8
+ },
+ "un producto": {
+  "filtros": {
+   "sku": "VS-1012"
+  },
+  "productos": 1,
+  "lotes": 2,
+  "stock": 92,
+  "ventas_u": 17,
+  "ventas_p": 1463700,
+  "filas_ventas": 17,
+  "productos_con_venta": 1
+ },
+ "un producto en S02": {
+  "filtros": {
+   "sku": "VS-1012",
+   "suc": "S02"
+  },
+  "productos": 1,
+  "lotes": 1,
+  "stock": 21,
+  "ventas_u": 1,
+  "ventas_p": 86100,
+  "filas_ventas": 1,
+  "productos_con_venta": 1
+ },
+ "vigencia del descuento": {
+  "filtros": {
+   "desde": "2026-01-16",
+   "hasta": "2026-02-12"
+  },
+  "productos": 48,
+  "lotes": 100,
+  "stock": 5006,
+  "ventas_u": 1449,
+  "ventas_p": 59313160,
+  "filas_ventas": 783,
+  "productos_con_venta": 44
+ },
+ "S02 + deportes + desde feb": {
+  "filtros": {
+   "suc": "S02",
+   "rubro": "deportes",
+   "desde": "2026-02-01"
+  },
+  "productos": 4,
+  "lotes": 4,
+  "stock": 276,
+  "ventas_u": 173,
+  "ventas_p": 5420060,
+  "filas_ventas": 101,
+  "productos_con_venta": 4
+ },
+ "rubro y tipo incompatibles": {
+  "filtros": {
+   "rubro": "hogar",
+   "tipo": "botas"
+  },
+  "productos": 16,
+  "lotes": 34,
+  "stock": 1597,
+  "ventas_u": 994,
+  "ventas_p": 22533700,
+  "filas_ventas": 631,
+  "productos_con_venta": 14
+ },
+ "desde > hasta": {
+  "filtros": {
+   "desde": "2026-03-01",
+   "hasta": "2026-02-01"
+  },
+  "productos": 48,
+  "lotes": 100,
+  "stock": 5006,
+  "ventas_u": 1253,
+  "ventas_p": 56403910,
+  "filas_ventas": 712,
+  "productos_con_venta": 42
+ },
+ "grupo 1 en F01": {
+  "filtros": {
+   "grupo": "1",
+   "suc": "F01"
+  },
+  "productos": 0,
+  "lotes": 0,
+  "stock": 0,
+  "ventas_u": 0,
+  "ventas_p": 0,
+  "filas_ventas": 0,
+  "productos_con_venta": 0
+ }
+}
