@@ -347,6 +347,7 @@ function vistaDecision(main) {
   const vencidas = suma(L.filter(l => l.vencido === "sí"), l => l.unidades), stockL = suma(L, l => l.unidades);
   const atrasados = P.filter(p => p.pct_esperado < D.criterios.al_dia).length;
   const ya = P.filter(p => p.nuestro === "ya"), cond = P.filter(p => p.nuestro === "condicional"), sin = P.length - ya.length - cond.length;
+  const venc = P.filter(p => p.u_vencidas > 0 && p.salida);
   const E = D.efecto.filter(e => P.some(p => p.producto === e.producto));
   const uB = suma(E, e => e.u_base), uE = suma(E, e => e.u_esp), mB = suma(E, e => e.m_base), mE = suma(E, e => e.m_esp);
   const mPeor = suma(E, e => e.m_bajo), mMejor = suma(E, e => e.m_alto);     // escenarios: peor sucursal y mejor sucursal con el mismo descuento
@@ -362,7 +363,7 @@ function vistaDecision(main) {
     <div class="bloque respuesta">
       <ol>
         <li><b>El problema</b><p>${atrasados} de ${P.length} productos venden menos del ${pct(D.criterios.al_dia)} de lo esperado, y el ${pct(vencidas / (stockL || 1))} del stock (${fmt(vencidas)} u) ya pasó su fecha límite.</p></li>
-        <li><b>Qué proponemos</b><p>${ya.length ? `Descuento ahora en ${ya.length}, siempre a prueba y medido` : "Ningún descuento inmediato"}${cond.length ? `; en ${cond.length} más, si se cumple una condición` : ""}. Los otros ${sin} se resuelven sin tocar el precio: ${sinPrecio.slice(0, 3).map(v => v.via.split(":")[0].toLowerCase()).join(", ")}.</p></li>
+        <li><b>Qué proponemos</b><p>${ya.length ? `Descuento ahora en ${ya.length}, siempre a prueba y medido` : "Ningún descuento inmediato"}${cond.length ? `; en ${cond.length} más, si se cumple una condición` : ""}. Los otros ${sin} se resuelven sin tocar el precio: ${sinPrecio.slice(0, 3).map(v => v.via.split(":")[0].toLowerCase()).join(", ")}.${venc.length ? ` El stock vencido (${fmt(suma(venc, p => p.u_vencidas))} u) tiene fecha de salida: si la primera acción no cumple, se liquida con fechas y piso en el costo, la última salida el ${fechaAR(venc.reduce((m, p) => p.salida > m ? p.salida : m, ""))}.` : ""}</p></li>
         <li><b>Qué esperamos</b><p>${E.length ? `Con los descuentos de ahora, ${fmt(uB)} → ${fmt(uE, 1)} u por mes. En 2 meses dejarían entre ${plataS(mPeor - mB)} y ${plataS(mMejor - mB)} de margen contra no tocar el precio, según cómo respondió antes el mismo descuento: el descuento mueve poco.` : "El precio no cambia en estos productos."} El stock quieto sale sobre todo por las otras vías: ${sinPrecio[0] ? `${sinPrecio[0].via.toLowerCase()} (${fmt(sinPrecio[0].stock)} u)` : "—"}${sinPrecio[1] ? ` y ${sinPrecio[1].via.toLowerCase()} (${fmt(sinPrecio[1].stock)} u)` : ""}.</p></li>
       </ol>
       <div class="cifras">
@@ -433,13 +434,13 @@ function vistaDecision(main) {
 
   const b3b = bloque(`<div class="dos">
     <div><h3>Los criterios del descuento</h3>
-      <p class="nota" style="margin:6px 0 10px">Se aplican con el descuento que ya se probó en su tipo. Los dos primeros son obligatorios; los otros tres suman: con los tres se baja, con dos se prueba 4 semanas.</p>
+      <p class="nota" style="margin:6px 0 10px">Se aplican con el descuento que ya se probó en su tipo. Los dos primeros son obligatorios. Si su tipo responde de forma firme: con los otros dos se baja y si falla uno se prueba 4 semanas. Si la evidencia es débil, solo se prueba y tiene que cumplir todo. Si más de la mitad de su stock ya venció, no se mira el 4 y como mucho se prueba.</p>
       <table><tbody>
         <tr><td><b>1 · Su tipo responde</b></td><td>El rango del efecto no cruza el cero (firme). Si fue de ${sgn(D.criterios.respuesta_debil - 1)} o más y la venta se sostuvo después, es débil: como mucho se prueba.</td></tr>
         <tr><td><b>2 · Queda margen</b></td><td>Después del descuento queda al menos ${pct(D.criterios.margen_minimo)} de margen.</td></tr>
-        <tr><td><b>3 · El ahorro se nota</b></td><td>El cliente ahorra ${plata(D.criterios.ahorro_minimo)} o más por unidad.</td></tr>
-        <tr><td><b>4 · No es el más barato</b></td><td>Si ya es el más barato de su tipo, bajarlo no cambia la elección.</td></tr>
-        <tr><td><b>5 · No se adelantan compras</b></td><td>En su tipo, la venta después del descuento no cayó debajo de antes.</td></tr>
+        <tr><td><b>3 · No es el más barato</b></td><td>Si ya es el más barato de su tipo y no se vende, el problema no es el precio.</td></tr>
+        <tr><td><b>4 · No se adelantan compras</b></td><td>En su tipo, la venta después del descuento no cayó debajo de antes. Con el stock vencido no se mira: adelantar compras no es un costo.</td></tr>
+        <tr><td><b>Stock vencido</b></td><td>Si la primera acción no cumple: ${D.criterios.escalera.map(d => pct(d)).join(" y después ")}, ${D.criterios.escalon_dias} días cada escalón (se pasa al siguiente si la venta no se duplica), y después devolución u outlet. Nunca debajo del costo.</td></tr>
       </tbody></table></div>
     <div><h3>¿En qué tipos un descuento mueve la venta?</h3>
       <p class="nota" style="margin:6px 0 4px">Los ${D.evidencia.length} descuentos aplicados (${D.vigencia}), uno por tipo: venta por día con descuento contra el resto de la ventana. Verde: firme; ámbar: débil; gris: sin respuesta. La banda es el control sin cambios.</p>
@@ -589,9 +590,9 @@ function vistaFicha(main, sku) {
       ${cr.descuento != null ? `<table class="criterios"><tbody>
         ${filaCrit("Su tipo responde", cr.tipo === "firme" ? true : cr.tipo === "débil" ? null : false, `${esc(cr.tipo)} (${esc(cr.referencia)}: ${sgn(cr.respuesta)})`, "obligatorio")}
         ${filaCrit("Queda margen", cr.margen_ok, pct(cr.margen), `obligatorio · ≥ ${pct(D.criterios.margen_minimo)}`)}
-        ${filaCrit("El ahorro se nota", cr.ahorro_ok, plata(cr.ahorro), `≥ ${plata(D.criterios.ahorro_minimo)}`)}
         ${filaCrit("No es el más barato", cr.posicion_ok, `${cr.rank}.º de ${cr.n_tipo} en precio`, "en su tipo")}
-        ${filaCrit("No se adelantan compras", cr.despues_ok, `después ${sgn(cr.despues)}`, "en su tipo")}</tbody></table>` : `<p class="nota">No hay evidencia de su tipo.</p>`}</div></div>`));
+        ${cr.despues_ok == null ? `<tr><td><b>No se adelantan compras</b><br><span class="muted" style="font-size:.8rem">en su tipo</span></td><td><span class="muted">no se mira</span></td><td>la mayor parte de su stock ya venció</td></tr>`
+          : filaCrit("No se adelantan compras", cr.despues_ok, `después ${sgn(cr.despues)}`, "en su tipo")}</tbody></table>` : `<p class="nota">No hay evidencia de su tipo.</p>`}</div></div>`));
   main.append(s2);
 
   // Ritmo del lote (la cuenta de la consigna): objetivo = unidades_objetivo ÷ días de ingreso a fecha límite;
@@ -839,7 +840,7 @@ function vistaDatos(main) {
     <tr><td><b>Después del descuento</b></td><td>Venta posterior ÷ venta anterior, corregida por lo que hizo el control en las mismas fechas.</td></tr>
     <tr><td><b>Stock día a día</b></td><td>Stock de la foto + lo vendido después de cada día; vacío antes del ingreso. Supone que no hubo reposiciones ni transferencias.</td></tr>
     <tr><td><b>Grupos</b></td><td>${D.grupos.map(g => `${g.n} · ${esc(g.nombre)}: ${esc(g.regla)}`).join("<br>")}</td></tr>
-    <tr><td><b>Umbrales</b></td><td>${Object.entries(C).map(([k, v]) => `${k.replace(/_/g, " ")} = ${String(v).replace(".", ",")}`).join(" · ")}</td></tr>
+    <tr><td><b>Umbrales</b></td><td>${Object.entries(C).map(([k, v]) => `${k.replace(/_/g, " ")} = ${Array.isArray(v) ? v.map(x => String(x).replace(".", ",")).join(" y ") : String(v).replace(".", ",")}`).join(" · ")}</td></tr>
   </tbody></table>`));
   main.append(s2);
 }

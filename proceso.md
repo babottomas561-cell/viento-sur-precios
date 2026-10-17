@@ -1,6 +1,6 @@
 # Pregunta 3 · El proceso alrededor del modelo
 
-El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. En esta foto, de 30 descuentos aceptados solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
+El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. En esta foto, de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
 
 ## Cada cuánto corre
 

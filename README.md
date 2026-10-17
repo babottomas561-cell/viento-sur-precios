@@ -19,9 +19,10 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 ## La respuesta en corto
 
 - **El problema no es solo de precio.** 35 de 48 productos venden menos de lo esperado, pero por motivos distintos: se cortaron, están mal ubicados, nunca se exhibieron, tienen margen bajo de origen. Cada producto cae en uno de 9 grupos, y el grupo define la acción.
-- **Descuento solo donde hay evidencia de que funciona**: 3 ahora (a prueba, con fechas y medidos) y 5 si se cumple una condición. Los otros 40 se resuelven sin tocar el precio: reponer, mover stock entre sucursales, revisar exhibición, devolver o negociar con el proveedor.
+- **Descuento solo donde hay evidencia de que funciona**: 4 ahora (a prueba, con fechas y medidos) y 6 si se cumple una condición. Los otros 38 se resuelven sin tocar el precio: reponer, mover stock entre sucursales, revisar exhibición, devolver o negociar con el proveedor.
+- **El stock vencido tiene fecha de salida**: el 57 % del stock ya pasó su fecha límite. Cada producto mantiene su diagnóstico, pero si la primera acción no cumple se liquida con fechas (20 %, después 35 %, después devolución u outlet), siempre con piso en el costo.
 - **La consultora: tomaría solo una parte.** Descuenta 39 de 48 productos, en 12 proyecta vender más de lo que hay en stock y en 4 vende bajo costo.
-- **Hallazgo de proceso:** de 30 descuentos aceptados, solo 8 llegaron al precio cobrado.
+- **Hallazgo de proceso:** de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado.
 
 ## Cómo correrlo
 
