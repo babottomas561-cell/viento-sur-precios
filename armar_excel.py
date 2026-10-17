@@ -2034,7 +2034,7 @@ def historias(D, ev):
     tipo = lambda x: {"sabanas": "sábanas"}.get(x, x)
     y_ = lambda xs: " y ".join([", ".join(xs[:-1]), xs[-1]] if len(xs) > 1 else xs)
     fechas = lambda d: pd.to_datetime(d.revisar, format="%d/%m/%Y")
-    revisa = lambda d: (f"Se revisa el {fechas(d).min():%d/%m}" if fechas(d).nunique() == 1
+    revisa = lambda d: "" if d.empty else (f"Se revisa el {fechas(d).min():%d/%m}" if fechas(d).nunique() == 1
                         else f"Se revisa entre el {fechas(d).min():%d/%m} y el {fechas(d).max():%d/%m}") + ", producto por producto (cada ficha tiene su fecha)."
     cz = {k: D[D.grupo_n.isin(c["grupos"])] for k, c in CAUSAS.items()}
     H = {}
@@ -2042,7 +2042,7 @@ def historias(D, ev):
     g1, g2 = D[D.grupo_n == 1], D[D.grupo_n == 2]
     H["ok"] = dict(
         que_pasa="Venden bien, o llegaron hace poco y venden al ritmo previsto. Acá no hay nada que arreglar con el precio.",
-        prueba=[f"Los {len(g1)} que andan bien venden el **{pct(g1.pct_esperado.min())} o más** de lo esperado y el stock les alcanza para **{rango(g1.meses.min() * 30, g1.meses.max() * 30)} días**."]
+        prueba=([f"Los {len(g1)} que andan bien venden el **{pct(g1.pct_esperado.min())} o más** de lo esperado y el stock les alcanza para **{rango(g1.meses.min() * 30, g1.meses.max() * 30)} días**."] if len(g1) else [])
                + ([f"Los {len(g2)} recién llegados cumplen su objetivo, pero el objetivo es corto: al ritmo de hoy **sobraría {rango((g2.sobrante / g2.stock).min(), (g2.sobrante / g2.stock).max(), pct)}** "
                    "de su stock a la fecha límite."] if len(g2) else []),
         hacemos="Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
@@ -2115,17 +2115,20 @@ def historias(D, ev):
     n_si = int((p9.nuestro_descuento != "no").sum())
     H["precio"] = dict(
         que_pasa="Venden poco pero parejo, y no hay otra explicación: acá sí puede ser el precio.",
-        prueba=[f"Con descuento, " + y_([f"{tipo(t)} vendieron **{signo(e.respuesta - 1)}**" for t, e in firmes.iterrows()])
-                + (f"; {y_([f'{tipo(t)} {signo(e.respuesta - 1)}' for t, e in debil.iterrows()])}, una respuesta débil" if len(debil) else "") + ".",
-                f"En {tipo(nada.index[0])}, un {pct(nada.descuento.iloc[0])} de descuento movió apenas **{signo(nada.respuesta.iloc[0] - 1)}**; "
-                f"{y_([tipo(x) for x in nada.index[1:]])} tampoco respondieron.",
-                f"Productos sin ningún cambio variaron {signo(RES_DESC['control'][-1]['dur'])} esas mismas semanas: la suba no fue por temporada."],
+        prueba=([f"Con descuento, " + y_([f"{tipo(t)} vendieron **{signo(e.respuesta - 1)}**" for t, e in firmes.iterrows()])
+                 + (f"; {y_([f'{tipo(t)} {signo(e.respuesta - 1)}' for t, e in debil.iterrows()])}, una respuesta débil" if len(debil) else "") + "."] if len(firmes) else
+                ["Ningún tipo respondió de forma firme a un descuento."])
+               + ([f"En {tipo(nada.index[0])}, un {pct(nada.descuento.iloc[0])} de descuento movió apenas **{signo(nada.respuesta.iloc[0] - 1)}**"
+                   + (f"; {y_([tipo(x) for x in nada.index[1:]])} tampoco respondieron." if len(nada) > 1 else ".")] if len(nada) else [])
+               + [f"Productos sin ningún cambio variaron {signo(RES_DESC['control'][-1]['dur'])} esas mismas semanas: la suba no fue por temporada."],
         hacemos=f"Probar un descuento por 4 semanas solo en los **{n_si} de {len(p9)}** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
         por_que="Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
         medimos=(f"Unidades por semana durante el descuento: hoy **{dec(base)}**, meta **{dec(meta)}** entre los {len(ya9)}. " if ya9 else "")
                 + "Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. " + revisa(p9))
 
     venc = D[D.u_vencidas > 0]
+    if venc.empty:                                  # todavía no venció nada: no hay plan de salida que contar
+        return H
     lv = lotes[lotes.vencido == "sí"]
     anio = int((lv.unidades > lv.venta_ultimos_30 / 30 * 365).sum())
     H["vencido"] = dict(
@@ -2180,7 +2183,7 @@ def texto_nota(D, ev):
         d = cz[k]
         L.append(f"| **{c['nombre']}** | {', '.join(map(str, c['grupos']))} | {len(d)} | {mil(d.stock.sum())} u ({pct(d.stock.sum() / tot)}) | {mil(d.u_vencidas.sum())} u | {c['problema']} | {c['precio']} |")
     p9 = cz["precio"]
-    L.append(f"\n**El mensaje central:** solo el {pct(p9.stock.sum() / tot)} del stock ({mil(p9.stock.sum())} u) está en productos donde el precio puede ser la causa, "
+    L.append(f"\n**El mensaje central:** {'solo ' if p9.stock.sum() / tot < 0.5 else ''}el {pct(p9.stock.sum() / tot)} del stock ({mil(p9.stock.sum())} u) está en productos donde el precio puede ser la causa, "
              f"y aun ahí el descuento pasa los criterios en {int((p9.nuestro_descuento != 'no').sum())} de {len(p9)}. El resto tiene otra causa, que un descuento no arregla. "
              f"Descontar {len(cons_desc)} de {len(D)}, como la consultora, cede margen sin atacar la causa.\n")
 
@@ -2348,7 +2351,7 @@ def datos_tablero(D, ev):
                 for n, nom in GRUPOS.items()],
         causas=[dict(id=k, nombre=c["nombre"], grupos=c["grupos"], problema=c["problema"], solucion=c["solucion"], precio=c["precio"], **HIST.get(k, {}))
                 for k, c in CAUSAS.items()],
-        vencido=HIST["vencido"],
+        vencido=HIST.get("vencido"),
         evidencia=[dict(tipo=t, referencia=e.referencia, descuento=e.descuento, respuesta=e.respuesta, bajo=e.rango_bajo, alto=e.rango_alto,
                         firme=bool(e.firme), debil=bool(debil[t]), despues=e.despues) for t, e in ev.sort_values("respuesta", ascending=False).iterrows()],
         control=dict(resp=uc[con].mean() / uc[~con].mean(), bajo=np.percentile(sim, 5), alto=np.percentile(sim, 95)),

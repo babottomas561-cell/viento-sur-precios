@@ -390,7 +390,7 @@ function vistaDecision(main) {
     s1.innerHTML = `<div class="sec-cab"><h2>${filtrado ? `El problema y la solución, para ${P.length} productos filtrados` : "El problema y la solución, en un minuto"}</h2><span class="nota">Foto del ${D.foto}</span></div>
       <div class="bloque resumen">
         <p class="titular">${atrasados} de ${P.length} productos venden menos de lo esperado y el ${pct(vencidas / (stockL || 1))} del stock ya pasó su fecha límite.
-          ${porCausa.length > 1 ? `<b>Pero no es un solo problema, y casi nunca es el precio:</b> de cada 100 unidades en stock, ${deCien ? `solo ${deCien} están` : "ninguna está"} en productos donde el precio puede ser la causa.` : ""}</p>
+          ${porCausa.length > 1 ? `<b>Pero no es un solo problema${deCien < 30 ? ", y casi nunca es el precio" : deCien < 50 ? ", y la mayor parte no es de precio" : ""}:</b> de cada 100 unidades en stock, ${deCien ? `${deCien < 50 ? "solo " : ""}${deCien} están` : "ninguna está"} en productos donde el precio puede ser la causa.` : ""}</p>
         <div class="barra-causas" role="img" aria-label="Stock por causa: ${porCausa.map(c => `${c.nombre} ${pct(c.stock / (stock || 1))}`).join(", ")}">
           ${porCausa.map(c => `<button type="button" class="seg${c.id === "precio" ? " es-precio" : ""}" data-k="${c.id}" style="flex:${c.stock}"
             title="${esc(c.nombre)}: ${fmt(c.stock)} u (${pct(c.stock / (stock || 1))}) en ${c.productos} productos · tocá para verlos">${c.stock / (stock || 1) >= 0.08 ? pct(c.stock / (stock || 1)) : ""}</button>`).join("")}
