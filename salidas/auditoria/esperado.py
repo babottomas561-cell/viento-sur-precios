@@ -7,7 +7,7 @@ Para cada combinación de filtros calcula, por su cuenta:
   Descuentos  casos (producto × sucursal con descuento aplicado) y sugerencias aceptadas
   Datos       filas de cada tabla
 Las mismas reglas que el tablero: un tipo que no existe en el rubro se descarta y las fechas invertidas se dan vuelta.
-Uso: python salidas/auditoria/esperado.py [datos.xlsx]  →  salidas/auditoria/esperado.json
+Uso: python salidas/auditoria/esperado.py [datos.xlsx] [tablero_datos.json] [salida.json]  →  por defecto, la consigna en salidas/auditoria/esperado.json
 """
 import json
 import sys
@@ -17,7 +17,7 @@ import pandas as pd
 x = pd.read_excel(sys.argv[1] if len(sys.argv) > 1 else "datos/viento_sur.xlsx", sheet_name=None)
 prod, st, ve, hist = x["productos"], x["stock_sucursal"].copy(), x["ventas"].copy(), x["historial_sugerencias"]
 camb, camp, cons = x["cambios_precio"].copy(), x["campanas_activas"], x["propuesta_consultora"]
-grupo = {p["sku"]: p["n"] for p in json.load(open("salidas/tablero_datos.json"))["productos"]}   # el grupo es nuestro, no del dato crudo
+grupo = {p["sku"]: p["n"] for p in json.load(open(sys.argv[2] if len(sys.argv) > 2 else "salidas/tablero_datos.json"))["productos"]}   # el grupo es nuestro, no del dato crudo
 d10 = lambda s: pd.to_datetime(s).dt.strftime("%Y-%m-%d")
 ve["fecha"] = d10(ve.fecha)
 st["ingreso"], st["limite"] = d10(st.fecha_ingreso), d10(st.fecha_limite)
@@ -133,6 +133,6 @@ for nombre, f0 in ESC.items():
         datos=dict(lotes=len(L), ventas=len(V), historial=int(hist.sku.isin(P.sku).sum()), campanas=int(camp.sku.isin(P.sku).sum()),
                    cambios=int(camb.sku.isin(P.sku).sum()), catalogo=len(P), consultora=int(cons.sku.isin(P.sku).sum()), sucursales=len(x["sucursales"])),
     )
-json.dump(out, open("salidas/auditoria/esperado.json", "w"), ensure_ascii=False, indent=1)
+json.dump(out, open(sys.argv[3] if len(sys.argv) > 3 else "salidas/auditoria/esperado.json", "w"), ensure_ascii=False, indent=1)
 print(pd.DataFrame({k: dict(productos=v["productos"], ventas_u=v["ventas"]["u"], stock=v["stock"]["stock"], lotes=v["stock"]["lotes"],
                             sin_ventas=v["stock"]["sin_ventas"], casos=v["descuentos"]["casos"]) for k, v in out.items()}).T.to_string())

@@ -70,11 +70,13 @@ P["en_curso"] = [s in camp_v or s in cambio_r or s in sug_r.index for s in P.ind
 # ---------------------------------------------------------------- 2 · evidencia de cada tipo (la cuenta de la consigna)
 ap = hist.dropna(subset=["fecha_vigencia_desde"])
 D0, D1 = ap.fecha_vigencia_desde.min(), ap.fecha_vigencia_hasta.max()
+FIN = min(FOTO, D1 + pd.Timedelta(days=31))                       # la ventana de medición: hasta un mes después del último descuento
 tocados = set(hist.sku) | set(camp.sku) | set(camb.sku)
 ctrl = L[~L.sku.isin(tocados) & (L.ritmo_real / L.ritmo_obj >= R["al_dia"]) & (L.ingreso <= INI)]
 uc = sum(diario.loc[s].values for s in ctrl.sku.unique()) if len(ctrl) else None
 # (el control suma lotes; acá se suman los productos del control en sus sucursales de control)
 uc = ve[ve.set_index(["sku", "sucursal_id"]).index.isin(list(zip(ctrl.sku, ctrl.suc)))].groupby("fecha").unidades.sum().reindex(pd.date_range(INI, FOTO), fill_value=0)
+uc = uc[uc.index <= FIN]
 ctrl_despues = uc[uc.index > D1].mean() / uc[uc.index < D0].mean()
 
 
@@ -100,6 +102,7 @@ def ic_poisson_ratio(a, ta, b, tb, conf=0.90):
 ev = {}
 for a_ in ap.itertuples():
     u = diario.loc[a_.sku]
+    u = u[u.index <= FIN]
     presente = u.index >= P.cuenta_min[a_.sku]
     con = (u.index >= a_.fecha_vigencia_desde) & (u.index <= a_.fecha_vigencia_hasta)
     resp = u[con].mean() / u[~con & presente].mean()
@@ -115,6 +118,7 @@ for t in EV.index:
 # las ventas por día con y sin descuento de cada tipo (lo que muestra la tabla de la pestaña Descuentos)
 for a_ in ap.itertuples():
     u = diario.loc[a_.sku]
+    u = u[u.index <= FIN]
     presente = u.index >= P.cuenta_min[a_.sku]
     con = (u.index >= a_.fecha_vigencia_desde) & (u.index <= a_.fecha_vigencia_hasta)
     t_ = prod.tipo[a_.sku]
@@ -128,7 +132,7 @@ ES = {(e["sku"], e["suc"]): e for e in T.get("evidencia_suc", [])}
 n_es = 0
 for a_ in ap.itertuples():
     for l in L[L.sku == a_.sku].itertuples():
-        v = ve[(ve.sku == a_.sku) & (ve.sucursal_id == l.suc)].groupby("fecha").unidades.sum().reindex(pd.date_range(INI, FOTO), fill_value=0)
+        v = ve[(ve.sku == a_.sku) & (ve.sucursal_id == l.suc)].groupby("fecha").unidades.sum().reindex(pd.date_range(INI, FIN), fill_value=0)
         presente = v.index >= l.cuenta
         con = (v.index >= a_.fecha_vigencia_desde) & (v.index <= a_.fecha_vigencia_hasta) & presente
         if not con.any() or v[~con & presente].mean() == 0:
@@ -248,20 +252,22 @@ verif = cobradas = 0
 for a_ in acept_all.itertuples():
     con_f = pd.notna(a_.fecha_vigencia_desde)
     desde = pd.Timestamp(a_.fecha_vigencia_desde) if con_f else a_.fecha_sugerencia
-    hasta = pd.Timestamp(a_.fecha_vigencia_hasta) if con_f else FOTO
-    w = ve_reb[(ve_reb.sku == a_.sku) & (ve_reb.fecha >= max(desde, INI)) & (ve_reb.fecha <= hasta)]
+    hasta = pd.Timestamp(a_.fecha_vigencia_hasta) if con_f else min(desde + pd.Timedelta(days=27), FOTO)     # sin fechas: 4 semanas
+    w = ve_reb[(ve_reb.sku == a_.sku) & (ve_reb.fecha >= desde) & (ve_reb.fecha <= hasta)]
     if desde >= INI and w.unidades.sum() > 0:
         verif += 1
-        cobradas += int(w.reb.any())
+        cobrado = 1 - (w.unidades * w.precio_unitario).sum() / (w.unidades * lista_dia[w.index]).sum()
+        cobradas += int(cobrado >= a_.descuento_pct / 100 * 0.5)          # llegó a caja: al menos la mitad del descuento
 chk("nota · dice cuántas aceptadas se pueden verificar y cuántas se cobraron",
     f"de las {verif} sugerencias aceptadas que se pueden verificar en las ventas, solo {cobradas} se ven en el precio cobrado" in nota_txt, True)
 
 # lo que la nota afirma de las proyecciones de la consultora y del reparto del stock vencido
 cd30 = P.join(cons)[desc]
 mult = (cd30.unidades_proyectadas_30d / cd30.v30)[cd30.v30 > 0]
-sube = mult[mult >= 1.2]
-chk("nota · proyecciones de la consultora: rango de las subas",
-    f"en {len(sube)} de los {len(mult)} con ventas, la venta con descuento sube entre +{round((sube.min() - 1) * 100)} % y +{round((sube.max() - 1) * 100)} %" in nota_txt, True)
+sube = mult[(mult >= 1.2) & (mult <= 1.55)]
+if len(sube) >= 0.75 * len(mult):                                 # la nota afirma el patrón solo si se cumple en 3 de cada 4
+    chk("nota · proyecciones de la consultora: rango de las subas",
+        f"en {len(sube)} de los {len(mult)} con ventas, la venta con descuento sube entre +{round((sube.min() - 1) * 100)} % y +{round((sube.max() - 1) * 100)} %" in nota_txt, True)
 sin_v = cd30[cd30.v30 == 0].unidades_proyectadas_30d
 chk("nota · proyecciones de la consultora: los sin ventas", f"a los {len(sin_v)} sin ventas en 30 días les pone {int(sin_v.iloc[0])} u a cada uno" in nota_txt and sin_v.nunique() == 1, True)
 venc_ = P[P.u_vencidas > 0]

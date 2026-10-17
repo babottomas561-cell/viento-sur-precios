@@ -3,22 +3,35 @@ con lo que muestra el tablero (web/datos.js): unidades vendidas desde la recomen
 si el descuento se ve en caja y si cumple su regla. También chequea que los dos grupos del resumen (ya llegaron a su revisión
 y en curso) no se pisen y sumen el total.
 
-Uso: python salidas/auditoria/auditar_seguimiento.py   (después de cargar las fotos con actualizar.py)
+Uso: python salidas/auditoria/auditar_seguimiento.py            (la base local, después de cargar más de un Excel con actualizar.py)
+     python salidas/auditoria/auditar_seguimiento.py --online   (la base online, Supabase: lo que muestra el sitio)
 """
 import json
 
 import pandas as pd
 
-t = open("web/datos.js", encoding="utf-8").read()
-D = json.loads(t[t.index("=") + 1:].strip().rstrip(";"))
+import sys
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[2]))
+ONLINE = "--online" in sys.argv                     # la base online (Supabase): lo que muestra el sitio publicado
+if ONLINE:
+    import servidor
+    D = servidor.abrir()
+else:
+    t = open("web/datos.js", encoding="utf-8").read()
+    D = json.loads(t[t.index("=") + 1:].strip().rstrip(";"))
 SG, FOTO = D.get("seguimiento") or [], D["foto_iso"]
-ve = pd.read_excel("datos/viento_sur.xlsx", sheet_name="ventas")
+if ONLINE:                                          # las ventas del Excel tal como se subió para esa fecha (el archivo crudo, guardado en la base)
+    import io
+    ve = pd.read_excel(io.BytesIO(servidor.excel(D["foto_iso"], "original")), sheet_name="ventas")
+else:
+    ve = pd.read_excel("datos/viento_sur.xlsx", sheet_name="ventas")
 ve["fecha"] = pd.to_datetime(ve.fecha).dt.strftime("%Y-%m-%d")
 fallas, chequeos = [], 0
 # los locales donde la ficha del grupo 6 pide las primeras ventas, de la recomendación de cada Excel anterior (base local)
-import re, sqlite3
-con = sqlite3.connect("datos/viento_sur.db")
-FICHA = {(f, s): re.findall(r"S\d\d", ind or "") for f, s, ind in con.execute("SELECT fecha_datos, sku, indicador FROM decisiones WHERE grupo = 6")}
+import re
+from base_sql import Base
+with (servidor.base() if ONLINE else Base("datos/viento_sur.db")) as b_:
+    FICHA = {(f, s): re.findall(r"S\d\d", ind or "") for f, s, ind in b_.sql("SELECT fecha_datos, sku, indicador FROM decisiones WHERE grupo = 6")}
 
 
 def chk(que, vio, esp):

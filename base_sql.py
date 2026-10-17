@@ -2,14 +2,15 @@
 y en el sitio (Postgres en Supabase). La usan actualizar.py (local) y servidor.py (online).
 
 Las 8 hojas del Excel son 8 tablas, con todas sus columnas (fecha_datos = el último día con ventas de cada Excel; un Excel por fecha):
-  productos, sucursales, lotes (hoja stock_sucursal), sugerencias (historial_sugerencias), cambios_precio,
+  productos, sucursales, lotes (hoja stock_sucursal), ventas, sugerencias (historial_sugerencias), cambios_precio,
   campanas (campanas_activas), propuesta_consultora   una fila por fila de la hoja en cada Excel (fila = su orden en la hoja)
-  ventas      todas las ventas (fecha, producto, sucursal), acumuladas entre Excel: si una venta vuelve a venir, se actualiza
+Cada Excel guarda sus propias filas, también las ventas: el más nuevo trae toda la historia que necesita el seguimiento, y si
+se borra o se reemplaza un Excel no queda ninguna venta suelta de él.
 Y además:
-  cargas      cada Excel cargado: su fecha, desde cuándo trae ventas, el nombre del archivo, cuándo se subió, el original y el de análisis
+  cargas      cada Excel cargado: su fecha, el nombre del archivo, cuándo se subió, el original y el de análisis
   decisiones  la recomendación de cada producto en cada Excel: lo que después mide el seguimiento
   tablero     lo que lee el tablero de cada Excel (JSON), ya con sus ventas, su historia y su seguimiento
-Borrar una carga borra todas sus filas (ON DELETE CASCADE), salvo las ventas. Cualquier hoja se reconstruye desde la base con
+Borrar una carga borra todas sus filas (ON DELETE CASCADE). Cualquier hoja se reconstruye desde la base con
 Base.hoja(fecha, hoja): salidas/auditoria/auditar_base.py lo compara con el Excel original, celda por celda.
 
 Ejemplo de consulta (en Supabase: SQL Editor):
@@ -50,14 +51,11 @@ def esquema(pg):
     F, N, B, J, T = ("DATE", "DOUBLE PRECISION", "BYTEA", "JSONB", "TIMESTAMPTZ") if pg else ("TEXT", "REAL", "BLOB", "TEXT", "TEXT")
     tipo = dict(D=F, I="INTEGER", N=N, T="TEXT")
     ref = "REFERENCES cargas (fecha_datos) ON DELETE CASCADE"
-    qs = [f"CREATE TABLE IF NOT EXISTS cargas (fecha_datos {F} PRIMARY KEY, ventas_desde {F}, nombre TEXT, subida {T}, original {B}, analisis {B})",
-          f"""CREATE TABLE IF NOT EXISTS ventas (fecha {F}, sku TEXT, sucursal_id TEXT, unidades INTEGER, precio_unitario {N},
-              PRIMARY KEY (fecha, sku, sucursal_id))""",
-          "CREATE INDEX IF NOT EXISTS ventas_sku_fecha ON ventas (sku, fecha)"]
+    qs = [f"CREATE TABLE IF NOT EXISTS cargas (fecha_datos {F} PRIMARY KEY, nombre TEXT, subida {T}, original {B}, analisis {B})"]
     for hoja, (tabla, cols) in HOJAS.items():
-        if tabla != "ventas":
-            qs.append(f"CREATE TABLE IF NOT EXISTS {tabla} (fecha_datos {F} {ref}, fila INTEGER, "
-                      + ", ".join(f"{c} {tipo[k]}" for c, k in cols) + ", PRIMARY KEY (fecha_datos, fila))")
+        qs.append(f"CREATE TABLE IF NOT EXISTS {tabla} (fecha_datos {F} {ref}, fila INTEGER, "
+                  + ", ".join(f"{c} {tipo[k]}" for c, k in cols) + ", PRIMARY KEY (fecha_datos, fila))")
+    qs.append("CREATE INDEX IF NOT EXISTS ventas_fecha_sku ON ventas (fecha_datos, sku, fecha)")
     return qs + [
         f"""CREATE TABLE IF NOT EXISTS decisiones (fecha_datos {F} {ref}, sku TEXT, producto TEXT, grupo INTEGER, accion TEXT, descuento {N},
             condicion TEXT, indicador TEXT, linea_base TEXT, meta TEXT, revisar TEXT, nuestro TEXT, u_sem_base {N}, meta_u_sem {N},
@@ -107,12 +105,23 @@ class Base:
         else:
             self.con = sqlite3.connect(destino)
             self.con.execute("PRAGMA foreign_keys = ON")
+        if not self._hay_tablas():                         # base nueva: se crean las tablas
+            self.preparar()
+
+    def _hay_tablas(self):
+        q = ("SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename = 'cargas'" if self.pg
+             else "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'cargas'")
+        return self.con.execute(q).fetchone()[0] > 0
+
+    def preparar(self):
+        """Crea las tablas que falten y, en Postgres, activa RLS. Solo antes de escribir: estas órdenes bloquean las tablas,
+        y si cada lectura las corriera, dos pedidos al mismo tiempo se trabarían entre sí."""
         for q in esquema(self.pg):
             self.con.execute(q)
         if self.pg:
             # Supabase publica una API sobre las tablas: con RLS y sin políticas, esa API no ve nada; el servidor entra con el
             # usuario dueño de la base, que no pasa por RLS
-            for (tabla,) in self.con.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public'").fetchall():
+            for (tabla,) in self.con.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity").fetchall():
                 self.con.execute(f'ALTER TABLE public."{tabla}" ENABLE ROW LEVEL SECURITY')
         self.con.commit()
 
@@ -144,16 +153,14 @@ class Base:
     # ------------------------------------------------------------------ escribir
     def guardar_hojas(self, xlsx, fecha, nombre, original=None):
         """Paso 1: guarda las 8 hojas del Excel en la base. Si esa fecha ya estaba, la reemplaza (se puede volver a cargar sin duplicar)."""
+        self.preparar()
         h = pd.read_excel(xlsx, sheet_name=None)
         filas = lambda hoja: [tuple(_valor(r.get(c), k) for c, k in HOJAS[hoja][1]) for r in h[hoja].to_dict("records")]
-        ventas = filas("ventas")
         self.sql("DELETE FROM cargas WHERE fecha_datos = ?", (fecha,))           # y en cascada, lo de esa fecha
-        self.sql("INSERT INTO cargas VALUES (?, ?, ?, ?, ?, ?)",
-                 (fecha, min(v[0] for v in ventas), nombre, datetime.now(timezone.utc).isoformat(timespec="seconds"), original, None))
-        self._muchas("""INSERT INTO ventas VALUES (?, ?, ?, ?, ?) ON CONFLICT (fecha, sku, sucursal_id)
-                        DO UPDATE SET unidades = excluded.unidades, precio_unitario = excluded.precio_unitario""", ventas)
+        self.sql("INSERT INTO cargas VALUES (?, ?, ?, ?, ?)",
+                 (fecha, nombre, datetime.now(timezone.utc).isoformat(timespec="seconds"), original, None))
         for hoja, (tabla, cols) in HOJAS.items():
-            if tabla != "ventas" and hoja in h:
+            if hoja in h:
                 self._muchas(f"INSERT INTO {tabla} (fecha_datos, fila, {', '.join(c for c, _ in cols)}) VALUES ({', '.join('?' * (len(cols) + 2))})",
                              [(fecha, i, *f) for i, f in enumerate(filas(hoja), start=1)])
         self.con.commit()
@@ -187,8 +194,8 @@ class Base:
     def completar(self, fecha, archivo_excel=None, meta=None):
         """Arma lo que lee el tablero para esa fecha (sus ventas, la historia y el seguimiento contra los Excel anteriores) y lo guarda."""
         tablero = self.tablero(fecha)
-        ventas = [list(r) for r in self.sql("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha <= ? "
-                                            "ORDER BY fecha, sku, sucursal_id", (fecha,))]
+        ventas = [list(r) for r in self.sql("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha_datos = ? "
+                                            "AND fecha <= ? ORDER BY fecha, sku, sucursal_id", (fecha, fecha))]
         fechas = self.fechas(hasta=fecha)
         historia = [carga.resumen(self.tablero(f), f) for f in fechas]
         anterior, seg = self.seguimiento(fecha)
@@ -202,11 +209,7 @@ class Base:
         """Una hoja del Excel de esa fecha, reconstruida desde la base (mismas columnas y filas, en su orden)."""
         tabla, cols = HOJAS[hoja]
         nombres = [c for c, _ in cols]
-        if tabla == "ventas":                               # las ventas del período que trajo ese Excel
-            desde = self.sql("SELECT ventas_desde FROM cargas WHERE fecha_datos = ?", (fecha,))[0][0]
-            filas = self.sql(f"SELECT {', '.join(nombres)} FROM ventas WHERE fecha BETWEEN ? AND ? ORDER BY fecha, sku, sucursal_id", (desde, fecha))
-        else:
-            filas = self.sql(f"SELECT {', '.join(nombres)} FROM {tabla} WHERE fecha_datos = ? ORDER BY fila", (fecha,))
+        filas = self.sql(f"SELECT {', '.join(nombres)} FROM {tabla} WHERE fecha_datos = ? ORDER BY fila", (fecha,))
         d = pd.DataFrame(filas, columns=nombres)
         for c, k in cols:                                   # enteros como enteros (la base puede guardarlos como número real)
             v = d[c].dropna()
@@ -245,7 +248,8 @@ class Base:
                 "nuestro", "u_sem_base", "meta_u_sem", "stock", "precio"]
         dec = pd.DataFrame(self.sql("SELECT * FROM decisiones WHERE fecha_datos < ?", (actual,)), columns=cols)
         por_excel = [(f, dec[dec.fecha_datos == f].to_dict("records")) for f in previas]
-        v = pd.DataFrame(self.sql("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha <= ?", (actual,)),
+        v = pd.DataFrame(self.sql("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha_datos = ? AND fecha <= ?",
+                                  (actual, actual)),
                          columns=["fecha", "sku", "sucursal_id", "unidades", "precio_unitario"])
         stock = dict(self.sql("SELECT sku, SUM(unidades) FROM lotes WHERE fecha_datos = ? GROUP BY sku", (actual,)))
         nuevas = dict(self.sql("SELECT sku, accion FROM decisiones WHERE fecha_datos = ?", (actual,)))

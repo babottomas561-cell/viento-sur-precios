@@ -48,7 +48,7 @@ Con lo que pasó antes con el mismo descuento (mismo tipo y mismo %), descontado
 | Zapatilla del rio 12 | 10 % | Zapatilla del valle 1 | +28 % | +$ 9.263 / +$ 46.977 / +$ 94.977 |
 | Mochila de la costa 14 | 20 % | Mochila de la estepa 8 | +111 % | −$ 28.248 / −$ 23.863 / −$ 18.808 |
 
-**En 30 días**: 23 → 32,0 u (entre 27,0 y 38,7) y −$ 11.736 de margen (entre −$ 79.819 y +$ 74.006); sumando el mes siguiente, entre −$ 77.707 y +$ 50.055. El descuento mueve poco: el stock quieto sale sobre todo por las otras acciones. La escalera no tiene efecto estimado (arriba de 20 % no hay evidencia): cada escalón se mide.
+**En 30 días**: 23 → 32,0 u (entre 27,0 y 38,7) y −$ 11.736 de margen (entre −$ 79.819 y +$ 74.006); sumando el mes siguiente, entre −$ 77.707 y +$ 50.055. Son 9 u más en 30 días, sobre 480 u en stock de esos productos: el stock quieto sale sobre todo por las otras acciones. La escalera no tiene efecto estimado (arriba de 20 % no hay evidencia): cada escalón se mide.
 
 **Bota de la niebla 18 y Mochila de la costa 14 pierden margen en 30 días aun en la mejor sucursal**, y se prueban igual: Bota de la niebla 18 tiene el 100 % del stock vencido y al ritmo de hoy tardaría 25 meses en venderlo; Mochila de la costa 14 tiene el 74 % del stock vencido y al ritmo de hoy tardaría 18 meses en venderlo. La cuenta de 30 días supone que lo que no se vende ahora se vende después a precio de lista, y con ese stock no pasa: termina en devolución u outlet, sin margen. Por eso la prueba tiene meta y fecha, y si no llega se corta.
 

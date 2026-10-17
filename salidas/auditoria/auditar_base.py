@@ -1,7 +1,7 @@
 """Auditoría de la base: reconstruye las 8 hojas de cada Excel desde la base SQL y las compara, celda por celda, con el Excel original.
 
 Si todo coincide, la base es fiel al archivo: calcular desde la base da lo mismo que calcular desde el Excel.
-Compara cada hoja con sus mismas columnas y filas en el mismo orden (las ventas, ordenadas por fecha, producto y sucursal);
+Compara cada hoja con sus mismas columnas y filas en el mismo orden;
 las fechas como AAAA-MM-DD y los números por su valor (65100 y 65100.0 son lo mismo).
 
 Uso:  python salidas/auditoria/auditar_base.py                               -> la base local (datos/viento_sur.db) contra datos/viento_sur.xlsx
@@ -42,8 +42,6 @@ for hoja, (tabla, cols) in HOJAS.items():
     if list(x.columns) != nombres:
         fallas.append(f"{hoja}: columnas del Excel {list(x.columns)} ≠ tabla {nombres}")
         continue
-    if hoja == "ventas":
-        x = x.assign(_f=pd.to_datetime(x.fecha).dt.strftime("%Y-%m-%d")).sort_values(["_f", "sku", "sucursal_id"]).drop(columns="_f")
     if len(x) != len(y):
         fallas.append(f"{hoja}: {len(x)} filas en el Excel, {len(y)} en la base")
         continue

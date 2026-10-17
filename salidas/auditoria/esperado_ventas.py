@@ -5,14 +5,16 @@ y medida (unidades, pesos), arma lo que tendría que dibujar el tablero:
   serie         los 12 principales (8 si se abre por producto) por la medida elegida, más "Resto", en cada período
   participacion % de las unidades y % de los pesos de los 15 principales
   ranking       los 15 productos que más venden por la medida elegida
-Las semanas arrancan en la fecha "desde" (como en el tablero). Uso: python salidas/auditoria/esperado_ventas.py
+Las semanas arrancan en la fecha "desde" (como en el tablero).
+Uso: python salidas/auditoria/esperado_ventas.py [datos.xlsx] [tablero_datos.json] [salida.json]  (por defecto, la consigna)
 """
 import json
+import sys
 
 import pandas as pd
 
-x = pd.read_excel("datos/viento_sur.xlsx", sheet_name=None)
-T = json.load(open("salidas/tablero_datos.json"))
+x = pd.read_excel(sys.argv[1] if len(sys.argv) > 1 else "datos/viento_sur.xlsx", sheet_name=None)
+T = json.load(open(sys.argv[2] if len(sys.argv) > 2 else "salidas/tablero_datos.json"))
 prod = x["productos"].set_index("sku")
 suc = x["sucursales"].set_index("sucursal_id").nombre
 st = x["stock_sucursal"]
@@ -93,5 +95,5 @@ for nombre, f in ESC.items():
         rk = V.groupby("sku")[col].sum().sort_index().sort_values(ascending=False, kind="stable").head(15)
         res[f"rank|{med}"] = {prod.nombre[s]: float(v) for s, v in rk.items()}
     out[nombre] = dict(filtros=f, **res)
-json.dump(out, open("salidas/auditoria/esperado_ventas.json", "w"), ensure_ascii=False)
+json.dump(out, open(sys.argv[3] if len(sys.argv) > 3 else "salidas/auditoria/esperado_ventas.json", "w"), ensure_ascii=False)
 print(f"{len(out)} combinaciones · {sum(len(v) - 1 for v in out.values())} gráficos esperados")

@@ -340,6 +340,8 @@ const veredictoDesc = (r, lo, hi, firme, debil) => firme || lo > 1 ? ["suba clar
   : hi < 1 ? ["bajó: el descuento no ayudó", "var(--bad)"] : ["puede ser casualidad", "var(--muted)"];
 const listaY = xs => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : xs.join("");
 const deA = x => `de ${fmt(x.u_sin, 1)} a ${fmt(x.u_con, 1)} u por día (${sgn(x.respuesta - 1)}, ${veredictoDesc(x.respuesta, x.bajo, x.alto, x.firme, x.debil)[0]})`;
+const uDiaLocal = () => { const xs = (D.evidencia_suc || []).flatMap(x => [x.u_sin, x.u_con]).filter(x => x > 0);
+  const a = Math.max(1, Math.round(Math.min(...xs))), b = Math.max(a, Math.round(Math.max(...xs))); return a === b ? `${a}` : `${a} a ${b}`; };
 const evidSuc = () => (D.evidencia_suc || []).filter(x => !S.suc || x.suc === S.suc);
 function svgPorSucursal(tipos) {
   // ¿El descuento vendió más en cada local? Por cada tipo, en unidades por día: barra gris = sin descuento, barra de color = con
@@ -450,8 +452,11 @@ function vistaDecision(main) {
         <ul class="barra-leyenda">${porCausa.map(c => `<li><i class="${c.id === "precio" ? "es-precio" : ""}"></i><b>${esc(c.nombre)}</b> ${fmt(c.stock)} u · ${pct(c.stock / (stock || 1))}</li>`).join("")}</ul>
         ${(() => { const mayor = [...porCausa].sort((a, b) => b.stock - a.stock)[0];
           return interp(`La barra es todo el stock (${fmt(stock)} u) partido según por qué no se vende. En azul, la parte donde el precio puede ser la causa. Tocá una parte para ver sus productos.`,
-            `${enPrecio ? `Solo ${deCien} de cada 100 unidades están donde el precio puede ser la causa.` : "Ninguna unidad está donde el precio pueda ser la causa."} La causa con más stock es <b>${esc(mayor.nombre)}</b> (${pct(mayor.stock / (stock || 1))}).`,
-            "Un descuento general no ataca la mayor parte del problema: cada causa tiene su propia solución, explicada en las tarjetas de abajo."); })()}
+            `${!enPrecio ? "Ninguna unidad está donde el precio pueda ser la causa." : mayor.id === "precio"
+              ? `${deCien} de cada 100 unidades están donde el precio puede ser la causa: es la causa con más stock, pero ${100 - deCien} de cada 100 tienen otra.`
+              : `${deCien < 50 ? "Solo " : ""}${deCien} de cada 100 unidades están donde el precio puede ser la causa. La causa con más stock es <b>${esc(mayor.nombre)}</b> (${pct(mayor.stock / (stock || 1))}).`}`,
+            deCien < 50 ? "Un descuento general no ataca la mayor parte del problema: cada causa tiene su propia solución, explicada en las tarjetas de abajo."
+              : "Más de la mitad del stock está donde el precio puede ser la causa: ahí se prueba el descuento, con fechas y medido. El resto necesita su propia solución (tarjetas de abajo)."); })()}
         ${cifras}
       </div>`;
     s1.querySelectorAll(".seg").forEach(b => b.addEventListener("click", () => cambiar({ tab: "productos", causa: b.dataset.k, grupo: "", sku: "" }, true)));
@@ -597,7 +602,7 @@ function vistaDecision(main) {
     <div><h3>¿En qué tipos un descuento mueve la venta?</h3>
       ${svgEvidencia()}
       ${interp(`Los ${D.evidencia.length} descuentos que se cobraron (${D.vigencia}), uno por tipo. El punto es cuánto más vendió por día con descuento; la línea, su margen de error (entre qué valores puede estar el cambio real). Verde: suba clara; ámbar: subió, pero puede ser casualidad; gris: el cambio entra en el margen de error. La franja es lo que hicieron los productos sin cambios.`,
-        `${evFirmes.length ? `<b>${mayus(evFirmes.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`).join(" y "))}</b> responden claro.` : "Ningún tipo responde claro."} ${evDebil.length ? `${mayus(evDebil.map(e => tipoTxt(e.tipo)).join(" y "))}: subió, pero puede ser casualidad.` : ""} En los otros ${D.evidencia.length - evFirmes.length - evDebil.length}, la diferencia el cambio entra en el margen de error.`,
+        `${evFirmes.length ? `<b>${mayus(evFirmes.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`).join(" y "))}</b> responden claro.` : "Ningún tipo responde claro."} ${evDebil.length ? `${mayus(evDebil.map(e => tipoTxt(e.tipo)).join(" y "))}: subió, pero puede ser casualidad.` : ""}${D.evidencia.length - evFirmes.length - evDebil.length ? ` En los otros ${D.evidencia.length - evFirmes.length - evDebil.length}, el cambio entra en el margen de error.` : ""}`,
         "Solo esos tipos pueden tener descuento, y siempre a prueba. El detalle está en la pestaña Descuentos.")}</div></div>`);
   s3.append(b3b);
   b3b.append(verDatos("Evidencia por tipo", [
@@ -614,12 +619,15 @@ function vistaDecision(main) {
       <span class="pista"><i style="width:${100 * v.stock / mxv}%;background:${/^Descuento/.test(v.via) ? "var(--good)" : "var(--accent)"}"></i></span>
       <span class="num r">${fmt(v.stock)} u</span></div>`).join("")}</div>
       ${interp("Cada barra es el stock que sale por una vía: la acción principal de cada producto (cada producto está en una sola). En verde, las vías con descuento.",
-        `Solo el <b>${pct(viaDesc / (stock || 1))}</b> del stock está en productos con descuento. Las vías más grandes son ${sinPrecio.slice(0, 2).map(v => `${esc(v.via.toLowerCase())} (${fmt(v.stock)} u)`).join(" y ")}.`,
-        "El stock quieto se mueve sobre todo sin tocar el precio: reponiendo, moviendo, exhibiendo, devolviendo o negociando.")}</div>
+        `${viaDesc / (stock || 1) < 0.5 ? "Solo el" : "El"} <b>${pct(viaDesc / (stock || 1))}</b> del stock está en productos con descuento. Las vías más grandes son ${sinPrecio.slice(0, 2).map(v => `${esc(v.via.toLowerCase())} (${fmt(v.stock)} u)`).join(" y ")}.`,
+        viaDesc / (stock || 1) < 0.5 ? "El stock quieto se mueve sobre todo sin tocar el precio: reponiendo, moviendo, exhibiendo, devolviendo o negociando."
+          : "Más de la mitad del stock sale por descuentos: por eso cada uno es una prueba con meta y fecha, y se corta si no funciona.")}</div>
     <div><h3>Los descuentos de ahora: margen en 2 meses contra no tocar el precio</h3>${E.length ? `<div class="graf bajo"><canvas id="g-efecto"></canvas></div>
       ${interp("Cada producto con descuento ahora, en tres escenarios: si responde como la peor sucursal, como todas juntas o como la mejor, según lo que pasó antes con el mismo descuento (mismo tipo y mismo %). La barra es el margen en 2 meses (4 semanas con descuento y el mes siguiente) contra no tocar el precio: hacia la izquierda, cuesta más de lo que suma.",
         `Venden de ${fmt(uB)} a ${fmt(uE, 1)} unidades por mes entre los ${E.length}. En margen, entre <b>${plataS(mPeor - mB)}</b> y <b>${plataS(mMejor - mB)}</b> en total (${plataS(mE - mB)} si responden como todas juntas). ${E.filter(e => e.escenarios.every(x => x.dif < 0)).length} pierden margen en los tres escenarios.`,
-        "El descuento mueve poco y puede costar margen: por eso es una prueba de 4 semanas, medida contra una sucursal sin descuento, que se corta si no funciona.")}` : `<p class="nota">Ninguno de los productos filtrados tiene descuento ahora.</p>`}</div></div>`);
+        mE - mB < 0 ? "Si responden como todas juntas, los descuentos cuestan margen: mueven poco. Por eso son una prueba de 4 semanas, medida contra una sucursal sin descuento, que se corta si no funciona."
+          : mPeor - mB < 0 ? "En el escenario del medio suman margen, pero en el peor lo pierden: por eso son una prueba de 4 semanas, medida contra una sucursal sin descuento, que se corta si no funciona."
+          : "Aun en el peor escenario suman margen. Igual se prueban 4 semanas contra una sucursal sin descuento: la evidencia es de productos que venden bien.")}` : `<p class="nota">Ninguno de los productos filtrados tiene descuento ahora.</p>`}</div></div>`);
   s4.append(b4);
   main.append(s4);
   if (E.length) grafico($("#g-efecto"), {
@@ -886,9 +894,12 @@ function vistaFicha(main, sku) {
         !L.length ? "No tiene stock con estos filtros." : `${uPorSuc.map(([s, u]) => `${s}: ${fmt(u)} u`).join("; ")} en el período. ${noVende.length && vendeEn.length ? `<b>En ${noVende.join(", ")} no vendió nada.</b>` : vendeEn.length ? "Vende en todos sus locales." : "<b>No vendió en ningún local.</b>"}`,
         noVende.length && vendeEn.length ? "Un local con stock y sin ventas es candidato a mover unidades a donde sí se venden, o a revisar la exhibición." : noVende.length ? "Si no vende en ningún local, la primera pregunta es si está a la vista (o si existe: contar el stock)." : "")}</div>
     <div><h3>Stock día a día</h3><div class="graf"><canvas id="g-stock"></canvas></div>
-      ${interp(`El stock de cada local, día a día. Se reconstruye hacia atrás desde el stock del ${D.foto}: supone que no hubo reposiciones ni transferencias.`,
+      ${interp(`El stock de cada local, día a día. Se reconstruye hacia atrás desde el stock del ${D.foto}: supone que no hubo reposiciones ni transferencias${SIMULADAS.has(D.foto_iso) ? " (en estos datos simulados sí las hubo después del 15/03)" : ""}.`,
         LC.length ? `Al ${fechaAR(S.hasta)}: ${LC.map(l => `${l.suc} ${fmt(l.unidades)} u`).join("; ")}.` : "",
-        "Una línea que no baja es stock que no se está moviendo.")}</div></div>
+        (() => { const sin = LC.filter(l => l.unidades === 0), quietos = LC.filter(l => l.unidades > 0 && !l.v30);
+          return sin.length ? `En ${listaY(sin.map(l => l.suc))} se quedó sin stock: hay que reponer o mover unidades desde otro local.`
+            : quietos.length === LC.length && LC.length ? "La línea no baja: es stock que no se está moviendo (nada vendido en 30 días)."
+            : quietos.length ? `En ${listaY(quietos.map(l => l.suc))} la línea no baja: stock que no se está moviendo.` : "El stock baja en todos sus locales: se está vendiendo."; })())}</div></div>
     <h3>Indicadores en cada sucursal${fechasCambiadas() ? ` al ${fechaAR(S.hasta)}` : ""}</h3>
     <div class="tabla-wrap densa">${tablaHTML(COLS_INDICADORES.filter(c => !["producto", "n"].includes(c.k)).map(c => c.k === "suc" ? { ...c, f: v => `<b>${v}</b> <span class="muted">${esc(NOM_SUC[v])}</span>` } : c), LC)}</div>
     ${interp("Los indicadores de cada local con las mismas cuentas del Excel: ritmo del lote, vendidas, stock y días de stock al ritmo del último mes.",
@@ -966,8 +977,9 @@ function vistaSeguimiento(main) {
     const cambiaron = SG.filter(r => r.accion_nueva && r.accion_nueva !== r.accion);
     const h0 = H[0], hN = H[H.length - 1];
     const desdes = [...new Set(SG.map(r => r.desde))].sort();
-    const esDemo = H.every(h => h.fecha <= "2026-03-15");
-    s0.append(bloque(`${esDemo ? `<div class="aviso-foto" role="note"><b>Antes de leer:</b> esta base es una demostración. Los datos ${H.slice(0, -1).map(h => `al ${fechaAR(h.fecha)}`).join(" y ")} son recortes del mismo Excel de la consigna: nadie aplicó esas recomendaciones. Lo que sigue muestra <b>cómo funciona la medición</b>, no el efecto de la propuesta. Con un Excel nuevo cada semana, se ve si lo recomendado se hizo y si funcionó.</div>` : ""}
+    const esDemo = H.every(h => h.fecha <= "2026-03-15"), esSimulada = H.some(h => SIMULADAS.has(h.fecha));
+    s0.append(bloque(`${esDemo ? `<div class="aviso-foto" role="note"><b>Antes de leer:</b> esta base es una demostración. Los datos ${H.slice(0, -1).map(h => `al ${fechaAR(h.fecha)}`).join(" y ")} son recortes del mismo Excel de la consigna: nadie aplicó esas recomendaciones. Lo que sigue muestra <b>cómo funciona la medición</b>, no el efecto de la propuesta. Con un Excel nuevo cada semana, se ve si lo recomendado se hizo y si funcionó.</div>`
+      : esSimulada ? `<div class="aviso-foto" role="note"><b>Antes de leer:</b> los datos posteriores al 15/03/2026 (${H.filter(h => SIMULADAS.has(h.fecha)).map(h => fechaAR(h.fecha)).join(", ")}) son <b>simulados</b>: ventas inventadas a partir del Excel de la consigna, con algunas recomendaciones aplicadas en los locales y otras no. Lo que sigue muestra <b>cómo funciona el seguimiento</b> de la propuesta, no si funciona.</div>` : ""}
       <div class="respuesta"><ol>
       <li><b>Qué se mide</b><p>Cada recomendación tiene una regla simple que se comprueba con las ventas, según lo que se propuso (columna "qué tiene que pasar" de la tabla). Se mide desde el Excel en que se recomendó (datos al ${desdes.map(fechaAR).join(" o al ")}) hasta los datos al ${D.foto}, sumando las sucursales.</p></li>
       <li><b>Ya llegaron a su revisión</b><p>${yaRev.length ? `${yaRev.length} de ${SG.length}: <b>cumplieron ${cR.si}</b>, no cumplieron ${cR.no}${cR.fuera ? ` y ${cR.fuera} se confirman fuera de las ventas` : ""}.` : "Ninguna llegó todavía a su fecha de revisión."}</p></li>
@@ -1175,6 +1187,16 @@ const ritmoObj = l => l.ritmo_objetivo;
 const ritmoReal = l => l.ritmo_real;
 
 // ---------------------------------------------------------------------------------------------- vista: Ventas
+// Cuándo hubo ventas por debajo del precio de lista (en tramos), y si las campañas cargadas se ven en el precio cobrado
+function tramosRebaja(V) {
+  const dias = [...new Set(V.filter(v => v.precio < listaVigente(v.sku, v.fecha) - 0.5).map(v => v.fecha))].sort();
+  const tramos = [];
+  dias.forEach(d => { const t = tramos.at(-1); if (t && difDias(t[1], d) <= 7) t[1] = d; else tramos.push([d, d]); });
+  const txt = tramos.length ? `Hubo ventas con rebaja ${listaY(tramos.map(([a, b]) => a === b ? `el ${fechaAR(a)}` : `del ${fechaAR(a)} al ${fechaAR(b)}`))}` : "En este período no hubo ventas con rebaja";
+  const enCamp = D.campanas.filter(c => V.some(v => v.sku === c.sku && v.fecha >= c.desde && v.fecha <= c.hasta));
+  const campReb = enCamp.filter(c => V.some(v => v.sku === c.sku && v.fecha >= c.desde && v.fecha <= c.hasta && v.precio < listaVigente(v.sku, v.fecha) - 0.5));
+  return `${txt}.${enCamp.length ? campReb.length ? ` ${campReb.length} de las ${enCamp.length} campañas con ventas en el período se ven en el precio cobrado.` : " Las campañas cargadas no se ven en el precio cobrado." : ""}`;
+}
 function vistaVentas(main) {
   const P = prodsFiltrados(), skus = P.map(p => p.sku);
   const V = ventasDe(skus);
@@ -1209,8 +1231,8 @@ function vistaVentas(main) {
   const iPico = totSerie.indexOf(Math.max(...totSerie)), fmtM = v => S.med === "p" ? plata(v) : `${fmt(v)} u`;
   const b1 = bloque(`<h3>${nomMed[0].toUpperCase() + nomMed.slice(1)} por ${GRANOS[S.gran][0]}, por ${nomPor.toLowerCase()}</h3><div class="graf alto"><canvas id="g-serie"></canvas></div>
     ${interp(`Cada línea es ${UNA[S.por] || "una apertura"}: ${nomMed} vendidas por ${GRANOS[S.gran][0]}${resto ? `. Se muestran los ${claves.length} que más venden y el resto junto` : ""}.${S.gran === "sem" ? " La última semana puede estar incompleta." : ""}`,
-      `En total, ${fmtM(suma(totSerie, v => v))}. ${PICO[S.gran][0]} de más venta fue ${PICO[S.gran][1]} ${GRANOS[S.gran][2](ejes[iPico])} (${fmtM(totSerie[iPico])}).${completas.length > 2 ? ` Del primer ${GRANOS[S.gran][0]} completo al último: ${fmtM(completas[0])} → ${fmtM(completas.at(-1))}.` : ""}`,
-      `Sirve para ver si la venta sube o baja y si un cambio se nota. Los descuentos que se cobraron fueron ${D.vigencia}; las campañas cargadas no se ven en el precio cobrado.`)}`);
+      `En total, ${fmtM(suma(totSerie, v => v))}. ${PICO[S.gran][0]} de más venta fue ${PICO[S.gran][1]} ${GRANOS[S.gran][2](ejes[iPico])} (${fmtM(totSerie[iPico])}).${completas.length > 2 ? ` ${S.gran === "sem" ? "De la primera semana completa a la última" : `Del primer ${GRANOS[S.gran][0]} completo al último`}: ${fmtM(completas[0])} → ${fmtM(completas.at(-1))}.` : ""}`,
+      `Sirve para ver si la venta sube o baja y si un cambio se nota. ${tramosRebaja(V)}`)}`);
   s.append(b1);
   grafico($("#g-serie", b1), {
     type: "line",
@@ -1292,7 +1314,7 @@ function vistaStock(main) {
   const L = lotesAlCorte(skus);                         // al corte de la fecha "hasta"
   const [nomPor, claveF, etiqF] = APERTURAS[S.por] || APERTURAS.suc;
   const stock = suma(L, l => l.unidades), vend = suma(L, l => l.vendidas), venc = suma(L.filter(l => l.vencido === "sí"), l => l.unidades);
-  const s = seccion("Stock y rotación", `Qué se movió y qué quedó quieto.${notaCorte()} El stock de cada día se reconstruye hacia atrás desde el stock del ${D.foto} (supone que no hubo reposiciones ni transferencias).`);
+  const s = seccion("Stock y rotación", `Qué se movió y qué quedó quieto.${notaCorte()} El stock de cada día se reconstruye hacia atrás desde el stock del ${D.foto} (supone que no hubo reposiciones ni transferencias).${SIMULADAS.has(D.foto_iso) ? " <b>En estos datos simulados sí hubo reposiciones después del 15/03: en esas semanas el stock reconstruido aparece más alto de lo que fue.</b>" : ""}`);
   s.append(controles([["por", "Abrir por (gráfico de stock y rotación)", OPC_POR]]));
   const corte = fechaAR(S.hasta), periodo = fechasCambiadas() ? "en el período" : "desde el inicio de la ventana";
   s.append(bloque(cifrasHTML([[fmt(stock) + " u", `en stock al ${corte} · ${plata(suma(L, l => l.unidades * CAT[l.sku].costo))} a costo`], [pct(vend / (vend + stock || 1)), `vendido de lo que había (${periodo})`],
@@ -1504,11 +1526,11 @@ function vistaDescuentos(main) {
   const N = RD.netos.filter(n => skusC.has(n.sku));
   const A = aceptadasEnCaja(set);
   const fechasActivas = S.desde !== DEF.desde || S.hasta !== DEF.hasta;
-  const tramos = `Antes = ${fechaAR(RD.inicio)} al ${fechaAR(masDias(RD.desde, -1))} (${RD.dias.antes} días) · durante = ${fechaAR(RD.desde)} al ${fechaAR(RD.hasta)} (${RD.dias.durante} días) · después = ${fechaAR(masDias(RD.hasta, 1))} al ${fechaAR(RD.foto)} (${RD.dias["después"]} días)`;
+  const tramos = `Antes = ${fechaAR(RD.inicio)} al ${fechaAR(masDias(RD.desde, -1))} (${RD.dias.antes} días) · durante = ${fechaAR(RD.desde)} al ${fechaAR(RD.hasta)} (${RD.dias.durante} días) · después = ${fechaAR(masDias(RD.hasta, 1))} al ${fechaAR(RD.fin || RD.foto)} (${RD.dias["después"]} días: el mes siguiente)`;
   const netoM = suma(N, n => Math.round(n.m_dur) + Math.round(n.m_desp));
   const adel = N.filter(n => n.extra_dur > 0 && n.extra_desp < 0), ganaron = N.filter(n => n.m_dur + n.m_desp > 0);
   const porEstado = agrupar(A, a => a.estado), cuantos = e => (porEstado[e] || []).length;
-  const verif = A.length - cuantos(ESTADOS_CAJA[3]);
+  const verif = cuantos(ESTADOS_CAJA[0]) + cuantos(ESTADOS_CAJA[1]);          // se pueden verificar: las que tuvieron ventas en su ventana
   const EV = D.evidencia, firmes = EV.filter(e => e.firme), debiles = EV.filter(e => !e.firme && e.debil), nada = EV.filter(e => !e.firme && !e.debil);
   const lista = xs => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : xs.join("");
 
@@ -1574,7 +1596,7 @@ function vistaDescuentos(main) {
     const bS = bloque(`${svgPorSucursal(EV)}
       ${interp("Para cada tipo que tuvo un descuento cobrado en más de un local: cuántas unidades por día vendía sin descuento (gris) y cuántas con descuento (oscura), primero sumando sus locales y después local por local. A la derecha, el cambio y si es una suba clara o puede ser casualidad (con tan pocas unidades por día, una suba chica entra en el margen de error).",
         `De las ${ES.length} mediciones local por local (un producto descontado en un local), la venta subió claro en ${clarasS.length}${clarasS.length ? `: ${lista(clarasS.map(x => `${tipoTxt(x.tipo)} en ${x.suc} (${deA(x).replace(/ \(.*/, "")})`))}` : ""}. ${concentra.length ? `En los tipos que responden, la suba se concentra en un local: ${concentra.join("; ")}.` : ""} ${sueltas.length ? `${mayus(lista(sueltas.map(x => `${tipoTxt(x.tipo)} subió claro en ${x.suc}`)))}, pero en el total del tipo el cambio entra en el margen de error.` : ""}`,
-        "Con 1 a 3 unidades por día por local, la diferencia entre sucursales todavía puede ser casualidad, así que la decisión usa el total del tipo. Pero muestra por qué cada prueba se mide por sucursal y con una sucursal de comparación: el mismo descuento puede funcionar en un local y no en otro.")}`);
+        `Con ${uDiaLocal()} unidades por día por local, la diferencia entre sucursales todavía puede ser casualidad, así que la decisión usa el total del tipo. Pero muestra por qué cada prueba se mide por sucursal y con una sucursal de comparación: el mismo descuento puede funcionar en un local y no en otro.`)}`);
     bS.append(verDatos("Respuesta al descuento por sucursal", colsES, ES, "evidencia_por_sucursal"));
     sS.append(bS);
     main.append(sS);
@@ -1629,12 +1651,15 @@ function vistaDescuentos(main) {
     const uDur = suma(filasN, r => r.extra_dur), uDesp = suma(filasN, r => r.extra_desp);
     const b4 = bloque(`<div class="dos"><div><h3>Margen contra seguir igual</h3><div class="graf" style="height:${altoN}px"><canvas id="g-netos"></canvas></div>
         ${interp(`Cada barra compara contra seguir vendiendo como antes. Hacia la derecha, ganó margen; hacia la izquierda, perdió. Azul: el mes del descuento; ámbar: el mes siguiente. Suma todas las sucursales del producto${S.suc ? `, no solo ${S.suc}` : ""}.`,
-          `<b>${ganaron.length ? `${N.length - ganaron.length} de ${N.length} perdieron margen` : `Los ${N.length} perdieron margen`}</b>: ${plataS(netoM)} en total. ${ganaron.length ? `Solo ganó ${lista(ganaron.map(n => esc(n.producto)))}.` : ""} El que más perdió: ${esc(peor.producto)} (${plataS(peor.neto_m)}).`,
-          "Vender más no alcanza: cada unidad con descuento deja menos margen, y hay que vender muchas más para compensar.")}</div>
+          `<b>${ganaron.length ? `${N.length - ganaron.length} de ${N.length} perdieron margen` : `Los ${N.length} perdieron margen`}</b>: ${plataS(netoM)} en total. ${ganaron.length ? `Solo ${ganaron.length === 1 ? "ganó" : "ganaron"} ${lista(ganaron.map(n => esc(n.producto)))}.` : ""} El que más perdió: ${esc(peor.producto)} (${plataS(peor.neto_m)}).`,
+          netoM < 0 ? "Vender más no alcanza: cada unidad con descuento deja menos margen, y hay que vender muchas más para compensar."
+            : "En total ganaron margen: la venta extra compensó lo que se dejó de cobrar. Igual conviene medir cada producto, porque no todos ganaron.")}</div>
       <div><h3>Unidades de más y de menos</h3><div class="graf" style="height:${altoN}px"><canvas id="g-netos-u"></canvas></div>
         ${interp("Las mismas barras, en unidades: cuántas se vendieron de más (o de menos) contra seguir como antes.",
           `Durante el descuento se vendieron ${fmt(Math.abs(uDur))} unidades ${uDur >= 0 ? "de más" : "de menos"}; el mes siguiente, ${fmt(Math.abs(uDesp))} ${uDesp >= 0 ? "de más" : "de menos"}. En total, ${fmt(Math.abs(uDur + uDesp))} ${uDur + uDesp >= 0 ? "de más" : "de menos"} que sin descuento.`,
-          "El descuento sí mueve unidades, pero se paga caro: las unidades extra no compensan lo que se deja de cobrar en todas las demás.")}</div></div>`);
+          uDur + uDesp > 0 && netoM < 0 ? "El descuento sí mueve unidades, pero se paga caro: las unidades extra no compensan lo que se deja de cobrar en todas las demás."
+            : uDur + uDesp <= 0 ? "Sumando el mes siguiente no se vendió más que sin descuento: lo vendido de más eran compras adelantadas."
+            : "El descuento mueve unidades y, en total, también margen.")}</div></div>`);
     b4.append(tablaAuditable(colsN, filasN, "descuentos_netos", { alto: 420, clic: sku => cambiar({ tab: "productos", sku }, true), claveClic: "sku" }));
     b4.insertAdjacentHTML("beforeend", interp(`Una fila por producto. "Lo perdido después ÷ lo ganado durante" dice qué parte de las unidades vendidas de más se dejaron de vender el mes siguiente: 100 % o más quiere decir que, sumando los dos meses, no vendió más que sin descuento.`,
       devolvieron.length ? `En ${lista(devolvieron.map(r => `${esc(r.producto)} (${pct(r.devuelto)})`))}, el mes siguiente se perdió todo lo ganado o más.` : "Ningún producto perdió después todo lo que ganó durante.",
@@ -1666,9 +1691,13 @@ function vistaDescuentos(main) {
     : `<div class="vacio">Ningún producto filtrado tiene sugerencias aceptadas.</div>`);
   if (A.length) b6.append(tablaAuditable(colsA, A, "aceptadas_vs_caja", { alto: 460, clic: sku => cambiar({ tab: "productos", sku }, true), claveClic: "sku" }));
   if (A.length) b6.insertAdjacentHTML("beforeend", interp(`Cada fila es una sugerencia aceptada${S.suc ? ` (en ${S.suc})` : ""}. Con fechas de vigencia se mira esa vigencia; sin fechas, las 4 semanas siguientes. "Llegó a caja" = se cobró al menos la mitad del descuento aceptado. Las ventas empiezan el ${fechaAR(F_MIN)}: lo anterior no se puede verificar.`,
-    verif ? (() => { const llego = A.filter(a => a.estado === ESTADOS_CAJA[0]), sinF = A.filter(a => a.con_fechas === "no" && a.estado !== ESTADOS_CAJA[3]);
-      return `De las ${verif} que se pueden verificar, <b>${cuantos(ESTADOS_CAJA[0])} se cobraron</b>, ${cuantos(ESTADOS_CAJA[1])} no se ven en el precio cobrado${cuantos(ESTADOS_CAJA[2]) ? ` y ${cuantos(ESTADOS_CAJA[2])} no tuvo ventas en esas fechas` : ""}. De las que se cobraron, ${llego.filter(a => a.con_fechas === "sí").length} de ${llego.length} tenían fechas de vigencia; de las ${sinF.length} sin fechas, se cobraron ${sinF.filter(a => a.estado === ESTADOS_CAJA[0]).length}.`; })() : "Ninguna se puede verificar con las ventas que tenemos.",
-    "Aprobar un descuento no alcanza: si no tiene fechas, no llega al precio y no se puede medir. Por eso la propuesta pide cobrar lo aprobado, con fechas, antes de aprobar otra cosa."));
+    verif ? (() => { const llego = A.filter(a => a.estado === ESTADOS_CAJA[0]), sinF = A.filter(a => a.con_fechas === "no" && (a.estado === ESTADOS_CAJA[0] || a.estado === ESTADOS_CAJA[1]));
+      return `De las ${verif} que se pueden verificar (tuvieron ventas en esas fechas), <b>${cuantos(ESTADOS_CAJA[0])} se cobraron</b> y ${cuantos(ESTADOS_CAJA[1])} no se ven en el precio cobrado.${cuantos(ESTADOS_CAJA[2]) ? ` ${cuantos(ESTADOS_CAJA[2])} más no ${cuantos(ESTADOS_CAJA[2]) === 1 ? "tuvo" : "tuvieron"} ventas en esas fechas: no se puede saber.` : ""} De las que se cobraron, ${llego.filter(a => a.con_fechas === "sí").length} de ${llego.length} tenían fechas de vigencia; de las ${sinF.length} sin fechas, se cobraron ${sinF.filter(a => a.estado === ESTADOS_CAJA[0]).length}.`; })() : "Ninguna se puede verificar con las ventas que tenemos.",
+    (() => { const sinF = A.filter(a => a.con_fechas === "no" && (a.estado === ESTADOS_CAJA[0] || a.estado === ESTADOS_CAJA[1])), conF = A.filter(a => a.con_fechas === "sí" && (a.estado === ESTADOS_CAJA[0] || a.estado === ESTADOS_CAJA[1]));
+      const tasa = xs => xs.length ? xs.filter(a => a.estado === ESTADOS_CAJA[0]).length / xs.length : null;
+      return tasa(sinF) !== null && tasa(conF) !== null && tasa(sinF) < tasa(conF) / 2
+        ? "Aprobar un descuento no alcanza: sin fechas casi nunca llega al precio, y lo que no se cobra no se puede medir. Por eso la propuesta pide cobrar lo aprobado, con fechas, antes de aprobar otra cosa."
+        : "Lo que no llega a caja no se puede medir: por eso cada descuento de la propuesta va con fechas y se controla el precio cobrado."; })()));
   s6.append(b6);
   main.append(s6);
 
@@ -1691,7 +1720,7 @@ function vistaDescuentos(main) {
     const b2 = bloque(`<div class="graf" data-casos="${C.length}" style="height:${Math.max(200, 28 * (C.length + 1) + 70)}px"><canvas id="g-casos"></canvas></div>
       ${interp(`Cada fila es un producto en un local. El punto es cuánto cambió la venta por día durante el descuento contra <b>antes</b> (no contra toda la ventana, por eso los números no son iguales a los del punto 1); la barra, su margen de error. Verde: no toca el 0 %. ${tramos}.`,
         `${firmesC.length} de ${C.length} casos suben de forma clara. ${mixtos.length ? `El mismo producto reaccionó distinto según el local en ${mixtos.length} de ${new Set(C.map(c => c.sku)).size}.` : ""}`,
-        "Con 1 a 3 unidades por día en cada local, casi ninguna diferencia sale del margen de error. Por eso la decisión usa el total de cada producto (punto 1) y no cada local por separado.")}
+        `Con ${uDiaLocal()} unidades por día en cada local, casi ninguna diferencia sale del margen de error. Por eso la decisión usa el total de cada producto (punto 1) y no cada local por separado.`)}
       <div class="tabla-wrap densa" style="margin-top:14px">${tablaHTML(colsC, C, { clic: "sku" })}</div>
       ${interp("Los mismos casos con todas las cuentas: unidades y margen por día antes, durante y después, y la lectura de cada uno. Tocá una fila para ver la ficha.",
         `El margen por día subió en ${C.filter(c => c.mdur >= 0).length} de ${C.length} casos.`,
@@ -1754,8 +1783,11 @@ function cabeceraFoto() {
   $("#f-foto")?.addEventListener("change", e => irAFoto(e.target.value));
   $("#b-subir")?.addEventListener("click", abrirSubir);
 }
+const SIMULADAS = new Set((BASE.fotos || []).filter(f => /demo/i.test(f.nombre || "")).map(f => f.fecha));
 function avisoFoto() {
   if (BASE.motivo) return `<div class="aviso-foto" role="status">${esc(BASE.motivo)}</div>`;
+  if (SIMULADAS.has(D.foto_iso))
+    return `<div class="aviso-foto" role="status"><b>Datos simulados (demo).</b> Las ventas posteriores al 15/03/2026 son inventadas a partir del Excel de la consigna, con algunas recomendaciones aplicadas y otras no, para mostrar cómo funciona el seguimiento. No son ventas reales ni dicen si la propuesta funciona.</div>`;
   if (BASE.online && ULTIMA && D.foto_iso !== ULTIMA)
     return `<div class="aviso-foto" role="status">Estás viendo los datos al ${D.foto}. Los más nuevos de la base son al ${fechaAR(ULTIMA)}. <button class="btn-link" type="button" data-ir="${ULTIMA}">Ver la más nueva</button></div>`;
   return "";

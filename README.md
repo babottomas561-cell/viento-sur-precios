@@ -221,11 +221,19 @@ Las otras órdenes son `python servidor.py subir <excel>` (igual que el botón),
 vercel deploy --prod --yes
 ```
 
-**Probar el seguimiento sin esperar una semana.** [`herramientas/recortar_excel.py`](herramientas/recortar_excel.py) arma, desde el mismo Excel, cómo se veían los datos en una fecha anterior (las ventas hasta ese día y el stock de entonces). Cargando el recorte y después el Excel completo se ve el seguimiento funcionando. Es solo para probar: la base online tiene únicamente el Excel de la consigna.
+**Probar el seguimiento sin esperar una semana.** [`herramientas/recortar_excel.py`](herramientas/recortar_excel.py) arma, desde el mismo Excel, cómo se veían los datos en una fecha anterior (las ventas hasta ese día y el stock de entonces). Cargando el recorte y después el Excel completo se ve el seguimiento funcionando.
 
 ```bash
 python herramientas/recortar_excel.py 2026-03-08
 ```
+
+**Ver cómo sigue después del 15/03 (datos demo).** [`herramientas/simular_futuro.py`](herramientas/simular_futuro.py) inventa 4 semanas más (22/03, 29/03, 05/04 y 12/04) a partir del Excel de la consigna y de su propuesta: cada lote sigue vendiendo a su ritmo, con azar, y las recomendaciones se aplican solo en parte (unos descuentos se cobran y otros no, unos productos se reponen y otros se quedan sin stock, algunos cortes se recuperan). Con una semilla fija, siempre da lo mismo. Los archivos se llaman `demo_futuro_al_…xlsx` y el tablero reconoce "demo" en el nombre: en esas fechas avisa arriba, en todas las pestañas, que **los datos son simulados**.
+
+```bash
+python herramientas/simular_futuro.py
+```
+
+**Qué tiene hoy la base online:** el Excel de la consigna (15/03/2026) y las 4 semanas demo, cargadas por el sitio igual que con el botón. El tablero abre la fecha más nueva; los datos de la consigna se ven en **Datos al 15/03/2026** o con el link `?datos=2026-03-15`. Para dejar solo el Excel de la consigna: `python servidor.py borrar 2026-03-22 2026-03-29 2026-04-05 2026-04-12`.
 
 ## El Excel de análisis
 
@@ -282,7 +290,7 @@ servidor.py               la base online (Postgres en Supabase)
 base_sql.py               las tablas y consultas, iguales en la base local y en la online
 api/                      las funciones del servidor: subir, listar, abrir y descargar los Excel cargados
 actualizar.py             la base local (SQLite) y el tablero en web/, desde la computadora
-herramientas/             recortar_excel.py: recorta el Excel a una fecha anterior (solo para probar)
+herramientas/             recortar_excel.py (el Excel a una fecha anterior) y simular_futuro.py (semanas demo después del 15/03)
 proceso.md                pregunta 3: el proceso alrededor del modelo
 datos/viento_sur.xlsx     el Excel de la consigna
 salidas/                  lo que genera armar_excel.py, más la auditoría

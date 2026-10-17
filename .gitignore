@@ -14,3 +14,7 @@ entrega_mail/
 .env*
 # recortes que arma herramientas/recortar_excel.py
 datos/viento_sur_al_*.xlsx
+# semanas demo que arma herramientas/simular_futuro.py (se regeneran iguales con la semilla)
+datos/demo/
+# lo esperado para auditar el tablero con la demo (se genera con esperado.py y esperado_ventas.py)
+web/auditoria/*_demo.json

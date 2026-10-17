@@ -28,7 +28,8 @@ INI, FOTO = ve.fecha.min(), ve.fecha.max()
 DIAS = pd.date_range(INI, FOTO)
 ap = hist.dropna(subset=["fecha_vigencia_desde"])
 D0, D1 = ap.fecha_vigencia_desde.min(), ap.fecha_vigencia_hasta.max()
-per = np.where(DIAS < D0, "antes", np.where(DIAS <= D1, "durante", "después"))
+FIN = min(FOTO, D1 + pd.Timedelta(days=31))                       # la ventana de medición: hasta un mes después del último descuento
+per = np.where(DIAS > FIN, "fuera", np.where(DIAS < D0, "antes", np.where(DIAS <= D1, "durante", "después")))
 fallas, chequeos = [], 0
 
 
@@ -97,13 +98,14 @@ chk("control · después vs antes", ctot["desp"], uc[per == "después"].mean() /
 # ---- 3 · índice semanal (corregido por el control) y netos de cada descuento
 rel = np.asarray((DIAS - D0).days)
 sem = np.floor(rel / 7).astype(int)
-semanas = sorted(k for k in set(sem) if k >= 0)
-c_idx = {k: uc[sem == k].mean() / uc[rel < 0].mean() for k in semanas}
+EN_V = np.asarray(DIAS <= FIN)
+semanas = sorted(k for k in set(sem[EN_V]) if k >= 0)            # dentro de la ventana de medición
+c_idx = {k: uc[(sem == k) & EN_V].mean() / uc[rel < 0].mean() for k in semanas}
 chk("cantidad de semanas", len(T["semanas"]), len(semanas))
 for i, k in enumerate(semanas):
     chk(f"control · índice semana {i + 1}", T["ctrl_idx"][i], c_idx[k])
 netos = {n["sku"]: n for n in T["netos"]}
-dur_m, desp_m = np.asarray((DIAS >= D0) & (DIAS <= D1)), np.asarray(DIAS > D1)
+dur_m, desp_m = np.asarray((DIAS >= D0) & (DIAS <= D1)), np.asarray((DIAS > D1) & (DIAS <= FIN))
 for a in ap.sort_values("descuento_pct").itertuples():
     n = netos[a.sku]
     u, _ = diario(a.sku)
@@ -112,7 +114,7 @@ for a in ap.sort_values("descuento_pct").itertuples():
     nom = prod.nombre[a.sku]
     chk(f"{nom} · u/día antes (todas sus sucursales)", n["base"], base)
     for i, k in enumerate(semanas):
-        chk(f"{nom} · índice semana {i + 1}", n["idx"][i], u[sem == k].mean() / base / c_idx[k])
+        chk(f"{nom} · índice semana {i + 1}", n["idx"][i], u[(sem == k) & EN_V].mean() / base / c_idx[k])
     esperado = np.array([base * c_idx.get(k, 1) if k >= 0 else base for k in sem])
     precio, costo, d = prod.precio_lista[a.sku], prod.costo_unitario[a.sku], a.descuento_pct / 100
     chk(f"{nom} · unidades extra durante", n["extra_dur"], (u - esperado)[dur_m].sum())
