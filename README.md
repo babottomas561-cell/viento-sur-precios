@@ -107,7 +107,7 @@ Es una demo: no tiene login, y lo que se sube queda público.
 
 Los gráficos usan Chart.js desde un CDN, así que necesita conexión a internet.
 
-`salidas/auditoria/` tiene la verificación, hecha con un cálculo independiente directo del Excel original (sin pasar por `armar_excel.py`): la planilla, con 1.031 chequeos (los 100 lotes indicador por indicador, cada sucursal y los productos de la Propuesta), y el tablero, con 17 combinaciones de filtros en todas las pestañas (779 chequeos en el sitio publicado). Las dos dan sin diferencias. Ver [`salidas/auditoria/LEEME.md`](salidas/auditoria/LEEME.md).
+`salidas/auditoria/` tiene la verificación, hecha con un cálculo independiente directo del Excel original (sin pasar por `armar_excel.py`): la planilla, con 1.031 chequeos (los 100 lotes indicador por indicador, cada sucursal y los productos de la Propuesta), y el tablero, con 17 combinaciones de filtros en todas las pestañas (763 chequeos, en la computadora y en el sitio publicado). Las dos dan sin diferencias. Ver [`salidas/auditoria/LEEME.md`](salidas/auditoria/LEEME.md).
 
 ## Estructura
 
