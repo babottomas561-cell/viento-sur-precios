@@ -11,7 +11,7 @@ Por qué no se vende cada parte del stock, contado para cualquiera: **qué pasa,
 
 ## 2 · Ejecución (11 productos, 1.394 u)
 - **Qué pasa:** Se aprobaron descuentos y campañas que nunca se cobraron en caja: el cliente siguió pagando el precio de lista. En otros hay un cambio recién hecho que todavía no se puede medir.
-- **La prueba:** De los 21 descuentos aprobados que se pueden comprobar en las ventas, **solo 8 se cobraron**. Las 4 campañas cargadas: **0 unidades** vendidas con rebaja.
+- **La prueba:** De los 20 descuentos aprobados que se pueden comprobar en las ventas, **solo 8 se cobraron**. Las 4 campañas cargadas: **0 unidades** vendidas con rebaja.
 - **Qué hacemos:** Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.
 - **Por qué:** Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.
 - **Cómo lo medimos:** Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, las unidades por semana contra las de antes. Se revisa entre el 22/03 y el 12/04, producto por producto (cada ficha tiene su fecha).
@@ -40,6 +40,6 @@ Por qué no se vende cada parte del stock, contado para cualquiera: **qué pasa,
 ## Además: el stock vencido (2.851 u en 32 productos)
 - **Qué pasa:** Más de la mitad del stock ya pasó su fecha límite, cualquiera sea su causa. Hay urgencia.
 - **La prueba:** **57 % del stock** (2.851 u) en 32 productos. Los 53 lotes vencidos vencieron el mismo día (01/03) y **49 no se venderían ni en un año** al ritmo actual.
-- **Qué hacemos:** Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó, se liquida con fechas: 20 % por 2 semanas y después 35 % por 2 semanas, y después devolución u outlet. Nunca debajo del costo.
-- **Por qué:** Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. La escalera hace las dos cosas en orden.
-- **Cómo lo medimos:** Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **29/05/2026**.
+- **Qué hacemos:** Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó: en los **8** cuyo tipo respondió al descuento, se liquida con fechas (20 % por 2 semanas y después 35 % por 2 semanas); en los otros **24**, devolución al proveedor u outlet, sin pasar por rebajas. Nunca debajo del costo.
+- **Por qué:** Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. Y una rebaja en el local solo tiene sentido donde el tipo respondió al descuento: en el resto regala margen sin sacar el stock.
+- **Cómo lo medimos:** Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **12/06/2026**.

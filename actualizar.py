@@ -74,7 +74,7 @@ def seguimiento(con, actual):
         return None, []
     dec = pd.read_sql("SELECT * FROM decisiones WHERE fecha_foto < ?", con, params=(actual,)).rename(columns={"grupo": "n"})
     fotos_prev = [(f, dec[dec.fecha_foto == f].to_dict("records")) for f in previas]
-    v = pd.read_sql("SELECT fecha, sku, unidades, precio_unitario FROM ventas WHERE fecha <= ?", con, params=(actual,))
+    v = pd.read_sql("SELECT fecha, sku, sucursal_id, unidades, precio_unitario FROM ventas WHERE fecha <= ?", con, params=(actual,))
     stock = dict(con.execute("SELECT sku, SUM(unidades) FROM lotes WHERE fecha_foto = ? GROUP BY sku", (actual,)).fetchall())
     nuevas = dict(con.execute("SELECT sku, accion FROM decisiones WHERE fecha_foto = ?", (actual,)).fetchall())
     return previas[-1], carga.seguimiento(fotos_prev, v, stock, actual, nuevas)

@@ -183,7 +183,7 @@
    ],
    "hacemos": "Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
    "por_que": "Se venden solos: bajarles el precio es regalar margen. La consultora descuenta 4 de estos y cedería unos **$ 1,6 M en 30 días** por ventas que iban a ocurrir igual.",
-   "dato": "venden 133 % o más de lo esperado; stock para 13 a 25 días",
+   "dato": "10 venden 133 % o más de lo esperado, con stock para 13 a 25 días; 3 recién llegados al ritmo de su objetivo, pero les sobraría 58 % a 76 %",
    "hacer": "Dejar el precio, reponer y mover stock",
    "mide": "días de stock (mínimo 15); sobrante proyectado",
    "medimos": "Que no se queden sin stock (meta: nunca menos de 15 días en ningún local) y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **125 u**). Se revisa entre el 22/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
@@ -200,12 +200,12 @@
    "precio": "Lo ya aprobado",
    "que_pasa": "Se aprobaron descuentos y campañas que nunca se cobraron en caja: el cliente siguió pagando el precio de lista. En otros hay un cambio recién hecho que todavía no se puede medir.",
    "prueba": [
-    "De los 21 descuentos aprobados que se pueden comprobar en las ventas, **solo 8 se cobraron**.",
+    "De los 20 descuentos aprobados que se pueden comprobar en las ventas, **solo 8 se cobraron**.",
     "Las 4 campañas cargadas: **0 unidades** vendidas con rebaja."
    ],
    "hacemos": "Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.",
    "por_que": "Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
-   "dato": "8 de 21 descuentos aprobados se cobraron; campañas: 0 u con rebaja",
+   "dato": "8 de 20 descuentos aprobados se cobraron; campañas: 0 u con rebaja",
    "hacer": "Cobrar lo aprobado, con fechas",
    "mide": "precio cobrado contra lista; después, unidades por semana",
    "medimos": "Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, las unidades por semana contra las de antes. Se revisa entre el 22/03 y el 12/04, producto por producto (cada ficha tiene su fecha)."
@@ -288,9 +288,9 @@
    "**57 % del stock** (2.851 u) en 32 productos.",
    "Los 53 lotes vencidos vencieron el mismo día (01/03) y **49 no se venderían ni en un año** al ritmo actual."
   ],
-  "hacemos": "Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó, se liquida con fechas: 20 % por 2 semanas y después 35 % por 2 semanas, y después devolución u outlet. Nunca debajo del costo.",
-  "por_que": "Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. La escalera hace las dos cosas en orden.",
-  "medimos": "Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **29/05/2026**."
+  "hacemos": "Cada producto empieza por la solución de su causa. Si en su fecha de revisión no funcionó: en los **8** cuyo tipo respondió al descuento, se liquida con fechas (20 % por 2 semanas y después 35 % por 2 semanas); en los otros **24**, devolución al proveedor u outlet, sin pasar por rebajas. Nunca debajo del costo.",
+  "por_que": "Liquidar todo ya borraría el diagnóstico: se liquidaría algo que solo había que exhibir. Pero esperar sin fecha deja el stock quieto. Y una rebaja en el local solo tiene sentido donde el tipo respondió al descuento: en el resto regala margen sin sacar el stock.",
+  "medimos": "Que el stock vencido baje semana a semana. Todo tiene fecha de salida; la última, el **12/06/2026**."
  },
  "evidencia": [
   {
@@ -2154,7 +2154,7 @@
    "linea_base": "0,2",
    "meta": "no caer",
    "revisar": "04/04/2026",
-   "si_no": "Stock vencido (14 u): si al 04/04 no se cumplió, liquidar con fechas: 20 % del 04/04 al 17/04; si la venta no se duplica, 35 % del 18/04 al 01/05; lo que quede, devolución a Delta u outlet desde el 02/05. Piso: el costo.",
+   "si_no": "Stock vencido (14 u): su tipo no respondió al descuento (Campera de la laguna 4: +3 %), así que una rebaja en el local no lo saca. Si al 04/04 no se cumplió: devolución a Delta; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -2196,7 +2196,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 14,
-   "salida": "2026-05-02",
+   "salida": "2026-04-04",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Se le subió el precio +8 % el 04/03: todavía no se puede medir la suba.",
@@ -2222,7 +2222,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "14 u (9 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 02/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 04/04",
      "ok": null
     }
    ]
@@ -2244,7 +2244,7 @@
    "linea_base": "1,6",
    "meta": "1,8 u/sem durante (como Pelota del muelle 7 al 10 %); menos de 1,6 es que no funcionó",
    "revisar": "12/04/2026",
-   "si_no": "Stock vencido (48 u): si al 12/04 no se cumplió, liquidar con fechas: 20 % del 12/04 al 25/04; si la venta no se duplica, 35 % del 26/04 al 09/05; lo que quede, devolución a Andina u outlet desde el 10/05. Piso: el costo.",
+   "si_no": "Stock vencido (48 u): su tipo no respondió al descuento (Pelota del muelle 7: +20 %), así que una rebaja en el local no lo saca. Si al 12/04 no se cumplió: devolución a Andina; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "ya",
@@ -2286,7 +2286,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 48,
-   "salida": "2026-05-10",
+   "salida": "2026-04-12",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "El local aceptó un 10 % el 11/03, pero sin fechas: no llegó a caja.",
@@ -2312,7 +2312,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "48 u (34 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 10/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 12/04",
      "ok": null
     }
    ]
@@ -2334,7 +2334,7 @@
    "linea_base": "pendiente",
    "meta": "decisión acordada",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (120 u): si al 22/03 no se cumplió, liquidar con fechas: 20 % del 22/03 al 04/04; si la venta no se duplica, 35 % del 05/04 al 18/04; lo que quede, devolución a Pampa u outlet desde el 19/04. Piso: el costo.",
+   "si_no": "Stock vencido (120 u): si al 22/03 no se cumplió, 20 % con fechas (la prueba de la condición) del 22/03 al 18/04; si la venta no se duplica, 35 % del 19/04 al 02/05; lo que quede, devolución a Pampa u outlet desde el 03/05. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "condicional",
@@ -2376,7 +2376,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 120,
-   "salida": "2026-04-19",
+   "salida": "2026-05-03",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Se le sugirió un 10 % el 06/03 y el local lo rechazó: falta saber por qué.",
@@ -2402,7 +2402,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "120 u (95 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 03/05",
      "ok": null
     }
    ]
@@ -2424,7 +2424,7 @@
    "linea_base": "precio de lista",
    "meta": "ventas con la rebaja de la campaña",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (35 u): si al 01/05 no se cumplió, liquidar con fechas: 20 % del 01/05 al 14/05; si la venta no se duplica, 35 % del 15/05 al 28/05; lo que quede, devolución a Andina u outlet desde el 29/05. Piso: el costo.",
+   "si_no": "Stock vencido (35 u): su tipo no respondió al descuento (Pelota del muelle 7: +20 %), así que una rebaja en el local no lo saca. Si al 01/05 no se cumplió: devolución a Andina; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -2466,7 +2466,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 35,
-   "salida": "2026-05-29",
+   "salida": "2026-05-01",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Tiene una campaña cargada desde el 01/03, pero ninguna venta tuvo la rebaja: no se sabe si se aplica.",
@@ -2492,7 +2492,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "35 u (30 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 01/05",
      "ok": null
     }
    ]
@@ -2514,7 +2514,7 @@
    "linea_base": "0,5",
    "meta": "no caer",
    "revisar": "12/04/2026",
-   "si_no": "Stock vencido (117 u): si al 12/04 no se cumplió, liquidar con fechas: 20 % del 12/04 al 25/04; si la venta no se duplica, 35 % del 26/04 al 09/05; lo que quede, devolución a Andina u outlet desde el 10/05. Piso: el costo.",
+   "si_no": "Stock vencido (117 u): su tipo no respondió al descuento (Toalla de la niebla 6: +16 %), así que una rebaja en el local no lo saca. Si al 12/04 no se cumplió: devolución a Andina; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -2556,7 +2556,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 117,
-   "salida": "2026-05-10",
+   "salida": "2026-04-12",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Se le subió el precio +8 % el 12/03: todavía no se puede medir la suba.",
@@ -2582,7 +2582,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "117 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 10/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 12/04",
      "ok": null
     }
    ]
@@ -2604,7 +2604,7 @@
    "linea_base": "precio de lista",
    "meta": "ventas con la rebaja de la campaña",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (2 u): si al 01/05 no se cumplió, liquidar con fechas: 20 % del 01/05 al 14/05; si la venta no se duplica, 35 % del 15/05 al 28/05; lo que quede, devolución a Nube u outlet desde el 29/05. Piso: el costo.",
+   "si_no": "Stock vencido (2 u): su tipo no respondió al descuento (Toalla de la niebla 6: +16 %), así que una rebaja en el local no lo saca. Si al 01/05 no se cumplió: devolución a Nube; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -2646,7 +2646,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 2,
-   "salida": "2026-05-29",
+   "salida": "2026-05-01",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Tiene una campaña cargada desde el 01/03, pero desde entonces no vendió nada: no se sabe si se aplica.",
@@ -2672,7 +2672,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "2 u (2 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 01/05",
      "ok": null
     }
    ]
@@ -2694,7 +2694,7 @@
    "linea_base": "precio de lista",
    "meta": "ventas con la rebaja de la campaña",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (113 u): si al 01/05 no se cumplió, liquidar con fechas: 20 % del 01/05 al 14/05; si la venta no se duplica, 35 % del 15/05 al 28/05; lo que quede, devolución a Pampa u outlet desde el 29/05. Piso: el costo.",
+   "si_no": "Stock vencido (113 u): si al 01/05 no se cumplió, 20 % con fechas (la prueba de la condición) del 01/05 al 28/05; si la venta no se duplica, 35 % del 29/05 al 11/06; lo que quede, devolución a Pampa u outlet desde el 12/06. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "condicional",
@@ -2736,7 +2736,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 113,
-   "salida": "2026-05-29",
+   "salida": "2026-06-12",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Tiene una campaña cargada desde el 01/03, pero ninguna venta tuvo la rebaja: no se sabe si se aplica.",
@@ -2762,7 +2762,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "113 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 29/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 12/06",
      "ok": null
     }
    ]
@@ -2784,7 +2784,7 @@
    "linea_base": "pendiente",
    "meta": "decisión acordada",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (6 u): si al 22/03 no se cumplió, liquidar con fechas: 20 % del 22/03 al 04/04; si la venta no se duplica, 35 % del 05/04 al 18/04; lo que quede, devolución a Litoral u outlet desde el 19/04. Piso: el costo.",
+   "si_no": "Stock vencido (6 u): si al 22/03 no se cumplió, 10 % con fechas (la prueba de la condición) del 22/03 al 18/04; si la venta no se duplica, 20 % del 19/04 al 02/05; si la venta no se duplica, 35 % del 03/05 al 16/05; lo que quede, devolución a Litoral u outlet desde el 17/05. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "condicional",
@@ -2826,7 +2826,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 6,
-   "salida": "2026-04-19",
+   "salida": "2026-05-17",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Se le sugirió un 10 % el 02/03 y el local no respondió: falta la decisión.",
@@ -2852,7 +2852,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "6 u (5 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 17/05",
      "ok": null
     }
    ]
@@ -2874,7 +2874,7 @@
    "linea_base": "2,6",
    "meta": "no caer",
    "revisar": "09/04/2026",
-   "si_no": "Stock vencido (69 u): si al 09/04 no se cumplió, liquidar con fechas: 20 % del 09/04 al 22/04; si la venta no se duplica, 35 % del 23/04 al 06/05; lo que quede, devolución a Nube u outlet desde el 07/05. Piso: el costo.",
+   "si_no": "Stock vencido (69 u): su tipo no respondió al descuento (Juego de sábanas del bosque 5: +10 %), así que una rebaja en el local no lo saca. Si al 09/04 no se cumplió: devolución a Nube; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -2916,7 +2916,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 69,
-   "salida": "2026-05-07",
+   "salida": "2026-04-09",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Se le subió el precio +8 % el 09/03: todavía no se puede medir la suba.",
@@ -2942,7 +2942,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "69 u (63 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 07/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 09/04",
      "ok": null
     }
    ]
@@ -2964,7 +2964,7 @@
    "linea_base": "0 u",
    "meta": "al menos 1 venta por local",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (121 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Delta u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (121 u): su tipo no respondió al descuento (Toalla de la niebla 6: +16 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Delta; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "no descontar",
    "coincide": "sí",
    "nuestro": "no",
@@ -3024,7 +3024,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 121,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "No vendió ni una unidad en 90 días (121 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
@@ -3050,7 +3050,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "121 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3072,7 +3072,7 @@
    "linea_base": "0 u",
    "meta": "al menos 1 venta por local",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (111 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Nube u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (111 u): su tipo no respondió al descuento (Pelota del muelle 7: +20 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Nube; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "no descontar",
    "coincide": "sí",
    "nuestro": "no",
@@ -3132,7 +3132,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 111,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "No vendió ni una unidad en 90 días (111 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
@@ -3158,7 +3158,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "111 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3180,7 +3180,7 @@
    "linea_base": "0 u",
    "meta": "al menos 1 venta por local",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (50 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Litoral u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (50 u): su tipo no respondió al descuento (Juego de sábanas del bosque 5: +10 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Litoral; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "no descontar",
    "coincide": "sí",
    "nuestro": "no",
@@ -3240,7 +3240,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 50,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "No vendió ni una unidad en 90 días (50 u), aunque su tipo se vende en esos locales: o no se ve o no está.",
@@ -3266,7 +3266,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "50 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3295,7 +3295,7 @@
    "u_sem_base": 0.0,
    "precio": 23100.0,
    "costo": 11834.0,
-   "meta_u_sem": null,
+   "meta_u_sem": 11.666666666666668,
    "tipo": "remeras",
    "rubro": "indumentaria",
    "proveedor": "Pampa",
@@ -3402,14 +3402,14 @@
    "linea_base": "2,1",
    "meta": "volver a 13,8",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (171 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Andina u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (171 u): su tipo no respondió al descuento (Pelota del muelle 7: +20 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Andina; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
    "u_sem_base": 2.1,
    "precio": 19100.0,
    "costo": 11358.0,
-   "meta_u_sem": null,
+   "meta_u_sem": 13.766666666666666,
    "tipo": "pelotas",
    "rubro": "deportes",
    "proveedor": "Andina",
@@ -3468,7 +3468,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 171,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vendía 59 u por mes a precio de lista y se cortó: el último mes vendió 9.",
@@ -3500,7 +3500,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "171 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3522,14 +3522,14 @@
    "linea_base": "0,0",
    "meta": "volver a 12,5",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (104 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Delta u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (104 u): su tipo no respondió al descuento (Juego de sábanas del bosque 5: +10 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Delta; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
    "u_sem_base": 0.0,
    "precio": 29000.0,
    "costo": 17218.0,
-   "meta_u_sem": null,
+   "meta_u_sem": 12.483333333333334,
    "tipo": "sabanas",
    "rubro": "hogar",
    "proveedor": "Delta",
@@ -3588,7 +3588,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 104,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vendía 54 u por mes a precio de lista y se cortó: el último mes vendió 0.",
@@ -3620,7 +3620,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "104 u (70 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3642,14 +3642,14 @@
    "linea_base": "0,0",
    "meta": "volver a 11,0",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (127 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Nube u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (127 u): su tipo no respondió al descuento (Toalla de la niebla 6: +16 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Nube; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
    "u_sem_base": 0.0,
    "precio": 9500.0,
    "costo": 5321.0,
-   "meta_u_sem": null,
+   "meta_u_sem": 10.966666666666667,
    "tipo": "toallas",
    "rubro": "hogar",
    "proveedor": "Nube",
@@ -3708,7 +3708,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 127,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vendía 47 u por mes a precio de lista y se cortó: el último mes vendió 0.",
@@ -3740,7 +3740,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "127 u (97 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3769,7 +3769,7 @@
    "u_sem_base": 0.0,
    "precio": 97200.0,
    "costo": 49765.0,
-   "meta_u_sem": null,
+   "meta_u_sem": 11.200000000000001,
    "tipo": "camperas",
    "rubro": "indumentaria",
    "proveedor": "Litoral",
@@ -3876,7 +3876,7 @@
    "linea_base": "0",
    "meta": "primeras ventas",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (68 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Pampa u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (68 u): su tipo no respondió al descuento (Remera del cerro 3: 0 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Pampa; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -3948,7 +3948,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 68,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vende en F01 y nada en S01, S02, donde está el 62 % del stock: es la ubicación, no el precio.",
@@ -3968,7 +3968,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "68 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -3990,7 +3990,7 @@
    "linea_base": "0",
    "meta": "primeras ventas",
    "revisar": "30/03/2026",
-   "si_no": "Stock vencido (66 u): si al 30/03 no se cumplió, liquidar con fechas: 20 % del 30/03 al 12/04; si la venta no se duplica, 35 % del 13/04 al 26/04; lo que quede, devolución a Pampa u outlet desde el 27/04. Piso: el costo.",
+   "si_no": "Stock vencido (66 u): su tipo no respondió al descuento (Campera de la laguna 4: +3 %), así que una rebaja en el local no lo saca. Si al 30/03 no se cumplió: devolución a Pampa; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -4062,7 +4062,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 66,
-   "salida": "2026-04-27",
+   "salida": "2026-03-30",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vende en F01 y nada en S01, S02, donde está el 64 % del stock: es la ubicación, no el precio.",
@@ -4082,7 +4082,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "66 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 27/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 30/03",
      "ok": null
     }
    ]
@@ -4104,7 +4104,7 @@
    "linea_base": "",
    "meta": "",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (3 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Litoral u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (3 u): su tipo no respondió al descuento (Juego de sábanas del bosque 5: +10 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Litoral; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -4176,7 +4176,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 3,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vende en S01 y nada en S02, S03, donde está el 60 % del stock: es la ubicación, no el precio.",
@@ -4196,7 +4196,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "3 u (60 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -4218,7 +4218,7 @@
    "linea_base": "",
    "meta": "",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (3 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Litoral u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (3 u): su tipo no respondió al descuento (Toalla de la niebla 6: +16 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Litoral; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -4290,7 +4290,7 @@
    },
    "evalua_descuento": false,
    "u_vencidas": 3,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "producto",
    "problema": "Vende en S01 y nada en S02, S03, donde está el 60 % del stock: es la ubicación, no el precio.",
@@ -4310,7 +4310,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "3 u (60 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -4332,7 +4332,7 @@
    "linea_base": "precio de lista",
    "meta": "ventas con la rebaja aprobada",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (168 u): si al 22/03 no se cumplió, liquidar con fechas: 20 % del 22/03 al 04/04; si la venta no se duplica, 35 % del 05/04 al 18/04; lo que quede, devolución a Delta u outlet desde el 19/04. Piso: el costo.",
+   "si_no": "Stock vencido (168 u): si al 22/03 no se cumplió, 20 % con fechas (la prueba de la condición) del 22/03 al 18/04; si la venta no se duplica, 35 % del 19/04 al 02/05; lo que quede, devolución a Delta u outlet desde el 03/05. Piso: el costo.",
    "consultora": "descontar 20 %",
    "coincide": "sí",
    "nuestro": "condicional",
@@ -4410,7 +4410,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 168,
-   "salida": "2026-04-19",
+   "salida": "2026-05-03",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Tiene 4 descuentos aceptados y ninguno se cobró en caja: el precio nunca se probó.",
@@ -4436,7 +4436,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "168 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 03/05",
      "ok": null
     }
    ]
@@ -4458,7 +4458,7 @@
    "linea_base": "precio de lista",
    "meta": "ventas con la rebaja aprobada",
    "revisar": "22/03/2026",
-   "si_no": "Stock vencido (119 u): si al 22/03 no se cumplió, liquidar con fechas: 20 % del 22/03 al 04/04; si la venta no se duplica, 35 % del 05/04 al 18/04; lo que quede, devolución a Litoral u outlet desde el 19/04. Piso: el costo.",
+   "si_no": "Stock vencido (119 u): si al 22/03 no se cumplió, 10 % con fechas (la prueba de la condición) del 22/03 al 18/04; si la venta no se duplica, 20 % del 19/04 al 02/05; si la venta no se duplica, 35 % del 03/05 al 16/05; lo que quede, devolución a Litoral u outlet desde el 17/05. Piso: el costo.",
    "consultora": "descontar 20 %",
    "coincide": "sí",
    "nuestro": "condicional",
@@ -4536,7 +4536,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 119,
-   "salida": "2026-04-19",
+   "salida": "2026-05-17",
    "sobrante": null,
    "causa": "ejecucion",
    "problema": "Tiene 4 descuentos aceptados y ninguno se cobró en caja: el precio nunca se probó.",
@@ -4562,7 +4562,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "119 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 19/04",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 17/05",
      "ok": null
     }
    ]
@@ -5136,7 +5136,7 @@
    "linea_base": "0",
    "meta": "184",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (193 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Litoral u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (193 u): su tipo no respondió al descuento (Remera del cerro 3: 0 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Litoral; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 30 %",
    "coincide": "no",
    "nuestro": "no",
@@ -5226,7 +5226,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 193,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "precio",
    "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
@@ -5252,7 +5252,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "193 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -5274,7 +5274,7 @@
    "linea_base": "1,6",
    "meta": "2,5 u/sem durante (como Bota de la costa 2 al 20 %); menos de 2,2 es que no funcionó; después, no menos de 1,6",
    "revisar": "12/04/2026",
-   "si_no": "Stock vencido (173 u): si al 12/04 no se cumplió, liquidar con fechas: 35 % del 12/04 al 25/04; lo que quede, devolución a Nube u outlet desde el 26/04. Piso: el costo.",
+   "si_no": "Stock vencido (173 u): la prueba termina el 12/04. Si la venta no llegó a la meta, 35 % del 12/04 al 25/04; lo que quede, devolución a Nube u outlet desde el 26/04. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "ya",
@@ -5412,7 +5412,7 @@
    "linea_base": "0",
    "meta": "140",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (41 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Cumbre u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (41 u): su tipo no respondió al descuento (Pelota del muelle 7: +20 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Cumbre; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -5502,7 +5502,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 41,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "precio",
    "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
@@ -5528,7 +5528,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "41 u (27 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -5682,7 +5682,7 @@
    "linea_base": "0",
    "meta": "131",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (146 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Andina u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (146 u): su tipo no respondió al descuento (Campera de la laguna 4: +3 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Andina; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 30 %",
    "coincide": "no",
    "nuestro": "no",
@@ -5772,7 +5772,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 146,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "precio",
    "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
@@ -5798,7 +5798,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "146 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -5820,7 +5820,7 @@
    "linea_base": "1,2",
    "meta": "1,9 u/sem durante (como Zapatilla del valle 1 al 10 %); menos de 1,6 es que no funcionó; después, no menos de 1,2",
    "revisar": "12/04/2026",
-   "si_no": "Stock vencido (21 u): si al 12/04 no se cumplió, liquidar con fechas: 20 % del 12/04 al 25/04; si la venta no se duplica, 35 % del 26/04 al 09/05; lo que quede, devolución a Delta u outlet desde el 10/05. Piso: el costo.",
+   "si_no": "Stock vencido (21 u): la prueba termina el 12/04. Si la venta no llegó a la meta, 20 % del 12/04 al 25/04; si la venta no se duplica, 35 % del 26/04 al 09/05; lo que quede, devolución a Delta u outlet desde el 10/05. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "ya",
@@ -5958,7 +5958,7 @@
    "linea_base": "0",
    "meta": "82",
    "revisar": "15/04/2026",
-   "si_no": "Stock vencido (91 u): si al 15/04 no se cumplió, liquidar con fechas: 20 % del 15/04 al 28/04; si la venta no se duplica, 35 % del 29/04 al 12/05; lo que quede, devolución a Pampa u outlet desde el 13/05. Piso: el costo.",
+   "si_no": "Stock vencido (91 u): su tipo no respondió al descuento (Juego de sábanas del bosque 5: +10 %), así que una rebaja en el local no lo saca. Si al 15/04 no se cumplió: devolución a Pampa; si no hay acuerdo, outlet con piso en el costo.",
    "consultora": "descontar 15 %",
    "coincide": "no",
    "nuestro": "no",
@@ -6048,7 +6048,7 @@
    },
    "evalua_descuento": true,
    "u_vencidas": 91,
-   "salida": "2026-05-13",
+   "salida": "2026-04-15",
    "sobrante": null,
    "causa": "precio",
    "problema": "Vende poco pero parejo y ninguna otra causa lo explica: puede ser el precio. Pero el descuento no pasa los criterios: no se baja.",
@@ -6074,7 +6074,7 @@
     {
      "nombre": "Stock que ya pasó su fecha límite",
      "valor": "91 u (100 %)",
-     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 13/05",
+     "regla": "si la primera acción no cumple, se liquida con fechas: salida el 15/04",
      "ok": null
     }
    ]
@@ -6096,7 +6096,7 @@
    "linea_base": "0,9",
    "meta": "1,3 u/sem durante (como Mochila de la estepa 8 al 20 %); menos de 1,2 es que no funcionó; después, no menos de 0,9",
    "revisar": "12/04/2026",
-   "si_no": "Stock vencido (55 u): si al 12/04 no se cumplió, liquidar con fechas: 35 % del 12/04 al 25/04; lo que quede, devolución a Cumbre u outlet desde el 26/04. Piso: el costo.",
+   "si_no": "Stock vencido (55 u): la prueba termina el 12/04. Si la venta no llegó a la meta, 35 % del 12/04 al 25/04; lo que quede, devolución a Cumbre u outlet desde el 26/04. Piso: el costo.",
    "consultora": "descontar 15 %",
    "coincide": "sí",
    "nuestro": "ya",

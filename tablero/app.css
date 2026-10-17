@@ -178,8 +178,10 @@ details.datos .tabla-wrap { max-height: 360px; overflow: auto; }
 .graf { position: relative; height: 280px; }
 .graf.bajo { height: 220px; }
 .graf.alto { height: 340px; }
-svg.evid { width: 100%; height: auto; display: block; }
+svg.evid { width: 100%; max-width: 800px; height: auto; display: block; }   /* sin tope, en pantallas anchas el texto se agranda al doble */
 svg.evid text { fill: var(--muted); font-family: var(--f-num); font-size: 11px; }
+.evid-scroll { overflow-x: auto; }
+@media (max-width: 640px) { .evid-scroll svg.evid { min-width: 560px; } }
 svg.evid .lab { fill: var(--ink); font-family: var(--f-ui); font-size: 12px; }
 
 /* Barras horizontales simples */

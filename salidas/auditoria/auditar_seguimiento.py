@@ -15,6 +15,10 @@ SG, FOTO = D.get("seguimiento") or [], D["foto_iso"]
 ve = pd.read_excel("datos/viento_sur.xlsx", sheet_name="ventas")
 ve["fecha"] = pd.to_datetime(ve.fecha).dt.strftime("%Y-%m-%d")
 fallas, chequeos = [], 0
+# los locales donde la ficha del grupo 6 pide las primeras ventas, de la recomendación de cada Excel anterior (base local)
+import re, sqlite3
+con = sqlite3.connect("datos/viento_sur.db")
+FICHA = {(f, s): re.findall(r"S\d\d", ind or "") for f, s, ind in con.execute("SELECT fecha_foto, sku, indicador FROM decisiones WHERE grupo = 6")}
 
 
 def chk(que, vio, esp):
@@ -43,10 +47,16 @@ for r in SG:
         cumple = bool(u) and aplicado
     elif n == 1:
         cumple = r["stock_ahora"] > 0 and u_sem >= base * 0.9
-    elif n == 2 or acc.startswith("Esperar · revisar la suba"):
+    elif n == 2:
+        cumple = u_sem > base                                       # el sobrante proyectado baja solo si vende más rápido
+    elif acc.startswith("Esperar · revisar la suba"):
         cumple = u_sem >= base * 0.9
     elif n == 4:
         cumple = u > 0
+    elif n == 5 and meta:
+        cumple = u_sem >= meta                                      # volver a lo que vendía antes
+    elif n == 6 and FICHA.get((r["desde"], r["sku"])):
+        cumple = all(v[v.sucursal_id == s_].unidades.sum() > 0 for s_ in FICHA[(r["desde"], r["sku"])])
     elif n in (5, 6) and not acc.startswith("No tocar"):
         cumple = (u_sem > base * 1.1) if base else u > 0
     else:

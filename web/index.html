@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="app.css?v=3baff725e7">
+<link rel="stylesheet" href="app.css?v=3bd62d964b">
 </head>
 <body>
 <header class="top">
@@ -38,8 +38,8 @@
 // Abierto como archivo, en la computadora, o si la base no responde, usa datos.js: los datos con los que se armó la página.
 (function () {
   var cargar = function (src, listo) { var s = document.createElement("script"); s.src = src; s.onload = listo; document.body.appendChild(s); };
-  var arrancar = function () { cargar("app.js?v=fb824908d4"); };
-  var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=db80fb37c4", arrancar); };
+  var arrancar = function () { cargar("app.js?v=6b4987afeb"); };
+  var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=cb6a274737", arrancar); };
   if (location.protocol === "file:") return local("");
   var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
   var q = new URLSearchParams(location.search), pedida = q.get("datos") || q.get("foto") || "";   // ?foto= era el nombre anterior

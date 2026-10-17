@@ -33,9 +33,9 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 
 - **El mensaje central:** solo el 21 % del stock está en productos donde el precio puede ser la causa, y aun ahí el descuento pasa los criterios en 3 de 8. En total: 4 descuentos ahora (a prueba, con fechas y medidos) y 6 si se cumple una condición; los otros 38 se resuelven sin tocar el precio.
 - **Cada decisión se puede revisar**: la ficha de cada producto (y la hoja Propuesta) muestra su causa, el problema en una frase y los indicadores que lo deciden, con su valor, su regla y si se cumple.
-- **El stock vencido tiene fecha de salida**: cada producto arranca por la acción de su causa, pero si no cumple se liquida con fechas (20 %, después 35 %, después devolución u outlet), siempre con piso en el costo. Última salida: 29/05/2026.
-- **La consultora: tomaría solo una parte.** Descuenta 39 de 48 productos, en 12 proyecta vender más de lo que hay en stock y en 4 vende bajo costo.
-- **Hallazgo de proceso:** de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado.
+- **El stock vencido tiene fecha de salida**: cada producto arranca por la acción de su causa. Si no cumple, los 8 cuyo tipo respondió al descuento se liquidan con fechas (20 %, después 35 %, después devolución u outlet) y los otros 24 van directo a devolución u outlet, porque ahí una rebaja regala margen sin sacar el stock. Siempre con piso en el costo. Última salida: 12/06/2026.
+- **La consultora: tomaría solo una parte.** Descuenta 39 de 48 productos, en 12 proyecta vender más de lo que hay en stock y en 4 vende bajo costo. Sus proyecciones suben la venta entre +25 % y +50 % sin importar el tipo ni el porcentaje, aunque en varios tipos el descuento no movió la venta.
+- **Hallazgo de proceso:** de las 20 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado.
 
 Cada causa está contada en cuatro pasos con sus datos en [`salidas/causas.md`](salidas/causas.md); la nota lo resume en una tabla.
 
@@ -99,14 +99,18 @@ En este orden, unos minutos por semana:
 1. **Decisión**: el problema y la solución en un minuto. El stock repartido en las 5 causas, una tarjeta por causa (qué pasa, la prueba, qué hacemos y por qué, cómo lo medimos) y la comparación con la consultora.
 2. **Seguimiento**: qué pasó con lo que se recomendó antes. Cada recomendación tiene una **regla que se comprueba con las ventas**, según lo que se propuso:
 
+   Es la misma meta que muestra la ficha del producto.
+
    | Se recomendó | Se cumple si |
    |---|---|
    | Un descuento | Se cobra en caja y vende al menos su meta de unidades por semana |
    | Cobrar una rebaja ya aprobada o confirmar una campaña | La rebaja se ve en el precio cobrado |
    | Dejar el precio (vende bien) | Sigue vendiendo al menos el 90 % de antes, sin quedarse sin stock |
-   | Esperar (recién llegó o hay una suba en curso) | No vende menos del 90 % de antes |
+   | Recién llegado: mover stock | Vende más rápido que antes (así baja lo que sobraría a la fecha límite) |
+   | Esperar una suba de precio en curso | No vende menos del 90 % de antes |
    | Exhibir un producto que nunca vendió | Tiene al menos una venta |
-   | Investigar un corte o mover de local | Vende al menos 10 % más por semana que antes |
+   | Investigar un corte | Vuelve a vender lo de antes (sus unidades por semana) |
+   | Revisar la exhibición en los locales donde no vende | Primeras ventas en esos locales |
    | Devolución, outlet, negociar con el proveedor | Se confirma fuera de las ventas (lo carga quien lo gestiona) |
 
    El resumen separa las que **ya llegaron a su fecha de revisión** (ahí se decide: seguir, ajustar o pasar al paso siguiente) de las que **siguen en curso** (todavía es temprano para juzgarlas). Con un solo Excel, como ahora, la pestaña muestra la agenda: qué se revisa, cuándo, con qué indicador y qué hacer si no se cumple.
@@ -147,6 +151,7 @@ flowchart TB
 - **Las recomendaciones de cada Excel dependen solo de ese Excel.** Lo que depende de los anteriores es el seguimiento y la historia; por eso, si se carga un Excel viejo, solo se recalculan esas dos cosas en los posteriores.
 - **Ninguna cifra está escrita a mano.** Si cambian los datos, cambian la propuesta, la nota, las causas y el tablero. El proceso da siempre el mismo resultado con el mismo Excel (los márgenes de error usan una semilla fija).
 - **Si la base no responde**, el tablero muestra los datos con los que se publicó (`web/datos.js`) y lo avisa.
+- **Por qué archivos y no una base de datos.** Con un Excel por semana alcanza con guardar un juego de archivos por fecha. Si esto escala (muchos meses para consultar con SQL, usuarios con permisos por local, o que los locales carguen lo que aplicaron), el paso siguiente es una base Postgres (por ejemplo, Supabase) con las mismas tablas que ya usa la base local en SQLite.
 
 | Archivo | Qué hace |
 |---|---|

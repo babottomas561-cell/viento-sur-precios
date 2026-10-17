@@ -206,8 +206,17 @@ for s_, f in P.iterrows():
     if len(vig):
         ini = max(ini, vig.fecha_hasta.max() + pd.Timedelta(days=1))  # con campaña en curso, cuando termina
     d_hoy = 0 if pd.isna(t.descuento) else t.descuento / 100
-    escalones = [d for d in R["escalera"] if d > d_hoy and d <= f.margen]
-    chk(f"{f.nombre} · fecha de salida", t.salida, f"{ini + pd.Timedelta(days=R['escalon_dias'] * len(escalones)):%Y-%m-%d}")
+    cr = TP.criterios[s_] or {}
+    responde = cr.get("tipo") in ("firme", "débil")
+    import re as _re
+    d_cond = (round(cr["descuento"] * 100) / 100) if (pd.isna(t.descuento) and _re.search(r"(?:bajar|probar) \d+ %", str(t.condicion).lower())) else 0
+    dur = R["escalon_dias"]
+    if R["escalera"][0] > f.margen and not d_cond or not responde:
+        fin = ini                                                     # sin rebajas posibles: devolución u outlet en la revisión
+    else:
+        escalones = [d for d in R["escalera"] if d > max(d_hoy, d_cond) and d <= f.margen]
+        fin = ini + pd.Timedelta(days=dur * (len(escalones) + (2 if d_cond else 0)))
+    chk(f"{f.nombre} · fecha de salida", t.salida, f"{fin:%Y-%m-%d}")
 for s_, f in P[P.grupo == 2].iterrows():
     l_ = L[L.sku == s_]
     sobra = float((l_.unidades - l_.ritmo_real * (l_.limite - FOTO).dt.days.clip(lower=0)).clip(lower=0).sum())
@@ -229,8 +238,36 @@ acept_all = hist[hist.aceptacion == 1]
 chk("nota · aceptadas", T["consultora"]["aceptadas"], len(acept_all))
 chk("nota · aceptadas con fechas (aplicadas)", T["consultora"]["aplicadas"], int(acept_all.fecha_vigencia_desde.notna().sum()))
 nota_txt = open("salidas/nota.md").read()
-verif = len(acept_all) - int((acept_all.fecha_vigencia_desde.isna() & (acept_all.fecha_sugerencia < INI)).sum())
-chk("nota · dice cuántas aceptadas se pueden verificar", f"de las {verif} sugerencias aceptadas que se pueden verificar" in nota_txt, True)
+# Una aceptada se puede verificar si hay ventas del producto desde que se aceptó (o durante su vigencia) dentro de los datos; se "cobró" si alguna
+# de esas ventas fue por debajo del precio de lista de ese día (la lista de cada día, con los cambios de precio hacia atrás).
+lista_dia = ve.sku.map(prod.precio_lista).astype(float)
+for c_ in camb.sort_values("fecha", ascending=False).itertuples():
+    lista_dia[(ve.sku == c_.sku) & (ve.fecha < c_.fecha)] = c_.precio_anterior
+ve_reb = ve.assign(reb=ve.precio_unitario < lista_dia - 0.5)
+verif = cobradas = 0
+for a_ in acept_all.itertuples():
+    con_f = pd.notna(a_.fecha_vigencia_desde)
+    desde = pd.Timestamp(a_.fecha_vigencia_desde) if con_f else a_.fecha_sugerencia
+    hasta = pd.Timestamp(a_.fecha_vigencia_hasta) if con_f else FOTO
+    w = ve_reb[(ve_reb.sku == a_.sku) & (ve_reb.fecha >= max(desde, INI)) & (ve_reb.fecha <= hasta)]
+    if desde >= INI and w.unidades.sum() > 0:
+        verif += 1
+        cobradas += int(w.reb.any())
+chk("nota · dice cuántas aceptadas se pueden verificar y cuántas se cobraron",
+    f"de las {verif} sugerencias aceptadas que se pueden verificar en las ventas, solo {cobradas} se ven en el precio cobrado" in nota_txt, True)
+
+# lo que la nota afirma de las proyecciones de la consultora y del reparto del stock vencido
+cd30 = P.join(cons)[desc]
+mult = (cd30.unidades_proyectadas_30d / cd30.v30)[cd30.v30 > 0]
+sube = mult[mult >= 1.2]
+chk("nota · proyecciones de la consultora: rango de las subas",
+    f"en {len(sube)} de los {len(mult)} con ventas, la venta con descuento sube entre +{round((sube.min() - 1) * 100)} % y +{round((sube.max() - 1) * 100)} %" in nota_txt, True)
+sin_v = cd30[cd30.v30 == 0].unidades_proyectadas_30d
+chk("nota · proyecciones de la consultora: los sin ventas", f"a los {len(sin_v)} sin ventas en 30 días les pone {int(sin_v.iloc[0])} u a cada uno" in nota_txt and sin_v.nunique() == 1, True)
+venc_ = P[P.u_vencidas > 0]
+n_esc = sum(1 for s_ in venc_.index if (TP.criterios[s_] or {}).get("tipo") in ("firme", "débil") and TP.margen[s_] >= R["escalera"][0])
+chk("nota · stock vencido: cuántos van a la escalera", f"en los {n_esc} cuyo tipo respondió se liquida con fechas" in nota_txt
+    and f"en los otros {len(venc_) - n_esc}, devolución u outlet" in nota_txt, True)
 
 # ---------------------------------------------------------------- 5b · las 5 causas, los indicadores de la ficha y lo que dice la nota de cada causa
 causas_txt = open("salidas/causas.md").read()          # las 5 causas en cuatro pasos (la nota las resume en una tabla)

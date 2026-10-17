@@ -6,6 +6,7 @@ Lo usan los dos caminos, con la misma cuenta:
 
 Pasos: validar el Excel → correr armar_excel.py → medir el seguimiento contra el Excel anterior → armar el paquete.
 """
+import re
 import json
 import subprocess
 import sys
@@ -88,8 +89,9 @@ def ventas_de(xlsx, hasta):
     return [[r.fecha, r.sku, r.sucursal_id, int(r.unidades), float(r.precio_unitario)] for r in v.itertuples()]
 
 
-def regla_seguimiento(d0, u, u_sem, aplicado, meta, sin_stock):
-    """Qué tiene que pasar para que la recomendación se cumpla, comprobable con las ventas, según lo que se recomendó.
+def regla_seguimiento(d0, u, u_sem, aplicado, meta, sin_stock, v=None):
+    """Qué tiene que pasar para que la recomendación se cumpla, comprobable con las ventas: la misma meta de la ficha del producto.
+    v: las ventas del producto desde la recomendación (con sucursal_id, para las metas por local).
     Devuelve (regla en palabras, cumple: True/False, o None si no se ve en las ventas, estado en palabras)."""
     n, acc, base = int(d0["n"]), d0["accion"], float(d0["u_sem_base"] or 0)
     def generico(regla, ok):
@@ -109,10 +111,18 @@ def regla_seguimiento(d0, u, u_sem, aplicado, meta, sin_stock):
         if sin_stock:
             return "que siga vendiendo al menos el 90 % de antes, sin quedarse sin stock", False, "Se quedó sin stock"
         return generico("que siga vendiendo al menos el 90 % de antes, sin quedarse sin stock", u_sem >= base * 0.9)
-    if n == 2 or acc.startswith("Esperar · revisar la suba"):
+    if n == 2:                                   # al mismo ritmo el sobrante proyectado no cambia: baja solo si vende más rápido
+        return generico("que venda más rápido que antes: así baja lo que sobraría a la fecha límite", u_sem > base)
+    if acc.startswith("Esperar · revisar la suba"):
         return generico("que no venda menos que antes (al menos el 90 %)", u_sem >= base * 0.9)
     if n == 4:
         return generico("que tenga al menos una venta", u > 0)
+    if n == 5 and meta:
+        return generico(f"que vuelva a vender lo de antes: {meta:.1f} u por semana".replace(".", ","), u_sem >= meta)
+    locales = re.findall(r"S\d\d", d0.get("indicador") or "") if n == 6 else []
+    if locales and v is not None and "sucursal_id" in v:
+        sin_venta = [s for s in locales if v[v.sucursal_id == s].unidades.sum() == 0]
+        return generico(f"primeras ventas en {', '.join(locales)}, donde estaba quieto", not sin_venta)
     if n in (5, 6) and not acc.startswith("No tocar"):
         return generico("que venda más rápido que antes (al menos 10 % más por semana)", u_sem > base * 1.1 if base else u > 0)
     return ("se confirma fuera de las ventas: devoluciones, outlet o la respuesta del local", None, "Se confirma fuera de las ventas")
@@ -165,7 +175,7 @@ def seguimiento(previas, ventas, stock_ahora, fecha, nuevas=None):
         stock = [dict(fecha=f, u=int(prods[sku]["stock"])) for f, prods in por_excel[i:] if sku in prods] + [dict(fecha=fecha, u=int(stock_ahora.get(sku, 0)))]
         meta = d0.get("meta_u_sem")
         meta = None if meta is None or pd.isna(meta) else float(meta)
-        regla, cumple, estado = regla_seguimiento(d0, u, u_sem, aplicado, meta, stock_ahora.get(sku, 0) == 0)
+        regla, cumple, estado = regla_seguimiento(d0, u, u_sem, aplicado, meta, stock_ahora.get(sku, 0) == 0, v)
         revisar = _iso(d0["revisar"]) if d0.get("revisar") else None
         filas.append(dict(sku=sku, producto=d0["producto"], n=int(d0["n"]), accion=d0["accion"], nuestro=d0["nuestro"], desde=desde, dias=dias,
                           revisar=revisar, en_curso=bool(revisar and fecha < revisar), u_sem_antes=d0["u_sem_base"], u_sem_despues=float(u_sem),

@@ -1,6 +1,6 @@
 # Pregunta 3 · El proceso alrededor del modelo
 
-El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. Con los datos al 15/03, de las 21 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
+El modelo no mueve el negocio solo: mueve el negocio si lo que propone se aprueba, se aplica en el local y se mide. Con los datos al 15/03, de las 20 sugerencias aceptadas que se pueden verificar en las ventas, solo 8 llegaron al precio cobrado. El proceso tiene que cerrar ese circuito.
 
 ## Cada cuánto corre
 
@@ -39,9 +39,11 @@ Si se rechaza una propuesta, se anota por qué. Ese motivo es información para 
 | Un descuento | Se cobra en caja (precio cobrado por debajo del de lista) y vende al menos su meta por semana |
 | Cobrar una rebaja ya aprobada o confirmar una campaña | La rebaja se ve en el precio cobrado |
 | Dejar el precio | Sigue vendiendo al menos el 90 % de antes, sin quedarse sin stock |
-| Esperar (recién llegó o hay una suba en curso) | No vende menos del 90 % de antes |
+| Recién llegado: mover stock | Vende más rápido que antes (así baja lo que sobraría a la fecha límite) |
+| Esperar una suba de precio en curso | No vende menos del 90 % de antes |
 | Exhibir un producto que nunca vendió | Tiene al menos una venta |
-| Investigar un corte o mover de local | Vende al menos 10 % más por semana que antes |
+| Investigar un corte | Vuelve a vender lo de antes (sus unidades por semana) |
+| Revisar la exhibición en los locales donde no vende | Primeras ventas en esos locales |
 | Devolución, outlet, negociar con el proveedor | Lo confirma quien lo gestiona: no se ve en las ventas |
 
 Las que ya pasaron su fecha de revisión se deciden (seguir, ajustar o pasar al paso siguiente de su causa); las demás siguen en curso, porque juzgarlas antes sería apurarse.

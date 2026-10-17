@@ -336,29 +336,51 @@ function semanas(desde, hasta) {
 }
 const semanaDe = (fecha, desde) => Math.floor(difDias(desde, fecha) / 7);
 // Respuesta al descuento por sucursal: por cada tipo, su total (la fila de svgEvidencia) y debajo cada sucursal, con la misma cuenta
+const veredictoDesc = (r, lo, hi, firme, debil) => firme || lo > 1 ? ["suba clara", "var(--good)"] : debil ? ["suba débil: se prueba", "var(--warn)"]
+  : hi < 1 ? ["bajó: el descuento no ayudó", "var(--bad)"] : ["puede ser casualidad", "var(--muted)"];
+const listaY = xs => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : xs.join("");
+const deA = x => `de ${fmt(x.u_sin, 1)} a ${fmt(x.u_con, 1)} u por día (${sgn(x.respuesta - 1)}, ${veredictoDesc(x.respuesta, x.bajo, x.alto, x.firme, x.debil)[0]})`;
+const evidSuc = () => (D.evidencia_suc || []).filter(x => !S.suc || x.suc === S.suc);
 function svgPorSucursal(tipos) {
-  const ES = D.evidencia_suc || [];
-  const filas = tipos.flatMap(e => [{ total: true, lab: `${tipoTxt(e.tipo)} · total`, r: e.respuesta, lo: e.bajo, hi: e.alto, c: e.firme ? "var(--good)" : e.debil ? "var(--warn)" : "var(--muted)" },
-    ...ES.filter(x => x.tipo === e.tipo).map(x => ({ lab: `${x.suc} · ${NOM_SUC[x.suc] || ""}`, r: x.respuesta, lo: x.bajo, hi: x.alto, c: x.bajo > 1 ? "var(--good)" : "var(--muted)" }))]);
-  const W = 640, left = 200, right = 24, top = 22, rowH = 24, H = top + filas.length * rowH + 26;
-  const lo = Math.min(-0.4, ...filas.map(f => f.lo - 1)), hi = Math.max(0.8, ...filas.map(f => f.hi - 1));
-  const x = v => left + (v - lo) / (hi - lo) * (W - left - right);
-  let s = "";
-  for (let t = Math.ceil(lo * 5) / 5; t <= hi + 1e-9; t += 0.2) {
-    s += `<line x1="${x(t)}" x2="${x(t)}" y1="${top - 10}" y2="${top + filas.length * rowH - 8}" stroke="var(--line)" stroke-width="${Math.abs(t) < 1e-9 ? 1.6 : 1}"/>`;
-    s += `<text x="${x(t)}" y="${top + filas.length * rowH + 8}" text-anchor="middle">${t > 0 ? "+" : ""}${Math.round(t * 100)}%</text>`;
-  }
+  // ¿El descuento vendió más en cada local? Por cada tipo, en unidades por día: barra gris = sin descuento, barra de color = con
+  // descuento; a la derecha, el cambio y el veredicto en palabras (el margen de error decide si la suba es clara o puede ser casualidad).
+  const ES = evidSuc();
+  const grupos = tipos.map(e => ({ e, sucs: ES.filter(x => x.tipo === e.tipo) })).filter(g => g.sucs.length);
+  if (!grupos.length) return "";
+  const verd = veredictoDesc;
+  const filas = grupos.flatMap(({ e, sucs }) => [{ cab: `${mayus(tipoTxt(e.tipo))} · ${pct(e.descuento)} de descuento en ${e.referencia}` },
+    { lab: "Todos sus locales", total: true, sin: e.u_sin, con: e.u_con, r: e.respuesta, v: verd(e.respuesta, e.bajo, e.alto, e.firme, e.debil), lo: e.bajo, hi: e.alto },
+    ...sucs.map(x => ({ lab: `${x.suc} · ${NOM_SUC[x.suc] || ""}`, sin: x.u_sin, con: x.u_con, r: x.respuesta, v: verd(x.respuesta, x.bajo, x.alto), lo: x.bajo, hi: x.alto }))]);
+  // en celular: el local y el veredicto en una línea y las barras abajo, a todo el ancho (si no, el texto queda ilegible)
+  const movil = matchMedia("(max-width: 640px)").matches;
+  const W = movil ? 360 : 760, left = movil ? 0 : 170, barW = movil ? 300 : 330, top = 34, cabH = 30, rowH = movil ? 48 : 34, dy = movil ? 16 : 0;
+  const max = Math.max(...filas.filter(f => !f.cab).map(f => Math.max(f.sin, f.con)));
+  const x = v => v / max * barW;
+  let y = top, s = `<rect x="${left}" y="6" width="12" height="9" fill="var(--muted)" opacity=".4"/><text x="${left + 17}" y="14">sin descuento</text>
+    <rect x="${left + 112}" y="6" width="12" height="9" fill="var(--ink-2)"/><text x="${left + 129}" y="14">con descuento${movil ? "" : " · unidades vendidas por día"}</text>`
+    + (movil ? `<text x="${left}" y="28">unidades vendidas por día</text>` : "");
   filas.forEach((f, i) => {
-    const y = top + i * rowH + 2;
-    if (f.total && i) s += `<line x1="8" x2="${W - right}" y1="${y - 13}" y2="${y - 13}" stroke="var(--line)"/>`;
-    s += `<text class="lab" x="${left - 12}" y="${y + 4}" text-anchor="end"${f.total ? ' font-weight="700"' : ""}>${esc(f.lab)}</text>`;
-    s += `<line x1="${x(f.lo - 1)}" x2="${x(f.hi - 1)}" y1="${y}" y2="${y}" stroke="${f.c}" stroke-width="${f.total ? 3 : 2}" opacity=".45" stroke-linecap="round"/>`;
-    s += `<circle cx="${x(f.r - 1)}" cy="${y}" r="${f.total ? 6 : 4.5}" fill="${f.c}"><title>${esc(f.lab)}: ${sgn(f.r - 1)} (margen de error ${sgn(f.lo - 1)} a ${sgn(f.hi - 1)})</title></circle>`;
-    s += `<text x="${x(f.hi - 1) + 6}" y="${y + 4}">${sgn(f.r - 1)}</text>`;
+    if (f.cab) {
+      if (i) s += `<line x1="0" x2="${W}" y1="${y + 4}" y2="${y + 4}" stroke="var(--line)"/>`;
+      s += `<text class="lab" x="0" y="${y + 22}" font-weight="700">${esc(f.cab)}</text>`;
+      y += cabH; return;
+    }
+    const [txt, c] = f.v;
+    s += `<g><title>${esc(f.lab)}: ${fmt(f.sin, 1)} u/día sin descuento, ${fmt(f.con, 1)} con descuento (${sgn(f.r - 1)}; margen de error ${sgn(f.lo - 1)} a ${sgn(f.hi - 1)})</title>
+      <text class="lab" x="${movil ? 0 : left - 12}" y="${y + (movil ? 12 : 15)}" text-anchor="${movil ? "start" : "end"}"${f.total ? ' font-weight="600"' : ""}>${esc(f.lab)}</text>
+      <rect x="${left}" y="${y + 2 + dy}" width="${x(f.sin)}" height="10" rx="2" fill="var(--muted)" opacity=".4"/>
+      <text x="${left + x(f.sin) + 6}" y="${y + 11 + dy}">${fmt(f.sin, 1)}</text>
+      <rect x="${left}" y="${y + 15 + dy}" width="${x(f.con)}" height="10" rx="2" fill="var(--ink-2)"/>
+      <text x="${left + x(f.con) + 6}" y="${y + 24 + dy}">${fmt(f.con, 1)}</text>`
+      + (movil ? `<text class="lab" x="${W}" y="${y + 12}" text-anchor="end"><tspan fill="${c}" font-weight="700">${sgn(f.r - 1)}</tspan> · ${txt}</text></g>`
+        : `<text class="lab" x="${left + barW + 50}" y="${y + 18}" fill="${c}" font-weight="700">${sgn(f.r - 1)}</text>
+      <text class="lab" x="${left + barW + 100}" y="${y + 18}">${txt}</text></g>`);
+    y += rowH;
   });
-  return `<svg class="evid" viewBox="0 0 ${W} ${H}" role="img" aria-label="Respuesta al descuento por sucursal">${s}</svg>`;
+  return `<svg class="evid" viewBox="0 0 ${W} ${y + 6}" role="img" aria-label="Respuesta al descuento por sucursal">${s}</svg>`;
 }
-function svgEvidencia() {
+function svgEvidencia() { return `<div class="evid-scroll">${svgEvidenciaBase()}</div>`; }
+function svgEvidenciaBase() {
   const ev = D.evidencia, W = 640, left = 200, right = 24, top = 24, rowH = 30, H = top + ev.length * rowH + 36;
   const lo = Math.min(-0.3, ...ev.map(e => e.bajo - 1)), hi = Math.max(0.8, ...ev.map(e => e.alto - 1));
   const x = v => left + (v - lo) / (hi - lo) * (W - left - right);
@@ -564,7 +586,7 @@ function vistaDecision(main) {
         <tr><td><b>2 · Queda margen</b></td><td>Después del descuento queda al menos ${pct(D.criterios.margen_minimo)} de margen.</td></tr>
         <tr><td><b>3 · No es el más barato</b></td><td>Si ya es el más barato de su tipo y no se vende, el problema no es el precio.</td></tr>
         <tr><td><b>4 · No se adelantan compras</b></td><td>En su tipo, la venta después del descuento no cayó debajo de antes. Con el stock vencido no se mira: adelantar compras no es un costo.</td></tr>
-        <tr><td><b>Stock vencido</b></td><td>Si la primera acción no cumple: ${D.criterios.escalera.map(d => pct(d)).join(" y después ")}, ${D.criterios.escalon_dias} días cada escalón (se pasa al siguiente si la venta no se duplica), y después devolución u outlet. Nunca debajo del costo.</td></tr>
+        <tr><td><b>Stock vencido</b></td><td>Si la primera acción no cumple y su tipo respondió al descuento: ${D.criterios.escalera.map(d => pct(d)).join(" y después ")}, ${D.criterios.escalon_dias} días cada escalón (se pasa al siguiente si la venta no se duplica), y después devolución u outlet. Si su tipo no respondió, directo a devolución u outlet: una rebaja no lo saca. Nunca debajo del costo.</td></tr>
       </tbody></table>
       ${interp("Las preguntas que se le hacen a un producto antes de bajarle el precio, con el mismo descuento que ya se probó en su tipo. Las dos primeras son obligatorias. Si su tipo responde claro: con las cuatro se baja, y si falla una se prueba 4 semanas. Si la evidencia es débil, solo se prueba y tiene que cumplir todo.",
         (() => { const pasan = evalP.filter(p => ["bajar", "probar"].includes(p.criterios.veredicto)), noTipo = evalP.filter(p => p.criterios.tipo === "no"),
@@ -775,7 +797,7 @@ function vistaFicha(main, sku) {
 
   // El descuento en su tipo, sucursal por sucursal (la misma cuenta que la pestaña Descuentos): va después del detalle
   let sEsuc = null;
-  const evTipo = D.evidencia.find(e => e.tipo === p.tipo), esTipo = (D.evidencia_suc || []).filter(x => x.tipo === p.tipo);
+  const evTipo = D.evidencia.find(e => e.tipo === p.tipo), esTipo = evidSuc().filter(x => x.tipo === p.tipo);
   const esReferencia = esTipo.some(x => x.sku === sku);
   if (evTipo && esTipo.length && (esReferencia || p.evalua_descuento)) {
     const sE = seccion(esReferencia ? "Su descuento, sucursal por sucursal" : "El descuento en su tipo, sucursal por sucursal",
@@ -783,10 +805,12 @@ function vistaFicha(main, sku) {
         : `Cómo respondió ${esc(evTipo.referencia)}, el producto de su tipo que tuvo un descuento cobrado, en cada sucursal.`);
     const claras = esTipo.filter(x => x.bajo > 1), mias = L.map(l => l.suc), comunes = mias.filter(s => esTipo.some(x => x.suc === s));
     sE.append(bloque(`${svgPorSucursal([evTipo])}
-      ${interp("Primero el total y debajo cada sucursal, con la misma cuenta de la pestaña Descuentos: venta por día con descuento contra el resto de la ventana. El punto es el cambio; la línea, su margen de error. Verde: suba clara.",
-        `En total, ${sgn(evTipo.respuesta - 1)}. ${esTipo.map(x => `${x.suc}: ${sgn(x.respuesta - 1)}${x.bajo > 1 ? " (clara)" : ""}`).join("; ")}.${esReferencia ? "" : ` Este producto está en ${mias.join(", ") || "ningún local con estos filtros"}${comunes.length ? `; su tipo se midió también en ${comunes.join(", ")}` : ""}.`}`,
-        claras.length && claras.length < esTipo.length ? "El mismo descuento funcionó en un local y no en otro. Con pocas unidades por día puede ser casualidad, así que la decisión usa el total; si se prueba, se mide sucursal por sucursal y se mantiene solo donde funciona."
-          : claras.length ? "Respondió en todos los locales donde se midió." : "En ningún local la suba sale del margen de error.")}`));
+      ${interp("Cuántas unidades por día vendía sin descuento (gris) y cuántas con descuento (oscura), primero sumando sus locales y después local por local. A la derecha, el cambio y si es una suba clara o puede ser casualidad (con tan pocas unidades por día, una suba chica entra en el margen de error).",
+        `Con el ${pct(evTipo.descuento)}, ${esc(evTipo.referencia)} pasó, sumando sus locales, ${deA(evTipo)}. Local por local: ${esTipo.map(x => `${x.suc}, ${deA(x)}`).join("; ")}.`
+          + (esReferencia ? "" : ` ${esc(p.producto)} está en ${listaY(mias) || "ningún local con estos filtros"}${comunes.length ? `: ${comunes.map(s => { const x = esTipo.find(e => e.suc === s); return `en ${s} el descuento de su tipo dio ${veredictoDesc(x.respuesta, x.bajo, x.alto)[0]}`; }).join(" y ")}` : ": en ninguno de esos locales se midió el descuento de su tipo"}.`),
+        (claras.length && claras.length < esTipo.length ? `El mismo descuento subió claro en ${listaY(claras.map(x => x.suc))} y no en ${listaY(esTipo.filter(x => x.bajo <= 1).map(x => x.suc))}. Con tan pocas unidades por día puede ser casualidad, así que la decisión usa la suma de los locales`
+          : claras.length ? "Subió claro en todos los locales donde se midió. La decisión usa la suma de los locales" : "En ningún local la suba sale del margen de error: el descuento no tiene evidencia local por local. La decisión usa la suma de los locales")
+          + (esReferencia ? "." : `; si se prueba en ${esc(p.producto)}, se mide local por local y se mantiene solo donde la venta suba.`))}`));
     sEsuc = sE;
   }
   main.append(s2);
@@ -1532,9 +1556,13 @@ function vistaDescuentos(main) {
   main.append(s1);
 
   // 1b · El mismo resultado, sucursal por sucursal (solo donde el producto descontado está en más de un local)
-  const ES = D.evidencia_suc || [];
-  if (ES.length) {
-    const sS = seccion("1b · ¿Respondió igual en cada sucursal?", "El mismo resultado, abierto por sucursal: la misma cuenta, en cada local donde estaba el producto descontado.");
+  const ES = evidSuc();
+  if ((D.evidencia_suc || []).length) {
+    const sS = seccion("1b · ¿El descuento vendió más en cada local?", "El mismo resultado de arriba, abierto por sucursal: lo que vendía por día sin descuento contra lo que vendió con descuento.");
+    if (!ES.length) {
+      sS.append(bloque(`<div class="vacio">En ${S.suc} no estaba ninguno de los productos descontados: no hay medición en ese local. El total de cada tipo está en el gráfico de arriba.</div>`));
+      main.append(sS);
+    } else {
     const clarasS = ES.filter(x => x.bajo > 1);
     const concentra = firmes.map(e => { const xs = ES.filter(x => x.tipo === e.tipo).sort((a, b) => b.respuesta - a.respuesta); return xs.length > 1 ? `${tipoTxt(e.tipo)} ${sgn(xs[0].respuesta - 1)} en ${xs[0].suc} contra ${sgn(xs.at(-1).respuesta - 1)} en ${xs.at(-1).suc}` : ""; }).filter(Boolean);
     const sueltas = clarasS.filter(x => !firmes.some(e => e.tipo === x.tipo));
@@ -1544,12 +1572,13 @@ function vistaDescuentos(main) {
       { k: "respuesta", t: "cambio", r: true, f: (v, r) => `<span class="${r.bajo > 1 ? "ok" : "muted"}">${sgn(v - 1)}</span>`, csv: v => v - 1 },
       { k: "bajo", t: "margen de error", r: true, f: (v, r) => `${sgn(v - 1)} a ${sgn(r.alto - 1)}`, csv: v => v - 1 }];
     const bS = bloque(`${svgPorSucursal(EV)}
-      ${interp("Para cada tipo, primero el total (la misma fila del gráfico de arriba) y debajo cada sucursal donde estaba el producto descontado, con la misma cuenta: venta por día con descuento contra el resto de la ventana. Verde: suba clara en esa sucursal.",
-        `Suba clara en ${clarasS.length} de ${ES.length} mediciones (un producto en un local): ${lista(clarasS.map(x => `${tipoTxt(x.tipo)} en ${x.suc} (${sgn(x.respuesta - 1)})`))}. ${concentra.length ? `En los tipos que responden, la suba se concentra en un local: ${concentra.join("; ")}.` : ""} ${sueltas.length ? `${mayus(lista(sueltas.map(x => `${tipoTxt(x.tipo)} subió claro en ${x.suc}`)))}, pero en el total del tipo el cambio entra en el margen de error.` : ""}`,
+      ${interp("Para cada tipo que tuvo un descuento cobrado en más de un local: cuántas unidades por día vendía sin descuento (gris) y cuántas con descuento (oscura), primero sumando sus locales y después local por local. A la derecha, el cambio y si es una suba clara o puede ser casualidad (con tan pocas unidades por día, una suba chica entra en el margen de error).",
+        `De las ${ES.length} mediciones local por local (un producto descontado en un local), la venta subió claro en ${clarasS.length}${clarasS.length ? `: ${lista(clarasS.map(x => `${tipoTxt(x.tipo)} en ${x.suc} (${deA(x).replace(/ \(.*/, "")})`))}` : ""}. ${concentra.length ? `En los tipos que responden, la suba se concentra en un local: ${concentra.join("; ")}.` : ""} ${sueltas.length ? `${mayus(lista(sueltas.map(x => `${tipoTxt(x.tipo)} subió claro en ${x.suc}`)))}, pero en el total del tipo el cambio entra en el margen de error.` : ""}`,
         "Con 1 a 3 unidades por día por local, la diferencia entre sucursales todavía puede ser casualidad, así que la decisión usa el total del tipo. Pero muestra por qué cada prueba se mide por sucursal y con una sucursal de comparación: el mismo descuento puede funcionar en un local y no en otro.")}`);
     bS.append(verDatos("Respuesta al descuento por sucursal", colsES, ES, "evidencia_por_sucursal"));
     sS.append(bS);
     main.append(sS);
+    }
   }
 
   if (!C.length) main.append(bloque(`<div class="vacio">Ninguno de los ${P.length} productos filtrados${S.suc ? ` en ${S.suc}` : ""} tuvo un descuento cobrado en caja: no hay semanas ni margen que medir. Más abajo están sus sugerencias aceptadas y si llegaron al precio cobrado.</div>`));
