@@ -3,18 +3,12 @@
 __pycache__/
 .DS_Store
 .claude/
-.impeccable/
 .vercel/
-PRODUCT.md
-# se generan al correr actualizar.py
+.env*
+# se generan al correr actualizar.py (la base local y la historia de cada Excel)
 datos/viento_sur.db
 salidas/historia/
-entrega_mail/
-.vercel
-.env*
-# recortes que arma herramientas/recortar_excel.py
+# archivos de prueba: recortes (herramientas/recortar_excel.py) y semanas demo (herramientas/simular_futuro.py)
 datos/viento_sur_al_*.xlsx
-# semanas demo que arma herramientas/simular_futuro.py (se regeneran iguales con la semilla)
 datos/demo/
-# lo esperado para auditar el tablero con la demo (se genera con esperado.py y esperado_ventas.py)
 web/auditoria/*_demo.json

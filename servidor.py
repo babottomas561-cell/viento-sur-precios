@@ -5,7 +5,7 @@ La base es la fuente única: al subir un Excel se guardan sus 8 hojas y el proce
 Un Excel por fecha de datos (el último día con ventas): si se sube otra vez la misma fecha, lo reemplaza. Si se sube una fecha
 vieja, los posteriores recalculan su historia y su seguimiento (las recomendaciones de cada uno no cambian: dependen solo de su Excel).
 
-La dirección de la base está en la variable POSTGRES_URL (la carga Vercel al conectar Supabase; en la computadora, en .env.local).
+La dirección de la base está en POSTGRES_URL_NON_POOLING (o POSTGRES_URL): las carga Vercel al conectar Supabase; en la computadora, en .env.local.
 Uso en la computadora:
   python servidor.py subir datos/viento_sur.xlsx  ·  python servidor.py recalcular 2026-03-15  ·  python servidor.py borrar 2026-02-22
   python servidor.py lista
@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,12 +34,20 @@ def _env_local():
                 os.environ.setdefault(k.strip(), v.strip().strip('"'))
 
 
-def base():
+def base(intentos=3):
+    """Una conexión a la base. Usa el pooler de Supabase en modo sesión (POSTGRES_URL_NON_POOLING): el modo transacción corta
+    conexiones con respuestas grandes, como los datos del tablero. Si la conexión falla, reintenta."""
     _env_local()
-    url = os.environ.get("POSTGRES_URL")
+    url = os.environ.get("POSTGRES_URL_NON_POOLING") or os.environ.get("POSTGRES_URL")
     if not url:
         raise RuntimeError("Falta POSTGRES_URL: la dirección de la base (Supabase).")
-    return Base(url)
+    for i in range(intentos):
+        try:
+            return Base(url)
+        except Exception:
+            if i == intentos - 1:
+                raise
+            time.sleep(1 + i)
 
 
 def url_excel(fecha, tipo):
@@ -77,7 +86,8 @@ def procesar_subida(contenido, nombre):
         meta = dict(nombre=nombre, subida=datetime.now(timezone.utc).isoformat(timespec="seconds"))
         with base() as b:
             b.guardar_hojas(xlsx, fecha, nombre, original=contenido)
-            calcular(b, fecha, Path(tmp))
+        calcular(fecha, Path(tmp))
+        with base() as b:
             posteriores = [f for f in b.fechas() if f > fecha]
             for f in [fecha] + posteriores:                     # se cargó un Excel viejo: los de después se recalculan
                 paq = b.completar(f, url_excel(f, "analisis"), meta if f == fecha else None)
@@ -88,21 +98,26 @@ def procesar_subida(contenido, nombre):
                 recalculadas=posteriores, fotos=total), []
 
 
-def calcular(b, fecha, carpeta):
+def calcular(fecha, carpeta):
     """Corre el proceso sobre los datos de la base (no sobre el archivo subido) y guarda el resultado: la base es la fuente única.
-    Sirve también para recalcular una fecha si se corrigió algún dato en la base."""
-    xlsx = b.exportar_excel(fecha, Path(carpeta) / f"base_{fecha}.xlsx")
+    La conexión no queda abierta mientras corre el proceso (unos segundos): el pooler de Supabase corta las conexiones quietas."""
+    with base() as b:
+        xlsx = b.exportar_excel(fecha, Path(carpeta) / f"base_{fecha}.xlsx")
     tablero = carga.correr_proceso(xlsx, Path(carpeta) / "salidas")
-    b.guardar_resultado(fecha, tablero, (Path(carpeta) / "salidas" / "ventas_y_stock.xlsx").read_bytes())
+    with base() as b:
+        b.guardar_resultado(fecha, tablero, (Path(carpeta) / "salidas" / "ventas_y_stock.xlsx").read_bytes())
     return tablero
 
 
 def recalcular(fecha):
-    """Vuelve a correr el proceso de una fecha desde la base (por ejemplo, después de corregir un dato en Supabase) y sus posteriores."""
-    with base() as b, tempfile.TemporaryDirectory() as tmp:
+    """Vuelve a correr el proceso de una fecha desde la base (por ejemplo, después de corregir un dato en Supabase) y completa
+    esa fecha y las posteriores (su historia y su seguimiento)."""
+    with base() as b:
         if fecha not in b.fechas():
             raise ValueError(f"No hay un Excel al {fecha} en la base.")
-        calcular(b, fecha, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp:
+        calcular(fecha, Path(tmp))
+    with base() as b:
         for f in [x for x in b.fechas() if x >= fecha]:
             b.completar(f, url_excel(f, "analisis"))
     return dict(fecha=fecha, recalculada=True)

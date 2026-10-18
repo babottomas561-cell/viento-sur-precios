@@ -36,16 +36,16 @@ const F_MIN = VENTAS.reduce((m, v) => v.fecha < m ? v.fecha : m, "9999"), F_MAX 
 const ORDEN_REGLAS = [3, 1, 2, 4, 5, 6, 7, 8, 9];
 const COL_SUC = ["#2a6f97", "#c9a227", "#2e7d4f", "#b3402e", "#7a4a9a", "#5a6a74"];
 const VIAS = [
-  ["Descuento ahora (a prueba)", p => p.nuestro === "ya"],
+  ["Descuento ahora, a prueba", p => p.nuestro === "ya"],
   ["Descuento si se cumple una condición", p => p.nuestro === "condicional"],
-  ["Reponer: se vende solo", p => p.n === 1],
-  ["Mover stock y medir el sobrante", p => p.n === 2],
-  ["Resolver lo que está en curso", p => p.n === 3 || p.n === 7],
-  ["Contar stock y exhibir", p => p.n === 4],
-  ["Investigar en el local", p => p.n === 5],
-  ["Revisar exhibición o devolver", p => p.n === 6],
-  ["Negociar con el proveedor", p => p.n === 8],
-  ["Outlet o devolución del excedente", p => p.n === 9],
+  ["Dejar el precio y reponer (se vende solo)", p => p.n === 1],
+  ["Mover stock entre locales (recién llegó)", p => p.n === 2],
+  ["Esperar lo que está en curso o cobrar lo aprobado", p => p.n === 3 || p.n === 7],
+  ["Contar el stock y exhibirlo (nunca vendió)", p => p.n === 4],
+  ["Investigar en el local (se cortó)", p => p.n === 5],
+  ["Revisar la exhibición o devolver (mal ubicado)", p => p.n === 6],
+  ["Negociar con el proveedor (margen bajo)", p => p.n === 8],
+  ["Outlet o devolución del excedente (sin descuento)", p => p.n === 9],
 ];
 const viaDe = p => VIAS.find(([, f]) => f(p))[0];
 // Las 5 causas: los 9 grupos contados por qué no se vende. Las fotos anteriores de la base pueden no traerlas.
@@ -305,6 +305,7 @@ function tablaAuditable(cols, filas, nombre, opts = {}) {
   return cont;
 }
 
+const conclusionHTML = txt => `<p class="titular" style="margin-bottom:1rem">${txt}</p>`;
 const seccion = (titulo, bajada) => {
   const s = document.createElement("section");
   s.className = "sec";
@@ -442,8 +443,12 @@ function vistaDecision(main) {
     const deCien = enPrecio ? Math.round(100 * enPrecio.stock / (stock || 1)) : 0;
     s1.innerHTML = `<div class="sec-cab"><h2>${filtrado ? `El problema y la solución, para ${P.length} productos filtrados` : "El problema y la solución, en un minuto"}</h2><span class="nota">Datos al ${D.foto}</span></div>
       <div class="bloque resumen">
-        <p class="titular">${atrasados} de ${P.length} productos venden menos de lo esperado${vencidas ? ` y el ${pct(vencidas / (stockL || 1))} del stock ya pasó su fecha límite` : ""}.
-          ${porCausa.length > 1 ? `<b>Pero no es un solo problema${deCien < 30 ? ", y casi nunca es el precio" : deCien < 50 ? ", y la mayor parte no es de precio" : ""}:</b> de cada 100 unidades en stock, ${deCien ? `${deCien < 50 ? "solo " : ""}${deCien} están` : "ninguna está"} en productos donde el precio puede ser la causa.` : ""}</p>
+        <p class="titular">${atrasados} de ${P.length} productos venden menos de lo previsto para llegar a su objetivo${vencidas ? `, y el ${pct(vencidas / (stockL || 1))} del stock (${fmt(vencidas)} u) ya pasó la fecha en que tenía que estar vendido` : ""}.
+          ${porCausa.length > 1 ? (() => {
+            const parte = c => `${c.nombre.toLowerCase()} (${pct(c.stock / (stock || 1))})`;
+            const ok = porCausa.find(c => c.id === "ok"), otras = porCausa.filter(c => c.id !== "ok" && c.id !== "precio").sort((a, b) => b.stock - a.stock);
+            const resto = `${ok ? `El ${pct(ok.stock / (stock || 1))} vende bien o recién llegó${otras.length ? ", y el resto tiene otras causas: " : ""}` : otras.length ? "El resto tiene otras causas: " : ""}${listaY(otras.map(parte))}`;
+            return `${deCien < 50 ? `<b>Pero el precio explica poco:</b> solo el ${deCien} %` : `<b>El precio pesa:</b> el ${deCien} %`} del stock está en productos donde bajar el precio puede ayudar. ${resto}.`; })() : ""}</p>
         <div class="barra-causas" role="img" aria-label="Stock por causa: ${porCausa.map(c => `${c.nombre} ${pct(c.stock / (stock || 1))}`).join(", ")}">
           ${porCausa.map(c => `<button type="button" class="seg${c.id === "precio" ? " es-precio" : ""}" data-k="${c.id}" style="flex:${c.stock}"
             title="${esc(c.nombre)}: ${fmt(c.stock)} u (${pct(c.stock / (stock || 1))}) en ${c.productos} productos · tocá para verlos">${c.stock / (stock || 1) >= 0.08 ? pct(c.stock / (stock || 1)) : ""}</button>`).join("")}
@@ -487,7 +492,7 @@ function vistaDecision(main) {
         <ol>
           <li><b>El problema</b><p>${atrasados} de ${P.length} productos venden menos del ${pct(D.criterios.al_dia)} de lo esperado, y el ${pct(vencidas / (stockL || 1))} del stock (${fmt(vencidas)} u) ya pasó su fecha límite.${porCausa.length > 1 && enPrecio ? ` Pero no es un solo problema: hay ${porCausa.length} causas distintas, y solo el ${pct(enPrecio.stock / (stock || 1))} del stock está en productos donde el precio puede ser la causa.` : ""}</p></li>
           <li><b>Qué proponemos</b><p>${porCausa.length ? "Una solución por causa (la tabla de abajo). " : ""}${ya.length ? `Descuento ahora en ${ya.length}, siempre a prueba y medido` : "Ningún descuento inmediato"}${cond.length ? `; en ${cond.length} más, si se cumple una condición` : ""}. Los otros ${sin} se resuelven sin tocar el precio: ${sinPrecio.slice(0, 3).map(v => v.via.split(":")[0].toLowerCase()).join(", ")}.${venc.length ? ` El stock vencido (${fmt(suma(venc, p => p.u_vencidas))} u) tiene fecha de salida: si la primera acción no cumple, se liquida con fechas y piso en el costo, la última salida el ${fechaAR(venc.reduce((m, p) => p.salida > m ? p.salida : m, ""))}.` : ""}</p></li>
-          <li><b>Qué esperamos</b><p>${E.length ? `Con los descuentos de ahora, ${fmt(uB)} → ${fmt(uE, 1)} u por mes. En 2 meses dejarían entre ${plataS(mPeor - mB)} y ${plataS(mMejor - mB)} de margen contra no tocar el precio, según cómo respondió antes el mismo descuento: el descuento mueve poco.` : "El precio no cambia en estos productos."} El stock quieto sale sobre todo por las otras vías: ${sinPrecio[0] ? `${sinPrecio[0].via.toLowerCase()} (${fmt(sinPrecio[0].stock)} u)` : "—"}${sinPrecio[1] ? ` y ${sinPrecio[1].via.toLowerCase()} (${fmt(sinPrecio[1].stock)} u)` : ""}.</p></li>
+          <li><b>Qué esperamos</b><p>${E.length ? `Con los descuentos de ahora se venderían unas ${fmt(uE)} u por mes, contra ${fmt(uB)} sin descuento; en 2 meses, el margen cambiaría entre ${plataS(mPeor - mB)} y ${plataS(mMejor - mB)} según cómo responda.` : "El precio no cambia en estos productos."} ${suma(vias.filter(v => /^Descuento/.test(v.via)), v => v.stock) < (stock || 1) / 2 ? "El resto del stock quieto se mueve sin tocar el precio" : "El resto se mueve sin tocar el precio"}: ${sinPrecio[0] ? `${sinPrecio[0].via.toLowerCase().replace(/ \(.*\)$/, "")} (${fmt(sinPrecio[0].stock)} u)` : "—"}${sinPrecio[1] ? ` y ${sinPrecio[1].via.toLowerCase().replace(/ \(.*\)$/, "")} (${fmt(sinPrecio[1].stock)} u)` : ""}.</p></li>
         </ol>
         ${cifras}
       </div>`;
@@ -518,12 +523,12 @@ function vistaDecision(main) {
   // 2 · El problema
   const quietos = P.filter(p => p.pct_esperado < D.criterios.al_dia && (p.meses == null || p.meses > 12));
   const alDiaP = P.filter(p => p.pct_esperado >= D.criterios.al_dia).length;
-  const s2 = seccion("¿Qué productos no rotan?", "Qué tan lejos está cada producto de lo que se esperaba vender, y dónde está el stock.");
-  const b2 = bloque(`<div class="dos"><div><h3>Ritmo contra stock, producto por producto</h3><div class="graf alto"><canvas id="g-disp" aria-label="Ritmo contra meses de stock"></canvas></div>
+  const s2 = seccion("¿Qué productos no rotan?", "");
+  const b2 = bloque(`<div class="dos"><div><h3>Qué tan lejos está cada producto de lo esperado</h3><div class="graf alto"><canvas id="g-disp" aria-label="Ritmo contra meses de stock"></canvas></div>
       ${interp("Cada punto es un producto, del color de su grupo. Hacia la derecha vende más de lo que se esperaba (100 % = justo lo esperado); hacia arriba, el stock le dura más meses al ritmo del último mes. Arriba de todo, los que no vendieron nada en 30 días. Tocá un punto para ver su ficha.",
         `<b>${quietos.length} de ${P.length}</b> están arriba a la izquierda: venden menos del ${pct(D.criterios.al_dia)} de lo esperado y tienen stock para más de un año, o no vendieron nada el último mes. ${alDiaP} venden al día.`,
         "El problema no es parejo: hay productos que se venden solos y otros que no se mueven. Por eso se decide producto por producto y no con un descuento general.")}</div>
-    <div><h3>Dónde está el stock (claro: total · oscuro: ya vencido)</h3><div class="hbars" id="stock-grupos"></div><div id="interp-grupos"></div></div></div>`);
+    <div><h3>En qué grupos está el stock y cuánto ya venció</h3><div class="hbars" id="stock-grupos"></div><div id="interp-grupos"></div></div></div>`);
   s2.append(b2);
   main.append(s2);
   const techo = 190;   // los que no vendieron en el último mes se dibujan arriba de todo, en la franja "sin venta"
@@ -550,14 +555,15 @@ function vistaDecision(main) {
   $("#interp-grupos").innerHTML = interp("Cada barra es el stock de un grupo. La parte oscura ya pasó su fecha límite; la clara todavía está en fecha.",
     `El grupo con más stock es <b>${esc(gMas.nombre)}</b> (${fmt(gMas.stock)} u). ${vencidas ? `El ${pct(vencidas / (stockL || 1))} del stock ya venció, sobre todo en ${gVenc.map(g => `${esc(g.nombre.toLowerCase())} (${fmt(g.vencidas)} u)`).join(" y ")}.` : "Todavía no venció nada."}`,
     vencidas ? "El stock vencido tiene urgencia: cada producto empieza por la solución de su causa, pero con fecha de salida si no funciona." : "");
+  b2.insertAdjacentHTML("afterbegin", conclusionHTML(`<b>${quietos.length > alDiaP ? "La mayoría está lejos de lo esperado, pero no todos." : "El problema no es parejo."}</b> ${alDiaP} ${alDiaP === 1 ? "producto vende" : "productos venden"} al día; ${quietos.length} venden menos del ${pct(D.criterios.al_dia)} de lo esperado y tienen stock para más de un año, o no vendieron nada el último mes.${vencidas ? ` El ${pct(vencidas / (stockL || 1))} del stock ya venció, sobre todo en ${gVenc.length === 1 ? "el grupo" : "los grupos"} ${listaY(gVenc.map(g => `«${g.nombre.toLowerCase()}»`))}.` : ""} Por eso se decide producto por producto, no con un descuento general.`));
   b2.append(verDatos("Productos con su ritmo y stock", [
     { k: "producto", t: "producto", cls: "t-prod" }, { k: "n", t: "grupo", r: true }, { k: "pct_esperado", t: "% de lo esperado", r: true, f: v => pct(v), csv: v => v },
     { k: "v30", t: "vendidas último mes", r: true, f: v => fmt(v) }, { k: "stock", t: "stock", r: true, f: v => fmt(v) },
     { k: "meses", t: "meses de stock", r: true, f: v => v == null ? "sin venta" : fmt(v, 1) }], P, "problema"));
 
   // 3 · Cómo decidimos
-  const s3 = seccion("¿Cómo se decide cada producto?", "Como un embudo: 9 preguntas en orden, y cada producto se queda en la primera que explica por qué no se vende.");
-  const b3 = bloque(`<div class="recorrido" id="recorrido"></div>`);
+  const s3 = seccion("¿Cómo se decide cada producto?", "");
+  const b3 = bloque(`<h3>Las 9 preguntas, en orden: cada producto se queda en la primera que explica por qué no se vende</h3><div class="recorrido" id="recorrido"></div>`);
   s3.append(b3);
   main.append(s3);
   let quedan = P.length;
@@ -580,12 +586,13 @@ function vistaDecision(main) {
   const evFirmes = D.evidencia.filter(e => e.firme), evDebil = D.evidencia.filter(e => !e.firme && e.debil);
   rec.insertAdjacentHTML("beforeend", `<div class="veredictos"><span class="nota">En el grupo 9, los criterios del descuento deciden:</span>
     ${v9.bajar ? pill(`Bajar: ${v9.bajar.length}`) : ""}${v9.probar ? pill(`Probar 4 semanas: ${v9.probar.length}`) : ""}${v9.no ? `<span class="pill p-no">No bajar: ${v9.no.length}</span>` : ""}</div>`);
+  b3.insertAdjacentHTML("afterbegin", conclusionHTML(`<b>El precio se discute al final.</b> ${P.length - en9.length} de ${P.length} productos se explican por otra causa antes de llegar a esa pregunta. El descuento queda solo donde su tipo respondió a un descuento anterior (${evFirmes.length ? `${listaY(evFirmes.map(e => tipoTxt(e.tipo)))}, claro` : "ninguno claro"}${evDebil.length ? `; ${listaY(evDebil.map(e => tipoTxt(e.tipo)))}, débil: solo se prueba` : ""}) y le queda margen: ${ya.length} ${ya.length === 1 ? "producto lo lleva" : "productos lo llevan"} ahora y ${cond.length} si se cumple una condición.`));
   b3.insertAdjacentHTML("beforeend", interp("Cada fila es una pregunta, en orden. La barra oscura son los productos que se quedan en esa pregunta; la clara, los que pasan a la siguiente. Tocá una fila para ver sus productos.",
     `<b>${P.length - en9.length} de ${P.length}</b> productos se explican antes de llegar al precio. ${en9.length} llegan a la última pregunta, y de esos ${(v9.bajar || []).length + (v9.probar || []).length} pasan los criterios del descuento.`,
     "El precio se discute solo cuando nada más explica por qué no se vende. Así no se descuenta un producto que no está a la vista, está en el local equivocado o tiene un descuento aprobado que nunca se cobró."));
 
   const b3b = bloque(`<div class="dos">
-    <div><h3>Los criterios del descuento</h3>
+    <div><h3>Cuándo se baja el precio: los criterios</h3>
       <table><tbody>
         <tr><td><b>1 · Su tipo responde</b></td><td>Todo su margen de error queda por encima de 0 % (suba clara). Si fue de ${sgn(D.criterios.respuesta_debil - 1)} o más y la venta se sostuvo después, es débil: como mucho se prueba.</td></tr>
         <tr><td><b>2 · Queda margen</b></td><td>Después del descuento queda al menos ${pct(D.criterios.margen_minimo)} de margen.</td></tr>
@@ -599,7 +606,7 @@ function vistaDecision(main) {
             aceptados = P.filter(p => p.nuestro !== "no" && !pasan.includes(p));
           return `Se evalúa en ${evalP.length} productos (los que llegan al final del embudo y, como condición, los recién llegados, los que tienen algo en curso y los de descuentos repetidos). <b>Pasan ${pasan.length}.</b> Quedan afuera ${noTipo.length} porque su tipo no responde${noMargen.length ? `, ${noMargen.length} porque no les queda margen` : ""}${otros > 0 ? ` y ${otros} por los otros criterios (ya es el más barato de su tipo, o en su tipo la venta cae después)` : ""}.${aceptados.length ? ` Además, ${aceptados.length === 1 ? "un descuento ya aceptado por el local se aplica" : `${aceptados.length} descuentos ya aceptados por el local se aplican`} con fechas (${aceptados.map(p => esc(p.producto)).join(", ")}).` : ""}`; })(),
         "El descuento queda solo donde hay evidencia de que mueve la venta y no se pierde plata.")}</div>
-    <div><h3>¿En qué tipos un descuento mueve la venta?</h3>
+    <div><h3>La evidencia: en qué tipos el descuento movió la venta</h3>
       ${svgEvidencia()}
       ${interp(`Los ${D.evidencia.length} descuentos que se cobraron (${D.vigencia}), uno por tipo. El punto es cuánto más vendió por día con descuento; la línea, su margen de error (entre qué valores puede estar el cambio real). Verde: suba clara; ámbar: subió, pero puede ser casualidad; gris: el cambio entra en el margen de error. La franja es lo que hicieron los productos sin cambios.`,
         `${evFirmes.length ? `<b>${mayus(evFirmes.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`).join(" y "))}</b> responden claro.` : "Ningún tipo responde claro."} ${evDebil.length ? `${mayus(evDebil.map(e => tipoTxt(e.tipo)).join(" y "))}: subió, pero puede ser casualidad.` : ""}${D.evidencia.length - evFirmes.length - evDebil.length ? ` En los otros ${D.evidencia.length - evFirmes.length - evDebil.length}, el cambio entra en el margen de error.` : ""}`,
@@ -611,23 +618,31 @@ function vistaDecision(main) {
     { k: "alto", t: "margen de error (hasta)", r: true, f: v => sgn(v - 1), csv: v => v - 1 }, { k: "firme", t: "¿suba clara?", f: (v, r) => v ? "sí" : r.debil ? "débil" : "no", csv: (v, r) => v ? "sí" : r.debil ? "débil" : "no" },
     { k: "despues", t: "después (descontado el movimiento general)", r: true, f: v => sgn(v - 1), csv: v => v - 1 }], D.evidencia, "evidencia_por_tipo"));
 
-  // 4 · Qué esperamos
-  const viaDesc = suma(vias.filter(v => /^Descuento/.test(v.via)), v => v.stock);
-  const s4 = seccion("¿Qué efecto esperamos?", "Por dónde sale el stock y qué se puede esperar de los descuentos.");
+  // 4 · Qué esperamos: qué se hace con el stock, y si conviene descontar
+  const viaDesc = suma(vias.filter(v => /^Descuento/.test(v.via)), v => v.stock), pDesc = viaDesc / (stock || 1);
+  const s4 = seccion("¿Qué efecto esperamos?", "");
   const mxv = Math.max(...vias.map(v => v.stock), 1);
-  const b4 = bloque(`<div class="dos"><div><h3>Stock según la vía por la que sale</h3><div class="hbars">${vias.map(v => `<div class="hbar"><span>${esc(v.via)}<br><span class="muted" style="font-size:.76rem">${v.productos} ${v.productos === 1 ? "producto" : "productos"} · ${plata(v.capital)} a costo</span></span>
+  const filaVia = v => `<div class="hbar" title="${esc(v.via)}: ${fmt(v.stock)} u, ${plata(v.capital)} a costo"><span>${esc(v.via)}<br><span class="muted" style="font-size:.76rem">${v.productos} ${v.productos === 1 ? "producto" : "productos"}</span></span>
       <span class="pista"><i style="width:${100 * v.stock / mxv}%;background:${/^Descuento/.test(v.via) ? "var(--good)" : "var(--accent)"}"></i></span>
-      <span class="num r">${fmt(v.stock)} u</span></div>`).join("")}</div>
-      ${interp("Cada barra es el stock que sale por una vía: la acción principal de cada producto (cada producto está en una sola). En verde, las vías con descuento.",
-        `${viaDesc / (stock || 1) < 0.5 ? "Solo el" : "El"} <b>${pct(viaDesc / (stock || 1))}</b> del stock está en productos con descuento. Las vías más grandes son ${sinPrecio.slice(0, 2).map(v => `${esc(v.via.toLowerCase())} (${fmt(v.stock)} u)`).join(" y ")}.`,
-        viaDesc / (stock || 1) < 0.5 ? "El stock quieto se mueve sobre todo sin tocar el precio: reponiendo, moviendo, exhibiendo, devolviendo o negociando."
-          : "Más de la mitad del stock sale por descuentos: por eso cada uno es una prueba con meta y fecha, y se corta si no funciona.")}</div>
-    <div><h3>Los descuentos de ahora: margen en 2 meses contra no tocar el precio</h3>${E.length ? `<div class="graf bajo"><canvas id="g-efecto"></canvas></div>
-      ${interp("Cada producto con descuento ahora, en tres escenarios: si responde como la peor sucursal, como todas juntas o como la mejor, según lo que pasó antes con el mismo descuento (mismo tipo y mismo %). La barra es el margen en 2 meses (4 semanas con descuento y el mes siguiente) contra no tocar el precio: hacia la izquierda, cuesta más de lo que suma.",
-        `Venden de ${fmt(uB)} a ${fmt(uE, 1)} unidades por mes entre los ${E.length}. En margen, entre <b>${plataS(mPeor - mB)}</b> y <b>${plataS(mMejor - mB)}</b> en total (${plataS(mE - mB)} si responden como todas juntas). ${E.filter(e => e.escenarios.every(x => x.dif < 0)).length} pierden margen en los tres escenarios.`,
-        mE - mB < 0 ? "Si responden como todas juntas, los descuentos cuestan margen: mueven poco. Por eso son una prueba de 4 semanas, medida contra una sucursal sin descuento, que se corta si no funciona."
-          : mPeor - mB < 0 ? "En el escenario del medio suman margen, pero en el peor lo pierden: por eso son una prueba de 4 semanas, medida contra una sucursal sin descuento, que se corta si no funciona."
-          : "Aun en el peor escenario suman margen. Igual se prueban 4 semanas contra una sucursal sin descuento: la evidencia es de productos que venden bien.")}` : `<p class="nota">Ninguno de los productos filtrados tiene descuento ahora.</p>`}</div></div>`);
+      <span class="num r">${fmt(v.stock)} u · ${pct(v.stock / (stock || 1))}</span></div>`;
+  const conD = vias.filter(v => /^Descuento/.test(v.via) && v.stock), sinD = sinPrecio.filter(v => v.stock);
+  const uMas = uE - uB, pierden3 = E.filter(e => e.escenarios.every(x => x.dif < 0)).length;
+  // la respuesta primero, en una frase; los dos gráficos de abajo la respaldan
+  const conclusion = `<p class="titular" style="margin-bottom:1rem">${pDesc < 0.5 ? `<b>La mayor parte del efecto no viene del precio.</b> El ${pct(1 - pDesc)} del stock se mueve con acciones que no lo tocan.`
+      : `<b>El descuento es la vía principal:</b> lo lleva el ${pct(pDesc)} del stock.`}${E.length ? ` ${E.length === 1 ? "El descuento de ahora vendería" : `Los ${E.length} descuentos de ahora venderían`} ${fmt(Math.abs(uMas))} u ${uMas >= 0 ? "más" : "menos"} por mes y, en el escenario del medio, ${mE - mB < 0 ? `dejarían ${plata(mB - mE)} menos de margen` : `sumarían ${plata(mE - mB)} de margen`}: por eso son pruebas de 4 semanas que se cortan si no funcionan.` : ""}</p>`;
+  const b4 = bloque(`${conclusion}<div class="dos"><div><h3>Qué acción lleva cada parte del stock</h3>
+      ${conD.length ? `<p class="nota"><b>Con descuento</b> · ${pct(pDesc)} del stock</p><div class="hbars">${conD.map(filaVia).join("")}</div>` : ""}
+      <p class="nota"><b>Sin tocar el precio</b> · ${pct(1 - pDesc)} del stock</p><div class="hbars">${sinD.map(filaVia).join("")}</div>
+      ${interp("Cada producto tiene una sola acción principal, y la barra es su stock en unidades. Verde: lleva descuento; azul: se resuelve sin tocar el precio.",
+        `${pDesc < 0.5 ? "Solo el" : "El"} <b>${pct(pDesc)}</b> del stock (${fmt(viaDesc)} u) lleva descuento, ahora o si se cumple una condición${(() => { const n = P.filter(p => p.nuestro !== "no" && p.causa !== "precio").length; return n ? ` (${n} de esos productos son de otras causas: descuentos ya aceptados que hay que cobrar, o que dependen de otra acción)` : ""; })()}. El otro ${pct(1 - pDesc)} se mueve sin tocar el precio; lo más grande: ${listaY(sinD.slice(0, 2).map(v => `${esc(v.via.toLowerCase().replace(/ \(.*\)$/, ""))} (${fmt(v.stock)} u)`))}.`,
+        pDesc < 0.5 ? "La mayor parte del stock quieto se resuelve en el local, con Compras o con el proveedor, no con el precio."
+          : "Más de la mitad del stock lleva descuento: por eso cada uno es una prueba con meta y fecha, y se corta si no funciona.")}</div>
+    <div><h3>Cuánto margen ganan o pierden los descuentos de ahora</h3>${E.length ? `<div class="graf bajo"><canvas id="g-efecto"></canvas></div>
+      ${interp("Para cada producto con descuento ahora: cuánto margen ganaría (hacia la derecha) o perdería (hacia la izquierda) en 2 meses, las 4 semanas de descuento más el mes siguiente, contra dejar el precio. Hay tres escenarios, según cómo respondió antes el mismo descuento en su tipo: como el peor local, como todos juntos o como el mejor.",
+        `Con descuento, ${E.length === 1 ? "venderían" : `los ${E.length} juntos venderían`} unas <b>${fmt(uE)} u por mes</b>, contra ${fmt(uB)} sin descuento (${uMas >= 0 ? `${fmt(uMas)} más` : `${fmt(-uMas)} menos`}). En margen: <b>${plataS(mE - mB)}</b> en el escenario del medio; ${plataS(mPeor - mB)} en el peor y ${plataS(mMejor - mB)} en el mejor.${pierden3 ? ` ${pierden3} de ${E.length} pierden margen en los tres escenarios.` : ""}`,
+        mE - mB < 0 ? "En el escenario del medio, los descuentos venden algo más pero dejan menos margen. Por eso son una prueba de 4 semanas, medida contra un local sin descuento, que se corta si no funciona."
+          : mPeor - mB < 0 ? "En el escenario del medio suman margen, pero en el peor lo pierden: por eso son una prueba de 4 semanas, medida contra un local sin descuento, que se corta si no funciona."
+          : "Aun en el peor escenario suman margen. Igual se prueban 4 semanas contra un local sin descuento: la evidencia es de productos que venden bien.")}` : `<p class="nota">Ninguno de los productos filtrados tiene descuento ahora.</p>`}</div></div>`);
   s4.append(b4);
   main.append(s4);
   if (E.length) grafico($("#g-efecto"), {
@@ -655,18 +670,20 @@ function vistaDecision(main) {
     { k: "capital", t: "a costo", r: true, f: v => plata(v), csv: v => v }], P.map(p => ({ ...p, via: viaDe(p), capital: p.stock * p.costo })), "vias"));
 
   // 5 · La consultora
-  const s5 = seccion("¿Y la consultora?", `Descuenta en ${P.filter(p => p.consultora.startsWith("descontar")).length} de ${P.length} productos; esta propuesta, en ${ya.length} ahora y ${cond.length} condicionales. <b>Tomaríamos solo una parte.</b>`);
+  const s5 = seccion("¿Y la consultora?", "");
   const coinc = D.grupos.map(g => { const ps = P.filter(p => p.n === g.n); return { ...g, ps: ps.length, si: ps.filter(p => p.coincide === "sí").length }; }).filter(g => g.ps);
   const coTodo = coinc.filter(g => g.si === g.ps), coNada = coinc.filter(g => g.si === 0);
   const mxc = Math.max(...D.grupos.map(g => P.filter(p => p.n === g.n).length), 1);
-  const b5 = bloque(`<div class="dos"><div><h3>¿Coincide su decisión de precio? Por grupo</h3><div class="hbars">${D.grupos.filter(g => P.some(p => p.n === g.n)).map(g => {
+  const nCons = P.filter(p => p.consultora.startsWith("descontar")).length, nCoinc = P.filter(p => p.coincide === "sí").length;
+  const errMax = [...D.consultora.chequeos].sort((a, b) => b.productos - a.productos)[0];
+  const b5 = bloque(`${conclusionHTML(`<b>Tomaríamos solo una parte.</b> La consultora descuenta en ${nCons} de ${P.length} productos; esta propuesta, en ${ya.length} ahora y ${cond.length} si se cumple una condición. Coinciden en ${nCoinc}: tomamos su "no descontar" donde la venta acompaña al stock y sus descuentos en productos lentos de los tipos que responden. El resto lo reemplazamos: usa el precio para problemas que no son de precio${errMax ? `, y en ${errMax.productos} productos ${esc(errMax.chequeo)}` : ""}.`)}<div class="dos"><div><h3>Dónde coincide con esta propuesta, por grupo</h3><div class="hbars">${D.grupos.filter(g => P.some(p => p.n === g.n)).map(g => {
       const ps = P.filter(p => p.n === g.n), si = ps.filter(p => p.coincide === "sí").length;
       return `<div class="hbar"><span>${chip(g.n)} ${esc(g.nombre)}</span><span class="pista" title="${si} coinciden, ${ps.length - si} no"><i style="width:${100 * si / mxc}%;background:var(--good)"></i><i style="width:${100 * (ps.length - si) / mxc}%;background:var(--bad)"></i></span><span class="num r">${si} de ${ps.length}</span></div>`;
     }).join("")}</div><div class="leyenda" style="margin-top:8px"><span><i style="background:var(--good)"></i>coincide</span><span><i style="background:var(--bad)"></i>no coincide</span></div>
       ${interp("Por grupo, en cuántos productos la consultora decide lo mismo que esta propuesta sobre descontar o no (verde) y en cuántos no (rojo).",
         `Coincide en ${P.filter(p => p.coincide === "sí").length} de ${P.length}.${coTodo.length ? ` En todos los productos de: ${coTodo.map(g => `<b>${esc(g.nombre.toLowerCase())}</b>`).join(", ")}.` : ""}${coNada.length ? ` En ninguno de: ${coNada.map(g => `<b>${esc(g.nombre.toLowerCase())}</b>`).join(", ")}.` : ""}`,
         coNada.length ? `Donde no coincide, la consultora descuenta productos que ${coNada.map(g => ({ 1: "se venden solos", 2: "recién llegaron", 3: "tienen algo en curso", 4: "nunca se exhibieron", 5: "se cortaron sin cambiar el precio", 6: "están en el local equivocado", 7: "tienen descuentos aprobados que nunca se cobraron", 8: "venderían bajo costo", 9: "no responden al descuento" })[g.n]).join(", ")}: problemas que el precio no resuelve.` : "")}</div>
-    <div><h3>Dónde se aparta, comprobable con las hojas</h3><table><tbody>${D.consultora.chequeos.map(c => `<tr><td>${esc(c.chequeo)}</td><td class="r num">${c.productos}</td></tr>`).join("")}</tbody></table>
+    <div><h3>Dónde se equivoca, comprobable con las hojas</h3><table><tbody>${D.consultora.chequeos.map(c => `<tr><td>${esc(c.chequeo)}</td><td class="r num">${c.productos}</td></tr>`).join("")}</tbody></table>
       ${interp("Cada fila es un tipo de error, con cuántos productos lo tienen. Todos se comprueban con las hojas de datos.",
         `${[...D.consultora.chequeos].sort((a, b) => b.productos - a.productos).slice(0, 2).map(c => `en <b>${c.productos} productos</b> ${esc(c.chequeo)}`).join("; ")}. Descontar los que venden al día cedería unos ${plata(D.consultora.regalo)} en 30 días sin necesidad.`,
         "Por eso no la usaríamos tal cual: tomamos su \"no descontar\" donde la venta acompaña al stock y su descuento en productos lentos de los tipos que responden, y reemplazamos el resto.")}</div></div>`);
@@ -1050,7 +1067,7 @@ function vistaSeguimiento(main) {
     const acc = agrupar(porFecha[d], p => /^(Bajar|Probar|Aplicar)/.test(p.accion) ? "con descuento" : p.accion.split(" ·")[0].toLowerCase());
     const b = document.createElement("button");
     b.type = "button"; b.className = "rev"; b.setAttribute("aria-pressed", String(S.rev === d));
-    b.innerHTML = `<b>${d}</b><span>${porFecha[d].length} productos</span><span>${Object.entries(acc).map(([a, xs]) => `${xs.length} ${a}`).join(" · ")}</span>`;
+    b.innerHTML = `<b>${d}</b><span>${porFecha[d].length} ${porFecha[d].length === 1 ? "producto" : "productos"}</span><span>${Object.entries(acc).map(([a, xs]) => `${xs.length} ${a}`).join(" · ")}</span>`;
     b.addEventListener("click", () => cambiar({ rev: S.rev === d ? "" : d }));
     revs.append(b);
   });
@@ -1387,7 +1404,7 @@ function vistaStock(main) {
     }).join("")}</tr>`).join("")}</tbody></table></div>`);
   const mixtos = prods.filter(p => { const ls = (lotesSku[p.sku] || []).filter(l => sucsV.some(sc => sc.id === l.suc)); return ls.some(l => l.vendidas > 0) && ls.some(l => l.vendidas === 0); });
   b3.insertAdjacentHTML("beforeend", interp(`Cada fila es un producto (ordenados por grupo) y cada columna una sucursal; la celda muestra ${nomM} de ese producto en ese local, y queda vacía si no está ahí. ${{ pe: "Verde: al día (90 % o más de lo esperado); rojo: atrasado.", pv: "Verde: vendió la mitad o más de lo que había; rojo: menos de la mitad.", ds: "Verde: el stock dura menos de 90 días; rojo: más, o no vendió nada el último mes." }[S.mapa] || "Sin colores: es una cantidad."} Cuanto más intenso, más lejos del corte. Tocá una fila para ver la ficha.`,
-    mixtos.length ? `${mixtos.length} productos venden en un local y en otro no vendieron nada${mixtos.length > 4 ? `, por ejemplo ${mixtos.slice(0, 4).map(p => esc(p.producto)).join(", ")}` : `: ${mixtos.map(p => esc(p.producto)).join(", ")}`}.` : "Ningún producto vende en un local y nada en otro.",
+    mixtos.length ? `${mixtos.length} ${mixtos.length === 1 ? "producto vende en un local y en otro no vendió" : "productos venden en un local y en otro no vendieron"} nada${mixtos.length > 4 ? `, por ejemplo ${mixtos.slice(0, 4).map(p => esc(p.producto)).join(", ")}` : `: ${mixtos.map(p => esc(p.producto)).join(", ")}`}.` : "Ningún producto vende en un local y nada en otro.",
     mixtos.length ? "Si el mismo producto, al mismo precio, se vende en un local y no en otro, el precio no lo explica: lo más probable es la ubicación o la exhibición. La propuesta lo trata así (grupo 6), salvo que otra causa lo explique antes (por ejemplo, un producto recién llegado o con un cambio en curso)." : ""));
   b3.querySelectorAll("tr.clic").forEach(tr => tr.addEventListener("click", () => cambiar({ tab: "productos", sku: tr.dataset.k }, true)));
   b3.querySelector("h3").after(controles([["mapa", "Mostrar en el mapa", Object.entries(MAPAS).map(([k, [t]]) => [k, t])]]));   // el selector, junto a lo que cambia
@@ -1464,7 +1481,7 @@ function vistaSucursales(main) {
   const noAca = filasL.filter(l => l.rotacion === "Sin ventas" && l.otras > 0);
   const b2 = bloque(`<div class="dos"><div><h3>¿Qué rotó en ${sid}?</h3><table><tbody>${ROT.map((r, i) => {
       const g = filasL.filter(l => l.rotacion === r);
-      return `<tr><td><span class="${["mal", "medio", "ok"][i]}">${r}</span></td><td class="r num">${g.length} productos</td><td class="r num">${fmt(suma(g, l => l.unidades))} u</td></tr>`; }).join("")}</tbody></table>
+      return `<tr><td><span class="${["mal", "medio", "ok"][i]}">${r}</span></td><td class="r num">${g.length} ${g.length === 1 ? "producto" : "productos"}</td><td class="r num">${fmt(suma(g, l => l.unidades))} u</td></tr>`; }).join("")}</tbody></table>
       ${interp(`Los productos de ${sid}, según cómo vendieron en el período: sin ninguna venta, vendieron pero se frenaron (nada en los últimos 30 días) o siguen vendiendo.`,
         noAca.length ? `<b>No venden en ${sid} pero sí en otra sucursal:</b> ${noAca.map(l => `${esc(l.producto)} (${fmt(l.unidades)} u acá; ${fmt(l.otras)} vendidas en otras)`).join(", ")}.` : `Todos los que no venden en ${sid} tampoco venden en otras sucursales.`,
         noAca.length ? "Si se vende en otro local al mismo precio, acá el problema es la ubicación o la exhibición: candidatos a mover." : "")}</div>
@@ -1538,11 +1555,11 @@ function vistaDescuentos(main) {
   const s0 = seccion("Descuentos: ¿bajar el precio vende más? ¿Conviene?",
     `Lo que pasó con los ${EV.length} descuentos que sí se cobraron (del ${fechaAR(RD.desde)} al ${fechaAR(RD.hasta)}, uno por tipo de producto). Es la evidencia con la que se decide a quién descontar.${fechasActivas ? " <b>Los períodos son fijos: el filtro de fechas no cambia esta pestaña.</b>" : ""}`);
   s0.append(bloque(`<div class="respuesta"><ol>
-      <li><b>¿Se cobraron?</b><p>${verif ? `Pocos: de las ${verif} sugerencias aceptadas que se pueden verificar, <b>${cuantos(ESTADOS_CAJA[0])} se cobraron en caja</b>. Solo esas se pueden medir.` : "No hay sugerencias aceptadas que se puedan verificar con estos filtros."}</p></li>
-      <li><b>¿Vendieron más?</b><p>${firmes.length ? `En ${firmes.length === 1 ? "un tipo" : `${firmes.length} tipos`}, claramente: <b>${lista(firmes.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`))}</b>.` : "En ningún tipo de forma clara."}${debiles.length ? ` ${mayus(lista(debiles.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`)))}: subió, pero puede ser casualidad.` : ""}${nada.length ? ` En ${lista(nada.map(e => tipoTxt(e.tipo)))}, la diferencia el cambio entra en el margen de error.` : ""}</p></li>
+      <li><b>¿Se cobraron?</b><p>${verif ? `${cuantos(ESTADOS_CAJA[0]) < verif / 2 ? "Pocos: d" : "D"}e las ${verif} sugerencias aceptadas que se pueden verificar, <b>${cuantos(ESTADOS_CAJA[0])} se cobraron en caja</b>. Solo esas se pueden medir.` : "No hay sugerencias aceptadas que se puedan verificar con estos filtros."}</p></li>
+      <li><b>¿Vendieron más?</b><p>${firmes.length ? `En ${firmes.length === 1 ? "un tipo" : `${firmes.length} tipos`}, claramente: <b>${lista(firmes.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`))}</b>.` : "En ningún tipo de forma clara."}${debiles.length ? ` ${mayus(lista(debiles.map(e => `${tipoTxt(e.tipo)} ${sgn(e.respuesta - 1)}`)))}: subió, pero puede ser casualidad.` : ""}${nada.length ? ` En ${lista(nada.map(e => tipoTxt(e.tipo)))}, el cambio entra en el margen de error.` : ""}</p></li>
       <li><b>¿Pudo ser otra cosa?</b><p>Un movimiento general de la venta, no: productos que no tuvieron ningún cambio vendieron <b>${sgn(D.control.resp - 1)}</b> esas mismas semanas. La temporada propia de cada tipo no se puede descartar, porque no hay datos de otros años: por eso cada descuento se prueba con una sucursal de comparación.</p></li>
       ${N.length ? `<li><b>¿Duró?</b><p>${adel.length ? `En ${adel.length} de ${N.length}, después la venta cayó por debajo de antes: <b>parte de lo vendido de más fue adelantar compras</b>.` : "Lo vendido de más no se perdió después."}</p></li>
-      <li><b>¿Convino?</b><p>${ganaron.length === N.length ? "Sí, en todos." : `Casi nunca: sumando el mes siguiente, <b>${N.length - ganaron.length} de ${N.length} dejaron menos margen</b> que no hacer nada (${plataS(netoM)} en total).${ganaron.length ? ` Solo ganó ${ganaron.map(n => esc(n.producto)).join(", ")}.` : ""}`}</p></li>` : ""}
+      <li><b>¿Convino?</b><p>${ganaron.length === N.length ? "Sí, en todos." : `${ganaron.length < N.length / 2 ? "Casi nunca: s" : ganaron.length ? "No siempre: s" : "No: s"}umando el mes siguiente, <b>${N.length - ganaron.length} de ${N.length} dejaron menos margen</b> que no hacer nada (${plataS(netoM)} en total).${ganaron.length ? ` Solo ${ganaron.length === 1 ? "ganó" : "ganaron"} ${listaY(ganaron.map(n => esc(n.producto)))}.` : ""}`}</p></li>` : ""}
       <li><b>Entonces</b><p>Descuento solo en los tipos que respondieron y solo donde queda margen, siempre <b>a prueba</b>, con fechas y medido: ${D.k.ya} ahora y ${D.k.cond} si se cumple una condición. Los otros ${D.k.sin} se resuelven sin tocar el precio (pestaña Decisión).</p></li>
     </ol>
     <div class="cifras">

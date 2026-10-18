@@ -2,7 +2,7 @@
 
 Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hacer con el precio de cada uno de los 48 productos y por qué, juzga el algoritmo de la consultora y arma un tablero para seguir la decisión semana a semana.
 
-**Tablero online: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)**. Muestra el Excel de la consigna (datos al 15/03/2026). Cada Excel nuevo se carga **desde el mismo tablero**, con el botón **Subir Excel**: el proceso corre en el servidor y el tablero pasa a mostrar la propuesta nueva y a medir si se cumplió la anterior. Abajo está [el paso a paso](#cómo-es-el-proceso-paso-a-paso).
+**Tablero online, publicado en Vercel: [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app)**. Muestra el Excel de la consigna (datos al 15/03/2026), guardado en una base SQL (Postgres en Supabase). Cada Excel nuevo se carga **desde el mismo tablero**, con el botón **Subir Excel**: el servidor guarda sus hojas en la base, corre el mismo proceso sobre esos datos y el tablero pasa a mostrar la propuesta nueva y a medir si se cumplió la anterior. Abajo está [el paso a paso](#cómo-es-el-proceso-paso-a-paso).
 
 ![La primera pantalla del tablero: el problema y la solución en un minuto](docs/capturas/decision.png)
 
@@ -10,18 +10,19 @@ Resolución de la prueba técnica. Con los datos al 15/03/2026, propone qué hac
 
 | La consigna pide | Está en |
 |---|---|
-| **El proceso** (pregunta 1) | [`armar_excel.py`](armar_excel.py): lee el Excel y genera todo lo de `salidas/` |
+| **El proceso** (pregunta 1) | [`armar_excel.py`](armar_excel.py): lee el Excel y genera todo lo de `salidas/`. Se vuelve a correr con `python armar_excel.py`, o **subiendo un Excel nuevo en el tablero de Vercel** (botón **Subir Excel**): el servidor corre el mismo proceso |
 | **El archivo con la propuesta** | [`salidas/ventas_y_stock.xlsx`](salidas/ventas_y_stock.xlsx), hoja **Propuesta**: acción, motivo, meta y fecha de revisión de los 48 productos |
 | **La nota** (qué miré, qué dejé afuera, efecto a 30 días) | [`salidas/nota.md`](salidas/nota.md) (también en la hoja **Nota** del Excel) |
+| **Todo en un PDF** (la nota, los 48 productos y el tablero) | [`salidas/propuesta_viento_sur.pdf`](salidas/propuesta_viento_sur.pdf) |
 | **Las 5 causas, en cuatro pasos** (qué pasa, la prueba, qué hacemos, cómo lo medimos) | [`salidas/causas.md`](salidas/causas.md) y la primera pantalla del tablero |
 | **El juicio sobre la consultora** | En la nota, sección "Juicio sobre la consultora" |
-| **El tablero** (pregunta 2) | [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), o [`web/index.html`](web/index.html) con doble clic |
+| **El tablero** (pregunta 2) | **Publicado en Vercel:** [viento-sur-tablero.vercel.app](https://viento-sur-tablero.vercel.app), con los datos en una base SQL (Supabase). También se abre sin internet con [`web/index.html`](web/index.html) (doble clic). [Capturas](#el-tablero) |
 | **El proceso alrededor del modelo** (pregunta 3) | [`proceso.md`](proceso.md) |
 | **Herramientas de IA** | En la nota, sección "Herramientas de IA" |
 
 ## La respuesta en corto
 
-**El problema:** hay 5.006 u en stock, 35 de 48 productos venden menos de lo esperado y el 57 % del stock ya pasó su fecha límite. Pero no es un solo problema, y el precio explica una parte chica.
+**El problema:** hay 5.006 u en stock; 35 de 48 productos venden menos de lo previsto para llegar a su objetivo, y el 57 % del stock ya pasó la fecha en que tenía que estar vendido. Pero el precio explica poco: solo el 21 % del stock está en productos donde bajar el precio puede ayudar.
 
 | Por qué no se vende | Productos | Stock | Qué proponemos | ¿Toca el precio? |
 |---|---|---|---|---|
