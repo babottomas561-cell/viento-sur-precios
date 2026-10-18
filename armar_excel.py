@@ -2131,8 +2131,8 @@ def historias(D, ev):
         hacemos="Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
         por_que=f"Se venden solos: bajarles el precio es regalar margen. La consultora descuenta {int(g1.consultora_descuenta.sum())} de estos y cedería unos "
                 f"**$ {dec(regalo_g1(D) / 1e6)} M en 30 días** por ventas que iban a ocurrir igual.",
-        dato="; ".join(x for x in [f"{len(g1)} venden {pct(g1.pct_esperado.min())} o más de lo esperado, con stock para {rango(g1.meses.min() * 30, g1.meses.max() * 30)} días" if len(g1) else "",
-                                   f"{len(g2)} recién llegados al ritmo de su objetivo, pero les sobraría {rango((g2.sobrante / g2.stock).min(), (g2.sobrante / g2.stock).max(), pct)}" if len(g2) else ""] if x),
+        dato="; ".join(x for x in [f"{len(g1)} venden {pct(g1.pct_esperado.min())} o más de lo esperado (stock para {rango(g1.meses.min() * 30, g1.meses.max() * 30)} días)" if len(g1) else "",
+                                   f"{len(g2)} recién llegados cumplen su objetivo, pero les sobraría {rango((g2.sobrante / g2.stock).min(), (g2.sobrante / g2.stock).max(), pct)}" if len(g2) else ""] if x),
         hacer="Dejar el precio, reponer y mover stock", mide="días de stock (mínimo 15)" + ("; sobrante proyectado" if len(g2) else ""),
         medimos="Que no se queden sin stock (meta: nunca menos de 15 días en ningún local)"
                 + (f" y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **{mil(g2.sobrante.sum())} u**)" if len(g2) else "") + ". " + revisa(cz["ok"]))
@@ -2148,7 +2148,7 @@ def historias(D, ev):
         hacemos="Cobrar en caja lo que ya se aprobó, con fecha de inicio y de fin, y esperar a medir los cambios en curso antes de sumar otro.",
         por_que="Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
         dato=f"{aplic} de {verif} descuentos aprobados se cobraron; campañas: {mil(camp_reb)} u con rebaja",
-        hacer="Cobrar lo aprobado, con fechas", mide="precio cobrado contra lista; después, unidades por semana",
+        hacer="Cobrar lo aprobado, con fechas", mide="precio cobrado; después, unidades por semana",
         medimos="Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, "
                 "las unidades por semana contra las de antes. " + revisa(ej))
 
@@ -2217,7 +2217,7 @@ def historias(D, ev):
         hacemos=f"Probar un descuento por 4 semanas solo en los **{n_si} de {len(p9)}** cuyo tipo respondió y les queda margen. Los otros no se bajan: van a outlet o devolución del excedente.",
         por_que="Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
         dato=(y_([f"{tipo(t)} {signo(e.respuesta - 1)}" for t, e in firmes.iterrows()]) + " con descuento; " if len(firmes) else "") + "el resto casi no respondió",
-        hacer=f"Probar descuento 4 semanas en {n_si}", mide=(f"unidades por semana ({dec(base)} → {dec(meta)}) contra una sucursal sin descuento" if ya9 else "unidades por semana"),
+        hacer=f"Probar descuento 4 semanas en {n_si}", mide=(f"unidades por semana ({dec(base)} → {dec(meta)}) contra un local sin descuento" if ya9 else "unidades por semana"),
         medimos=(f"Unidades por semana durante el descuento: hoy **{dec(base)}**, meta **{dec(meta)}** entre los {len(ya9)}. " if ya9 else "")
                 + "Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. " + revisa(p9))
 
@@ -2285,7 +2285,7 @@ def texto_nota(D, ev):
     con_salida = venc[venc.salida.notna()]
     sin_esc = venc[venc.margen < REGLAS["escalera"][0]]                      # ni el primer escalón deja margen
     g2 = D[D.grupo_n == 2]
-    tipos_firmes = ", ".join(ev.index[ev.firme.astype(bool)])
+    tipos_firmes = y_lista(list(ev.index[ev.firme.astype(bool)]))
     debiles = ev[(~ev.firme.astype(bool)) & (ev.respuesta >= REGLAS["respuesta_debil"]) & (ev.despues >= REGLAS["despues_minimo"])]
     sg = lambda x: f"{'+' if x >= 0 else '−'}$ {mil(abs(x))}"
     lentos = [t for t, e in ev.iterrows() if e.lento]
@@ -2310,37 +2310,33 @@ def texto_nota(D, ev):
              "cede margen sin atacar la causa.\n")
     L.append(f"- **Descuento ya, a prueba ({len(ya)}):** " + ", ".join(f"{p} ({f.descuento} %{', el ya aceptado' if f.accion.startswith('Aplicar') else ''})" for p, f in zip(ya.producto, ya.itertuples())) + ".")
     L.append(f"- **Descuento si se cumple una condición ({len(cond)}):** " + ", ".join(cond.producto) + ".")
-    L.append(f"- **Criterios:** su tipo respondió ({tipos_firmes} con suba clara; {', '.join(debiles.index) or 'ninguno'} débil: solo se prueba) y queda al menos {pct(REGLAS['margen_minimo'])} de margen. "
-             "Todo descuento va con fechas, 4 semanas, y se mide también el mes siguiente.")
+    L.append(f"- **Criterios:** su tipo respondió ({tipos_firmes}, claro; {y_lista(list(debiles.index)) or 'ninguno'}, débil: solo se prueba) y queda al menos {pct(REGLAS['margen_minimo'])} de margen. "
+             "Siempre con fechas, 4 semanas, midiendo también el mes siguiente.")
     if len(venc):
         n_esc = int(venc.escalones.apply(lambda x: isinstance(x, list) and len(x) > 0).sum())
-        L.append(f"- **Stock vencido ({len(venc)} productos):** primero la solución de su causa; si no funcionó, en los {n_esc} cuyo tipo respondió se liquida con fechas "
-                 f"({' y después '.join(pct(d) for d in REGLAS['escalera'])}, {REGLAS['escalon_dias']} días cada uno) y en los otros {len(venc) - n_esc}, devolución u outlet; nunca debajo del costo. "
-                 f"Última salida: {pd.Timestamp(con_salida.salida.max()):%d/%m/%Y}.")
-    L.append("\nCada causa en cuatro pasos (qué pasa, la prueba, qué hacemos, cómo lo medimos): [`causas.md`](causas.md) y la primera pantalla del tablero. "
-             "Los 48 con acción, motivo, indicadores, meta y fecha de revisión: hoja **Propuesta** y la ficha de cada producto.\n")
+        L.append(f"- **Stock vencido ({len(venc)} productos):** primero la solución de su causa; si no funciona, en los {n_esc} cuyo tipo respondió se liquida con fechas "
+                 f"({' y '.join(pct(d) for d in REGLAS['escalera'])}, {REGLAS['escalon_dias']} días cada uno) y en los otros {len(venc) - n_esc}, devolución u outlet. Nunca bajo costo; "
+                 f"última salida: {pd.Timestamp(con_salida.salida.max()):%d/%m/%Y}.")
+    L.append("\nCada causa en detalle: [`causas.md`](causas.md). Cada producto: hoja **Propuesta** y su ficha en el tablero.\n")
     L.append("## Qué miré")
     L.append("- **Ritmo del lote** (la cuenta de la consigna), lote por lote.")
-    L.append("- **Por qué no vende cada uno**: el mismo producto en otras sucursales, los de su tipo, la última venta, campañas, cambios de precio y sugerencias anteriores.")
-    L.append(f"- **Los {len(ev)} descuentos aplicados**: cuánto cambió la venta durante, con su margen de error, contra un control sin cambios, y qué pasó el mes siguiente.\n")
+    L.append("- **Por qué no vende cada uno**: el mismo producto en otros locales, los de su tipo, la última venta, campañas, cambios de precio y sugerencias.")
+    L.append(f"- **Los {len(ev)} descuentos cobrados**: cuánto cambió la venta, con su margen de error y contra un control sin cambios, y qué pasó el mes siguiente.\n")
     L.append("## Qué interpreté")
-    L.append("- La decisión de precio es una por producto; las sucursales sirven para entender por qué no vende.")
-    L.append("- Una sugerencia aceptada sin fechas de vigencia no se aplicó: no se ve en el precio cobrado.")
-    L.append("- Un producto lento responde al descuento como el de su tipo que se descontó (con los límites de abajo).")
-    L.append("- La fecha límite marca la urgencia, no el diagnóstico: un producto vencido que nunca se exhibió, primero se exhibe.")
-    L.append(f"- El stock de cada día se reconstruye desde el del {FOTO:%d/%m}: supone que no hubo reposiciones ni transferencias.\n")
+    L.append("- Un precio por producto; las sucursales explican por qué no vende.")
+    L.append("- Una sugerencia aceptada sin fechas no se aplicó, salvo que se vea en el precio cobrado.")
+    L.append("- Un producto lento responde como el de su tipo que se descontó (es un techo).")
+    L.append("- La fecha límite marca la urgencia, no el diagnóstico: lo vencido que nunca se exhibió, primero se exhibe.")
+    L.append(f"- El stock de cada día se reconstruye desde el del {FOTO:%d/%m}, sin reposiciones ni transferencias.\n")
     L.append("## Qué dejé afuera y qué limita la evidencia")
-    L.append(f"- Como medida de cuánto responde la venta al descuento: las {len(acept) - acept_aplicadas} sugerencias aceptadas sin fechas (nunca se cobraron; "
-             "sí sirven para ver si lo aprobado llega a caja), y las diferencias por sucursal en la respuesta al precio (con 2 locales y pocas ventas no salen del margen de error).")
+    L.append(f"- **Las {int(acept.fecha_vigencia_desde.isna().sum())} sugerencias aceptadas sin fechas**, como medida de respuesta al precio: no tienen un período que comparar.")
     L.append(f"- **La respuesta al descuento se midió en productos que venden bien**" + (f" (salvo {', '.join(lentos)})" if lentos else "")
-             + ": para los lentos, el efecto esperado es un techo. Es un producto por tipo, en 2 sucursales y las mismas 4 semanas, con un control de 2 productos. "
-             "Por eso todo descuento es una prueba; cuando haya uno medido en un producto lento, el proceso usa ese.")
-    L.append("- **La temporada de cada tipo**: no hay datos de otros años. El control solo descuenta el movimiento general de esas semanas; "
-             "la temporada de cada producto se va a ver con la sucursal de comparación de cada prueba.")
-    L.append("- Talles (no hay datos), el costo de tener el stock quieto y el efecto de reponer, mover u outlet (no se pueden medir).\n")
+             + ": para los lentos es un techo. Es un producto por tipo, en 2 sucursales y 4 semanas: por eso todo descuento es una prueba.")
+    L.append("- **La temporada de cada tipo**: no hay datos de otros años; cada prueba lleva una sucursal de comparación.")
+    L.append("- Talles (no hay datos), el costo del stock quieto y el efecto de reponer, mover u outlet.\n")
     L.append("## Cómo estimo el efecto en 30 días")
-    L.append("Con lo que pasó antes con el mismo descuento (mismo tipo y mismo %), descontado el movimiento general de esas semanas, en tres escenarios: la peor sucursal, todas juntas "
-             "y la mejor. Donde no se toca el precio, el efecto de precio es cero.\n")
+    L.append("Con el mismo descuento medido antes en su tipo, descontado el movimiento general, en tres escenarios: peor sucursal, todas juntas y mejor. "
+             "Sin cambio de precio, el efecto de precio es cero.\n")
     if ESC:
         L.append("| producto | descuento | medido en | para empatar tiene que vender | margen en 30 días: peor / todas / mejor |")
         L.append("|---|---|---|---|---|")
@@ -2350,24 +2346,25 @@ def texto_nota(D, ev):
         t30 = [sum(e["escenarios"][i]["dif_30"] for e in ESC.values()) for i in range(3)]
         u30 = [sum(e["escenarios"][i]["u_dur"] for e in ESC.values()) for i in range(3)]
         tot = [sum(e["escenarios"][i]["dif"] for e in ESC.values()) for i in range(3)]
+        st_esc = sum(D.stock[s] for s in ESC)
         L.append(f"\n**En 30 días**: {mil(sum(e['v30'] for e in ESC.values()))} → {dec(u30[1])} u (entre {dec(u30[0])} y {dec(u30[2])}) y {sg(t30[1])} de margen "
                  f"(entre {sg(t30[0])} y {sg(t30[2])}); sumando el mes siguiente, entre {sg(tot[0])} y {sg(tot[2])}. "
-                 + (f"Son {mil(u30[1] - sum(e['v30'] for e in ESC.values()))} u más en 30 días, sobre {mil(sum(D.stock[s] for s in ESC))} u en stock de esos productos: "
-                    + ("el stock quieto sale sobre todo por las otras acciones. " if sum(D.stock[s] for s in ESC) < D.stock.sum() / 2
-                       else "el descuento es una vía importante, por eso cada uno tiene meta y fecha. "))
-                 + "La escalera no tiene efecto estimado (arriba de 20 % no hay evidencia): cada escalón se mide.")
+                 + f"Son {mil(u30[1] - sum(e['v30'] for e in ESC.values()))} u más, sobre {mil(st_esc)} u en stock de esos productos: "
+                 + ("el stock quieto sale sobre todo por las otras acciones. " if st_esc < D.stock.sum() / 2 else "el descuento es una vía importante, por eso cada uno tiene meta y fecha. ")
+                 + "La escalera no tiene efecto estimado: se mide.")
         pierden = [s for s, e in ESC.items() if e["escenarios"][2]["dif_30"] < 0]
         if pierden:
-            L.append(f"\n**{y_lista([D.producto[s] for s in pierden])} pierde{'n' if len(pierden) > 1 else ''} margen en 30 días aun en la mejor sucursal**, y se prueba{'n' if len(pierden) > 1 else ''} igual: "
-                     + "; ".join(f"{D.producto[s]} tiene el {pct(D.u_vencidas[s] / D.stock[s])} del stock vencido y al ritmo de hoy tardaría {mil(D.meses[s])} meses en venderlo" for s in pierden)
-                     + ". La cuenta de 30 días supone que lo que no se vende ahora se vende después a precio de lista, y con ese stock no pasa: termina en devolución u outlet, "
-                     "sin margen. Por eso la prueba tiene meta y fecha, y si no llega se corta.")
+            n_ = "n" if len(pierden) > 1 else ""
+            L.append(f"\n**{y_lista([D.producto[s] for s in pierden])} pierde{n_} margen aun en la mejor sucursal** y se prueba{n_} igual: "
+                     + "; ".join(f"{D.producto[s]}, con {pct(D.u_vencidas[s] / D.stock[s])} del stock vencido y {mil(D.meses[s])} meses para venderlo al ritmo de hoy" for s in pierden)
+                     + ". Lo que no se venda termina en outlet o devolución, sin margen.")
         L.append("")
     L.append("## Juicio sobre la consultora")
     L.append(f"**Tomaría solo una parte.** Descuenta en {len(cons_desc)} de 48 productos; esta propuesta, en {len(ya)} ya y {len(cond)} con condición. Coinciden en {len(coinc)} de 48.")
-    L.append(f"- **Tomo** su \"no descontar\" donde la venta acompaña al stock, y descontar productos lentos de los tipos que respondieron ({tipos_firmes}), con el porcentaje probado en cada tipo.")
-    L.append("- **Reemplazo el resto**: usa el precio para problemas que no son de precio, los de las otras 4 causas de la tabla.")
-    L.append(f"- **Errores que se comprueban con las hojas**: en {len(sobra)} productos proyecta vender más de lo que hay en stock y en {len(bajo)} vende bajo costo.")
+    L.append(f"- **Tomo** su \"no descontar\" donde la venta acompaña al stock, y sus descuentos en productos lentos de {tipos_firmes}, con el porcentaje probado. "
+             "**Reemplazo el resto**: usa el precio para problemas de las otras 4 causas.")
+    L.append(f"- **Errores que se comprueban con las hojas**: en {len(sobra)} productos proyecta vender más que el stock, en {len(bajo)} vende bajo costo y en los "
+             f"{int(((D.grupo_n == 1) & D.consultora_descuenta).sum())} que venden bien cedería $ {dec(regalo_g1(D) / 1e6)} M en 30 días por ventas que iban a ocurrir igual.")
     cd_ = cons_desc.join(h["propuesta_consultora"].set_index("sku").unidades_proyectadas_30d)
     con_v = cd_[cd_.v30 > 0]
     mult = con_v.unidades_proyectadas_30d / con_v.v30
@@ -2375,28 +2372,31 @@ def texto_nota(D, ev):
     nada_ = ev[~ev.firme.astype(bool)].sort_values("respuesta")
     cons_tipo = mult.groupby(con_v.tipo).median()
     sube = mult[(mult >= 1.2) & (mult <= 1.55)]                  # las subas "de fórmula": +20 % a +55 %
-    vendio = lambda r: "no vendieron más" if abs(r - 1) < 0.005 else f"vendieron {signo(r - 1)}"
     formula = len(mult) > 0 and len(sube) >= 0.75 * len(mult)    # el patrón se afirma solo si se cumple en 3 de cada 4
     proy = ""
     if formula:
         proy = (f"en {len(sube)} de los {len(mult)} con ventas, la venta con descuento sube entre {signo(sube.min() - 1)} y {signo(sube.max() - 1)}, sin importar el tipo ni el porcentaje"
-                + (f" ({tipo_txt(nada_.index[0])}, que con descuento {vendio(nada_.respuesta.iloc[0])}, proyecta {signo(cons_tipo[nada_.index[0]] - 1)})"
-                   if len(nada_) and nada_.index[0] in cons_tipo and cons_tipo[nada_.index[0]] > 1.05 else ""))
+                + (f" ({tipo_txt(nada_.index[0])} no vendieron más con descuento y les proyecta {signo(cons_tipo[nada_.index[0]] - 1)})"
+                   if len(nada_) and nada_.index[0] in cons_tipo and cons_tipo[nada_.index[0]] > 1.05 and abs(nada_.respuesta.iloc[0] - 1) < 0.05 else ""))
     if len(sin_v) and sin_v.nunique() == 1:
         proy += (", y " if proy else "") + f"a los {len(sin_v)} sin ventas en 30 días les pone {mil(sin_v.iloc[0])} u a cada uno"
-    L.append((f"- **Sus proyecciones no salen de los datos**: {proy}. En los" if proy else "- **Lo que cede**: en los")
-             + f" {int(((D.grupo_n == 1) & D.consultora_descuenta).sum())} que venden bien, sus descuentos cederían $ {dec(regalo_g1(D) / 1e6)} M en 30 días por ventas que iban a ocurrir igual.\n")
+    if proy:
+        L.append(f"- **Sus proyecciones no salen de los datos**: {proy}.")
+    L.append("")
     L.append("## Dos hallazgos")
     L.append(f"- **Lo aprobado no llega a caja**: de las {acept_verificables} sugerencias aceptadas que se pueden verificar en las ventas, {'solo ' if acept_aplicadas < acept_verificables / 2 else ''}{acept_aplicadas} se ven en el precio cobrado. "
              + ("Antes que un mejor algoritmo, hace falta que lo aprobado se aplique." if acept_aplicadas < acept_verificables / 2
                 else "Que lo aprobado se cobre sigue siendo lo primero que se controla."))
     if len(g2):
         s_ = g2.sobrante / g2.stock
-        L.append(f"- **Los objetivos no buscan vender todo el stock**: los {len(g2)} recién llegados venden al ritmo de su objetivo y aun así les sobraría entre el "
-                 f"{pct(s_.min())} y el {pct(s_.max())} a la fecha límite. Parte del stock quieto empieza en cuánto se compra.\n")
+        L.append(f"- **Los objetivos no buscan vender todo el stock**: los {len(g2)} recién llegados cumplen su objetivo y aun así les sobraría "
+                 f"{pct(s_.min())} a {pct(s_.max())} a la fecha límite. Parte del stock quieto empieza en la compra.\n")
     L.append("## Herramientas de IA")
-    L.append("Claude (Claude Code) como asistente de programación y análisis: leer los datos, escribir y revisar el código, armar el Excel y el tablero, y redactar. "
-             "Los criterios los discutí y elegí yo. Las cifras salen del script y se verificaron contra un cálculo independiente hecho directo del Excel original.")
+    L.append("Usé **Claude Code** (Claude, de Anthropic) en todo el trabajo:")
+    L.append("- **Código**: el proceso, el tablero, la base SQL (Supabase, en Vercel) y la carga de Excel nuevos.")
+    L.append("- **Control**: auditorías que recalculan cada cifra directo del Excel original, y semanas simuladas para probar el seguimiento (después se borraron).")
+    L.append("- **Redacción**: la nota, los textos del tablero y el README.")
+    L.append("\nYo definí el enfoque, revisé los resultados y pedí las correcciones. Ninguna cifra está escrita a mano.")
     return "\n".join(L)
 
 

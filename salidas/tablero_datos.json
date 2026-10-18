@@ -183,7 +183,7 @@
    ],
    "hacemos": "Dejar el precio. Reponer donde se está por agotar y mover stock de los recién llegados al local donde sí venden.",
    "por_que": "Se venden solos: bajarles el precio es regalar margen. La consultora descuenta 4 de estos y cedería unos **$ 1,6 M en 30 días** por ventas que iban a ocurrir igual.",
-   "dato": "10 venden 133 % o más de lo esperado, con stock para 13 a 25 días; 3 recién llegados al ritmo de su objetivo, pero les sobraría 58 % a 76 %",
+   "dato": "10 venden 133 % o más de lo esperado (stock para 13 a 25 días); 3 recién llegados cumplen su objetivo, pero les sobraría 58 % a 76 %",
    "hacer": "Dejar el precio, reponer y mover stock",
    "mide": "días de stock (mínimo 15); sobrante proyectado",
    "medimos": "Que no se queden sin stock (meta: nunca menos de 15 días en ningún local) y que baje lo que sobraría a la fecha límite en los recién llegados (hoy **125 u**). Se revisa entre el 22/03 y el 15/04, producto por producto (cada ficha tiene su fecha)."
@@ -207,7 +207,7 @@
    "por_que": "Si un descuento nunca se cobró, todavía no sabemos si el precio funciona: aprobar otro es repetir el error. Y si se superponen dos cambios, no se puede saber cuál sirvió.",
    "dato": "8 de 20 descuentos aprobados se cobraron; campañas: 0 u con rebaja",
    "hacer": "Cobrar lo aprobado, con fechas",
-   "mide": "precio cobrado contra lista; después, unidades por semana",
+   "mide": "precio cobrado; después, unidades por semana",
    "medimos": "Que desde el primer día las ventas muestren el precio rebajado (precio cobrado contra precio de lista; meta: el 100 % de lo aprobado en caja) y, después, las unidades por semana contra las de antes. Se revisa entre el 22/03 y el 12/04, producto por producto (cada ficha tiene su fecha)."
   },
   {
@@ -275,7 +275,7 @@
    "por_que": "Es el único lugar con evidencia de que el precio mueve la venta. Aun así el efecto es chico y se midió en productos que venden bien: por eso es una prueba y no una baja definitiva.",
    "dato": "botas +50 % y mochilas +42 % con descuento; el resto casi no respondió",
    "hacer": "Probar descuento 4 semanas en 3",
-   "mide": "unidades por semana (3,7 → 5,7) contra una sucursal sin descuento",
+   "mide": "unidades por semana (3,7 → 5,7) contra un local sin descuento",
    "medimos": "Unidades por semana durante el descuento: hoy **3,7**, meta **5,7** entre los 3. Se compara contra una sucursal sin descuento y se mira el mes siguiente, para ver que no fue solo adelantar compras. Se revisa entre el 12/04 y el 15/04, producto por producto (cada ficha tiene su fecha)."
   }
  ],

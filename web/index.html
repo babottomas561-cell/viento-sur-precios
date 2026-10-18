@@ -39,7 +39,7 @@
 (function () {
   var cargar = function (src, listo) { var s = document.createElement("script"); s.src = src; s.onload = listo; document.body.appendChild(s); };
   var arrancar = function () { cargar("app.js?v=b9fc149f83"); };
-  var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=76076799d9", arrancar); };
+  var local = function (motivo) { window.BASE = { online: false, motivo: motivo }; cargar("datos.js?v=b5e646fac3", arrancar); };
   if (location.protocol === "file:") return local("");
   var enLaCompu = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);   // en la computadora puede no haber servidor: sin aviso
   var q = new URLSearchParams(location.search), pedida = q.get("datos") || q.get("foto") || "";   // ?foto= era el nombre anterior
